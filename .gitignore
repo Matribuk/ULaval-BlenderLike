@@ -39,3 +39,7 @@
 
 # debug information files
 *.dwo
+
+.vscode
+IFT3100A25_TP1_E02
+/obj
