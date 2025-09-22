@@ -5,11 +5,11 @@
 ## 📁 Phase 1: Structure de base et Types fondamentaux
 
 ### Core/Entity.h
-- [ ] Créer type `EntityID` (typedef uint32_t)
-- [ ] Créer classe `Entity` avec ID unique
-- [ ] Méthode `getId()` const
-- [ ] Opérateurs de comparaison (==, <)
-- [ ] Constructeur/destructeur
+- [x] Créer type `EntityID` (typedef uint32_t)
+- [x] Créer classe `Entity` avec ID unique
+- [x] Méthode `getId()` const
+- [x] Opérateurs de comparaison (==, <)
+- [x] Constructeur/destructeur
 
 ### Core/ComponentRegistry.h
 - [ ] Map pour stocker les composants par type
