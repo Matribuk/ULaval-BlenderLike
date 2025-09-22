@@ -1,1 +1,272 @@
 # IFT3100A25_TP1_E02
+
+# TODO List - Projet ECS openFrameworks
+
+## 📁 Phase 1: Structure de base et Types fondamentaux
+
+### Core/Entity.h
+- [ ] Créer type `EntityID` (typedef uint32_t)
+- [ ] Créer classe `Entity` avec ID unique
+- [ ] Méthode `getId()` const
+- [ ] Opérateurs de comparaison (==, <)
+- [ ] Constructeur/destructeur
+
+### Core/ComponentRegistry.h
+- [ ] Map pour stocker les composants par type
+- [ ] Template `registerComponent<T>(EntityID)`
+- [ ] Template `getComponent<T>(EntityID)`
+- [ ] Template `removeComponent<T>(EntityID)`
+- [ ] Template `hasComponent<T>(EntityID)`
+- [ ] Méthode `removeAllComponents(EntityID)`
+- [ ] Destructeur avec cleanup
+
+### Core/EntityManager.h
+- [ ] Générateur d'IDs uniques
+- [ ] Vector des entités actives
+- [ ] Méthode `createEntity()` → EntityID
+- [ ] Méthode `destroyEntity(EntityID)`
+- [ ] Méthode `isEntityValid(EntityID)`
+- [ ] Méthode `getAllEntities()`
+
+## 📁 Phase 2: Composants de base
+
+### Components/Transform.h
+- [ ] `glm::vec3 position`
+- [ ] `glm::vec3 rotation`
+- [ ] `glm::vec3 scale`
+- [ ] Constructeur par défaut
+- [ ] Méthodes getter/setter
+- [ ] Méthode `getMatrix()` pour transformation
+
+### Components/Renderable.h
+- [ ] `ofMesh mesh`
+- [ ] `ofColor color`
+- [ ] `bool visible`
+- [ ] Constructeur par défaut
+- [ ] Méthodes de manipulation du mesh
+
+### Components/Camera.h
+- [ ] `glm::vec3 target`
+- [ ] `glm::vec3 up`
+- [ ] `float fov`
+- [ ] `float nearClip, farClip`
+- [ ] Méthodes de calcul matrices view/projection
+
+### Components/Selectable.h
+- [ ] `bool isSelected`
+- [ ] `ofColor selectedColor`
+- [ ] `ofColor normalColor`
+- [ ] Constructeur par défaut
+
+### Components/Primitive.h
+- [ ] Enum `PrimitiveType` (BOX, SPHERE, PLANE, etc.)
+- [ ] `PrimitiveType type`
+- [ ] `glm::vec3 dimensions`
+- [ ] Méthodes de génération de mesh
+
+## 📁 Phase 3: Système d'événements
+
+### Events/EventTypes.h
+- [ ] Enum `EventType` (INPUT, SELECTION, CAMERA, etc.)
+- [ ] Struct de base `Event` avec type et timestamp
+- [ ] Structs spécialisés:
+  - [ ] `MouseEvent` (x, y, button, type)
+  - [ ] `KeyEvent` (key, type)
+  - [ ] `SelectionEvent` (entityID, selected)
+  - [ ] `CameraEvent` (position, target, type)
+
+### Events/EventManager.h
+- [ ] Map de callbacks par type d'événement
+- [ ] Queue d'événements à traiter
+- [ ] Template `subscribe<T>(callback)`
+- [ ] Template `unsubscribe<T>(callback)`
+- [ ] Template `emit<T>(event)`
+- [ ] Méthode `processEvents()` (vidage de la queue)
+- [ ] Système de priorités pour les événements
+
+### Events/EventBridge.h
+- [ ] Référence vers EventManager
+- [ ] Constructeur avec EventManager*
+- [ ] `onKeyPressed(int key)`
+- [ ] `onKeyReleased(int key)`
+- [ ] `onMousePressed(int x, int y, int button)`
+- [ ] `onMouseReleased(int x, int y, int button)`
+- [ ] `onMouseMoved(int x, int y)`
+- [ ] `onMouseDragged(int x, int y, int button)`
+- [ ] `onMouseScrolled(int x, int y, float sx, float sy)`
+- [ ] `onWindowResized(int w, int h)`
+- [ ] `onDragEvent(ofDragInfo dragInfo)`
+
+## 📁 Phase 4: Systèmes logiques
+
+### Systems/RenderSystem.h
+- [ ] Référence vers ComponentRegistry
+- [ ] Référence vers caméra active
+- [ ] Méthode `render()`
+- [ ] Méthode `setActiveCamera(EntityID)`
+- [ ] Rendu des entités avec Transform + Renderable
+- [ ] Gestion des materials et shaders
+- [ ] Culling et optimisations
+
+### Systems/SelectionSystem.h
+- [ ] Référence vers ComponentRegistry et EventManager
+- [ ] Subscribe aux MouseEvents
+- [ ] Méthode `handleMouseClick(MouseEvent)`
+- [ ] Ray casting pour sélection 3D
+- [ ] Mise à jour composants Selectable
+- [ ] Émission SelectionEvents
+
+### Systems/TransformSystem.h
+- [ ] Mise à jour matrices de transformation
+- [ ] Gestion hiérarchies parent/enfant
+- [ ] Méthode `updateTransforms()`
+- [ ] Calcul matrices globales
+- [ ] Optimisations (dirty flags)
+
+### Systems/CameraSystem.h
+- [ ] Subscribe aux événements caméra
+- [ ] Gestion multiple caméras
+- [ ] Méthodes de déplacement (orbit, pan, zoom)
+- [ ] Méthode `updateCamera(float deltaTime)`
+- [ ] Contraintes de mouvement
+
+## 📁 Phase 5: Managers globaux
+
+### Manager/InputManager.h
+- [ ] État actuel clavier/souris
+- [ ] Historique des inputs
+- [ ] Méthodes `isKeyPressed(int key)`
+- [ ] Méthodes `getMousePosition()`
+- [ ] Méthodes `getMouseDelta()`
+- [ ] Gestion raccourcis clavier
+- [ ] Subscribe aux EventBridge events
+
+### Manager/CameraManager.h
+- [ ] Liste des caméras disponibles
+- [ ] ID de la caméra active
+- [ ] Méthodes `createCamera(EntityID)`
+- [ ] Méthodes `setActiveCamera(EntityID)`
+- [ ] Méthodes `getActiveCamera()`
+- [ ] Mise à jour automatique aspect ratio
+
+### Manager/HistoryManager.h
+- [ ] Stack des commandes (Command Pattern)
+- [ ] Méthodes `executeCommand(Command*)`
+- [ ] Méthodes `undo()`
+- [ ] Méthodes `redo()`
+- [ ] Limite historique configurable
+- [ ] Sérialisation/désérialisation états
+
+### Manager/FileManager.h
+- [ ] Méthodes `saveScene(string filename)`
+- [ ] Méthodes `loadScene(string filename)`
+- [ ] Méthodes `exportMesh(EntityID, string filename)`
+- [ ] Méthodes `importMesh(string filename)` → EntityID
+- [ ] Support formats (OBJ, PLY, STL)
+- [ ] Gestion erreurs et validations
+
+### Manager/ResourceManager.h
+- [ ] Cache des ressources (meshes, textures, shaders)
+- [ ] Méthodes `loadMesh(string path)`
+- [ ] Méthodes `loadTexture(string path)`
+- [ ] Méthodes `loadShader(string path)`
+- [ ] Reference counting
+- [ ] Nettoyage automatique ressources inutilisées
+
+## 📁 Phase 6: Interface utilisateur
+
+### UI/ToolBar.h
+- [ ] Liste des outils disponibles
+- [ ] Outil actuellement sélectionné
+- [ ] Méthodes `addTool(Tool)`
+- [ ] Méthodes `selectTool(ToolType)`
+- [ ] Méthodes `render()`
+- [ ] Gestion événements clic outils
+
+### UI/ColorPalette.h
+- [ ] Couleur actuellement sélectionnée
+- [ ] Palette de couleurs prédéfinies
+- [ ] Méthodes `setSelectedColor(ofColor)`
+- [ ] Méthodes `getSelectedColor()`
+- [ ] Méthodes `render()`
+- [ ] Interface picker couleur
+
+### UI/Properties.h
+- [ ] Affichage propriétés entité sélectionnée
+- [ ] Champs éditables pour Transform
+- [ ] Champs éditables pour Material
+- [ ] Méthodes `setSelectedEntity(EntityID)`
+- [ ] Méthodes `render()`
+- [ ] Validation et application changements
+
+### UI/Viewport.h
+- [ ] Zone de rendu 3D principal
+- [ ] Gestion resize
+- [ ] Overlays (grid, axes, gizmos)
+- [ ] Méthodes `render()`
+- [ ] Conversion coordonnées écran ↔ 3D
+- [ ] Gestion multi-viewport
+
+## 📁 Phase 7: Core Systems
+
+### Core/SystemManager.h
+- [ ] Liste de tous les systèmes
+- [ ] Ordre d'exécution des systèmes
+- [ ] Méthodes `registerSystem<T>()`
+- [ ] Méthodes `updateSystems(float deltaTime)`
+- [ ] Méthodes `renderSystems()`
+- [ ] Gestion activation/désactivation systèmes
+
+### Core/SceneManager.h (World/Scene Manager)
+- [ ] Référence vers tous les managers
+- [ ] Méthodes `initialize()`
+- [ ] Méthodes `update(float deltaTime)`
+- [ ] Méthodes `render()`
+- [ ] Méthodes `cleanup()`
+- [ ] Méthodes `loadScene(string name)`
+- [ ] Méthodes `saveCurrentScene()`
+- [ ] Gestion états de l'application
+
+## 📁 Phase 8: Intégration et finitions
+
+### ofApp.h/cpp (déjà fait)
+- [x] Intégration des managers principaux
+- [x] Relais événements vers EventBridge
+- [x] Cycle update/render
+
+### Tests et optimisations
+- [ ] Tests unitaires composants de base
+- [ ] Tests systèmes de rendu
+- [ ] Tests sélection/interaction
+- [ ] Profiling et optimisations performance
+- [ ] Gestion mémoire et fuites
+- [ ] Tests sur différentes plateformes
+
+### Documentation
+- [ ] Documentation API des composants
+- [ ] Guide d'utilisation
+- [ ] Exemples d'extension du système
+- [ ] Diagrammes d'architecture mis à jour
+
+### Fonctionnalités avancées (optionnel)
+- [ ] Système de plugins
+- [ ] Scripting (Lua/Python)
+- [ ] Networking pour collaboration
+- [ ] Animation et timeline
+- [ ] Système de particules
+- [ ] Post-processing effects
+
+---
+
+## 📋 Ordre de développement recommandé:
+
+1. **Phase 1** → Base solide ECS
+2. **Phase 2** → Composants essentiels
+3. **Phase 3** → Communication événements
+4. **Phase 4** → Rendu et interactions de base
+5. **Phase 7** → SceneManager (intégration)
+6. **Phase 5** → Managers spécialisés
+7. **Phase 6** → Interface utilisateur
+8. **Phase 8** → Polish et optimisations
+
+**Chaque phase devrait être testée avant de passer à la suivante !**
