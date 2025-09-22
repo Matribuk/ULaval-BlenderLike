@@ -12,13 +12,13 @@
 - [x] Constructeur/destructeur
 
 ### Core/ComponentRegistry.h
-- [ ] Map pour stocker les composants par type
-- [ ] Template `registerComponent<T>(EntityID)`
-- [ ] Template `getComponent<T>(EntityID)`
-- [ ] Template `removeComponent<T>(EntityID)`
-- [ ] Template `hasComponent<T>(EntityID)`
-- [ ] Méthode `removeAllComponents(EntityID)`
-- [ ] Destructeur avec cleanup
+- [X] Map pour stocker les composants par type
+- [X] Template `registerComponent<T>(EntityID)`
+- [X] Template `getComponent<T>(EntityID)`
+- [X] Template `removeComponent<T>(EntityID)`
+- [X] Template `hasComponent<T>(EntityID)`
+- [X] Méthode `removeAllComponents(EntityID)`
+- [X] Destructeur avec cleanup
 
 ### Core/EntityManager.h
 - [ ] Générateur d'IDs uniques

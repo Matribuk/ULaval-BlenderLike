@@ -2,7 +2,7 @@
 
 EntityID Entity::_nextId = 0;
 
-Entity::Entity() : _id(_nextId++) {}
+Entity::Entity() : _id(++_nextId) {}
 
 Entity::Entity(EntityID specificId) : _id(specificId)
 {
@@ -23,7 +23,7 @@ bool Entity::operator==(const Entity& other) const
     return _id == other._id;
 }
 
-bool Entity::operator<(const Entity& other) const 
+bool Entity::operator<(const Entity& other) const
 {
     return _id < other._id;
 }

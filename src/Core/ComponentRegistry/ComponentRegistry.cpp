@@ -1,9 +1,11 @@
 #include "ComponentRegistry.hpp"
 
-ComponentRegistry::ComponentRegistry()
-{
-}
-
 ComponentRegistry::~ComponentRegistry()
 {
+    _componentStorage.clear();
+}
+
+void ComponentRegistry::removeAllComponents(EntityID entityId)
+{
+    _componentStorage.erase(entityId);
 }
