@@ -19,15 +19,9 @@ void TransformSystem::update()
 inline glm::mat4 TransformSystem::calculateMatrix(
     const glm::vec3 &pos, const glm::vec3 &rot, const glm::vec3 &scale)
 {
-    glm::mat4 rotationMat = glm::yawPitchRoll(
-        glm::radians(rot.y),
-        glm::radians(rot.x),
-        glm::radians(rot.z)
-    );
+    glm::mat4 matrice = glm::translate(glm::mat4(1.0f), pos);
+    matrice = matrice * glm::yawPitchRoll(rot.y, rot.x, rot.z);
+    matrice = glm::scale(matrice, scale);
 
-    glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f), scale);
-    glm::mat4 translationMat = glm::translate(glm::mat4(1.0f), pos);
-
-    glm::mat4 matrice = translationMat * rotationMat * scaleMat;
     return matrice;
 }
