@@ -1,10 +1,9 @@
-# IFT3100A25_TP1_E02
-
 # TODO List - Projet ECS openFrameworks
 
 ## 📁 Phase 1: Structure de base et Types fondamentaux
 
 ### Core/Entity.h
+
 - [x] Créer type `EntityID` (typedef uint32_t)
 - [x] Créer classe `Entity` avec ID unique
 - [x] Méthode `getId()` const
@@ -12,6 +11,7 @@
 - [x] Constructeur/destructeur
 
 ### Core/ComponentRegistry.h
+
 - [X] Map pour stocker les composants par type
 - [X] Template `registerComponent<T>(EntityID)`
 - [X] Template `getComponent<T>(EntityID)`
@@ -21,6 +21,7 @@
 - [X] Destructeur avec cleanup
 
 ### Core/EntityManager.h
+
 - [X] Générateur d'IDs uniques
 - [X] Vector des entités actives
 - [X] Méthode `createEntity()` → EntityID
@@ -31,42 +32,47 @@
 ## 📁 Phase 2: Composants de base
 
 ### Components/Transform.h
-- [ ] `glm::vec3 position`
-- [ ] `glm::vec3 rotation`
-- [ ] `glm::vec3 scale`
-- [ ] Constructeur par défaut
-- [ ] Méthodes getter/setter
-- [ ] Méthode `getMatrix()` pour transformation
+
+- [X] `glm::vec3 position`
+- [X] `glm::vec3 rotation`
+- [X] `glm::vec3 scale`
+- [X] Constructeur par défaut
+- [x] TransformSystem calcul les matrices
 
 ### Components/Renderable.h
-- [ ] `ofMesh mesh`
-- [ ] `ofColor color`
-- [ ] `bool visible`
-- [ ] Constructeur par défaut
-- [ ] Méthodes de manipulation du mesh
+
+- [x] `ofMesh mesh`
+- [x] `ofColor color`
+- [x] `bool visible`
+- [x] Constructeur par défaut
+- [x] RenderSystem manipule le mesh
 
 ### Components/Camera.h
-- [ ] `glm::vec3 target`
-- [ ] `glm::vec3 up`
-- [ ] `float fov`
-- [ ] `float nearClip, farClip`
-- [ ] Méthodes de calcul matrices view/projection
+
+- [x] `glm::vec3 target`
+- [x] `glm::vec3 position`
+- [x] `float fov`
+- [x] `float nearClip, farClip`
+- [x] CameraSystem calcule les matrices
 
 ### Components/Selectable.h
-- [ ] `bool isSelected`
-- [ ] `ofColor selectedColor`
-- [ ] `ofColor normalColor`
-- [ ] Constructeur par défaut
 
-### Components/Primitive.h
-- [ ] Enum `PrimitiveType` (BOX, SPHERE, PLANE, etc.)
-- [ ] `PrimitiveType type`
-- [ ] `glm::vec3 dimensions`
-- [ ] Méthodes de génération de mesh
+- [x] `bool isSelected`
+- [x] `ofColor selectedColor`
+- [x] `ofColor normalColor`
+- [x] Constructeur par défaut
+
+### Components/Primitive/**.h
+
+- [x] Créer un composant Box avec glm::vec3 dimensions
+- [x] Créer un composant Sphere avec float radius
+- [x] Créer un composant Plane avec glm::vec2 size
+- [x] PrimitiveSystem génère les meshes à partir des composants correspondants
 
 ## 📁 Phase 3: Système d'événements
 
 ### Events/EventTypes.h
+
 - [ ] Enum `EventType` (INPUT, SELECTION, CAMERA, etc.)
 - [ ] Struct de base `Event` avec type et timestamp
 - [ ] Structs spécialisés:
@@ -76,6 +82,7 @@
   - [ ] `CameraEvent` (position, target, type)
 
 ### Events/EventManager.h
+
 - [ ] Map de callbacks par type d'événement
 - [ ] Queue d'événements à traiter
 - [ ] Template `subscribe<T>(callback)`
@@ -85,6 +92,7 @@
 - [ ] Système de priorités pour les événements
 
 ### Events/EventBridge.h
+
 - [ ] Référence vers EventManager
 - [ ] Constructeur avec EventManager*
 - [ ] `onKeyPressed(int key)`
@@ -100,6 +108,7 @@
 ## 📁 Phase 4: Systèmes logiques
 
 ### Systems/RenderSystem.h
+
 - [ ] Référence vers ComponentRegistry
 - [ ] Référence vers caméra active
 - [ ] Méthode `render()`
@@ -109,6 +118,7 @@
 - [ ] Culling et optimisations
 
 ### Systems/SelectionSystem.h
+
 - [ ] Référence vers ComponentRegistry et EventManager
 - [ ] Subscribe aux MouseEvents
 - [ ] Méthode `handleMouseClick(MouseEvent)`
@@ -117,6 +127,7 @@
 - [ ] Émission SelectionEvents
 
 ### Systems/TransformSystem.h
+
 - [ ] Mise à jour matrices de transformation
 - [ ] Gestion hiérarchies parent/enfant
 - [ ] Méthode `updateTransforms()`
@@ -124,6 +135,7 @@
 - [ ] Optimisations (dirty flags)
 
 ### Systems/CameraSystem.h
+
 - [ ] Subscribe aux événements caméra
 - [ ] Gestion multiple caméras
 - [ ] Méthodes de déplacement (orbit, pan, zoom)
@@ -133,6 +145,7 @@
 ## 📁 Phase 5: Managers globaux
 
 ### Manager/InputManager.h
+
 - [ ] État actuel clavier/souris
 - [ ] Historique des inputs
 - [ ] Méthodes `isKeyPressed(int key)`
@@ -142,6 +155,7 @@
 - [ ] Subscribe aux EventBridge events
 
 ### Manager/CameraManager.h
+
 - [ ] Liste des caméras disponibles
 - [ ] ID de la caméra active
 - [ ] Méthodes `createCamera(EntityID)`
@@ -150,6 +164,7 @@
 - [ ] Mise à jour automatique aspect ratio
 
 ### Manager/HistoryManager.h
+
 - [ ] Stack des commandes (Command Pattern)
 - [ ] Méthodes `executeCommand(Command*)`
 - [ ] Méthodes `undo()`
@@ -158,6 +173,7 @@
 - [ ] Sérialisation/désérialisation états
 
 ### Manager/FileManager.h
+
 - [ ] Méthodes `saveScene(string filename)`
 - [ ] Méthodes `loadScene(string filename)`
 - [ ] Méthodes `exportMesh(EntityID, string filename)`
@@ -166,6 +182,7 @@
 - [ ] Gestion erreurs et validations
 
 ### Manager/ResourceManager.h
+
 - [ ] Cache des ressources (meshes, textures, shaders)
 - [ ] Méthodes `loadMesh(string path)`
 - [ ] Méthodes `loadTexture(string path)`
@@ -176,6 +193,7 @@
 ## 📁 Phase 6: Interface utilisateur
 
 ### UI/ToolBar.h
+
 - [ ] Liste des outils disponibles
 - [ ] Outil actuellement sélectionné
 - [ ] Méthodes `addTool(Tool)`
@@ -184,6 +202,7 @@
 - [ ] Gestion événements clic outils
 
 ### UI/ColorPalette.h
+
 - [ ] Couleur actuellement sélectionnée
 - [ ] Palette de couleurs prédéfinies
 - [ ] Méthodes `setSelectedColor(ofColor)`
@@ -192,6 +211,7 @@
 - [ ] Interface picker couleur
 
 ### UI/Properties.h
+
 - [ ] Affichage propriétés entité sélectionnée
 - [ ] Champs éditables pour Transform
 - [ ] Champs éditables pour Material
@@ -200,6 +220,7 @@
 - [ ] Validation et application changements
 
 ### UI/Viewport.h
+
 - [ ] Zone de rendu 3D principal
 - [ ] Gestion resize
 - [ ] Overlays (grid, axes, gizmos)
@@ -210,6 +231,7 @@
 ## 📁 Phase 7: Core Systems
 
 ### Core/SystemManager.h
+
 - [ ] Liste de tous les systèmes
 - [ ] Ordre d'exécution des systèmes
 - [ ] Méthodes `registerSystem<T>()`
@@ -218,6 +240,7 @@
 - [ ] Gestion activation/désactivation systèmes
 
 ### Core/SceneManager.h (World/Scene Manager)
+
 - [ ] Référence vers tous les managers
 - [ ] Méthodes `initialize()`
 - [ ] Méthodes `update(float deltaTime)`
@@ -230,11 +253,13 @@
 ## 📁 Phase 8: Intégration et finitions
 
 ### ofApp.h/cpp (déjà fait)
+
 - [x] Intégration des managers principaux
 - [x] Relais événements vers EventBridge
 - [x] Cycle update/render
 
 ### Tests et optimisations
+
 - [ ] Tests unitaires composants de base
 - [ ] Tests systèmes de rendu
 - [ ] Tests sélection/interaction
@@ -243,12 +268,14 @@
 - [ ] Tests sur différentes plateformes
 
 ### Documentation
+
 - [ ] Documentation API des composants
 - [ ] Guide d'utilisation
 - [ ] Exemples d'extension du système
 - [ ] Diagrammes d'architecture mis à jour
 
 ### Fonctionnalités avancées (optionnel)
+
 - [ ] Système de plugins
 - [ ] Scripting (Lua/Python)
 - [ ] Networking pour collaboration
@@ -258,7 +285,7 @@
 
 ---
 
-## 📋 Ordre de développement recommandé:
+## 📋 Ordre de développement recommandé
 
 1. **Phase 1** → Base solide ECS
 2. **Phase 2** → Composants essentiels
