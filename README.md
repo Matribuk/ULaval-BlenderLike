@@ -21,12 +21,12 @@
 - [X] Destructeur avec cleanup
 
 ### Core/EntityManager.h
-- [ ] Générateur d'IDs uniques
-- [ ] Vector des entités actives
-- [ ] Méthode `createEntity()` → EntityID
-- [ ] Méthode `destroyEntity(EntityID)`
-- [ ] Méthode `isEntityValid(EntityID)`
-- [ ] Méthode `getAllEntities()`
+- [X] Générateur d'IDs uniques
+- [X] Vector des entités actives
+- [X] Méthode `createEntity()` → EntityID
+- [X] Méthode `destroyEntity(EntityID)`
+- [X] Méthode `isEntityValid(EntityID)`
+- [X] Méthode `getAllEntities()`
 
 ## 📁 Phase 2: Composants de base
 

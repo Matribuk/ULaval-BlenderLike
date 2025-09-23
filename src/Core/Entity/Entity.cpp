@@ -1,15 +1,6 @@
 #include "Entity.hpp"
 
-EntityID Entity::_nextId = 0;
-
-Entity::Entity() : _id(++_nextId) {}
-
-Entity::Entity(EntityID specificId) : _id(specificId)
-{
-    if (specificId >= _nextId) {
-        _nextId = specificId + 1;
-    }
-}
+Entity::Entity(EntityID id = INVALID_ENTITY) : _id(id) {}
 
 EntityID Entity::getId() const { return _id; }
 

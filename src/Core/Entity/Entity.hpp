@@ -7,8 +7,7 @@ constexpr EntityID INVALID_ENTITY = 0;
 
 class Entity {
     public:
-        Entity();
-        Entity(EntityID specificId);
+        explicit Entity(EntityID specificId);
 
         ~Entity() = default;
 
@@ -20,5 +19,4 @@ class Entity {
 
     private:
         EntityID _id;
-        static EntityID _nextId;
 };

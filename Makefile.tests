@@ -5,7 +5,8 @@ LDFLAGS :=
 SRC_DIR := src
 TEST_DIR := $(SRC_DIR)/__test__
 
-CORE_SRC := $(SRC_DIR)/Core/Entity/Entity.cpp \
+CORE_SRC := $(SRC_DIR)/Core/EntityManager/EntityManager.cpp \
+			$(SRC_DIR)/Core/Entity/Entity.cpp \
             $(SRC_DIR)/Core/ComponentRegistry/ComponentRegistry.cpp
 
 TESTS := component entity
@@ -14,17 +15,29 @@ BINARIES := $(TESTS:%=test_%)
 
 all: $(BINARIES)
 
-test_component: $(TEST_DIR)/testComponentRegistry.cpp $(CORE_SRC)
+# -------------------------------
+
+test_component: $(TEST_DIR)/TestComponentRegistry.cpp $(CORE_SRC)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
-test_entity: $(TEST_DIR)/testEntity.cpp $(CORE_SRC)
+test_entity: $(TEST_DIR)/TestEntity.cpp $(CORE_SRC)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+
+test_entity_manager: $(TEST_DIR)/TestEntityManager.cpp $(CORE_SRC)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+
+# --------------------------------
+
+component: test_component
+	./test_component
 
 entity: test_entity
 	./test_entity
 
-component: test_component
-	./test_component
+entityManager: test_entity_manager
+	./test_entity_manager
+
+# --------------------------------
 
 clean:
 	rm -f $(BINARIES)

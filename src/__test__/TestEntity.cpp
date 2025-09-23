@@ -14,8 +14,8 @@ void testEntityCreation()
 {
     std::cout << "\n=== Test 1: Création d'entités ===\n";
 
-    Entity e1;
-    Entity e2;
+    Entity e1(1);
+    Entity e2(2);
     Entity e3(42);
 
     printTest("e1 est valide", e1.isValid());
@@ -47,18 +47,6 @@ void testInvalidEntity()
     printTest("Entité avec INVALID_ENTITY n'est pas valide", !invalid.isValid());
 }
 
-void testIncrementalIds()
-{
-    std::cout << "\n=== Test 4: Incrémentation des IDs ===\n";
-
-    Entity e1;
-    Entity e2;
-    Entity e3;
-
-    printTest("Les IDs sont strictement croissants",
-        e1.getId() < e2.getId() && e2.getId() < e3.getId());
-}
-
 int main()
 {
     std::cout << "🧪 TESTS ENTITY\n";
@@ -67,7 +55,6 @@ int main()
     testEntityCreation();
     testEntityEquality();
     testInvalidEntity();
-    testIncrementalIds();
 
     std::cout << "\n🎯 Tests terminés !\n";
     std::cout << "Si tous les tests sont ✅ PASS, votre Entity fonctionne correctement.\n";
