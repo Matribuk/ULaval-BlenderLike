@@ -5,8 +5,8 @@ TransformSystem::TransformSystem(ComponentRegistry& registry, EntityManager& ent
 
 void TransformSystem::update()
 {
-    for (EntityID id : _entityManager.getAllEntities()) {
-        Transform* transform = _registry.getComponent<Transform>(id);
+    for (EntityID id : this->_entityManager.getAllEntities()) {
+        Transform* transform = this->_registry.getComponent<Transform>(id);
         if (transform)
             transform->matrix = calculateMatrix(
                 transform->position,

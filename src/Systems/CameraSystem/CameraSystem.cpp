@@ -4,9 +4,9 @@ CameraSystem::CameraSystem(ComponentRegistry& registry, EntityManager& entityMgr
     : _registry(registry), _entityManager(entityMgr) {}
 
 void CameraSystem::update() {
-    for (EntityID id : _entityManager.getAllEntities()) {
-        Camera* cam = _registry.getComponent<Camera>(id);
-        Transform* transform = _registry.getComponent<Transform>(id);
+    for (EntityID id : this->_entityManager.getAllEntities()) {
+        Camera* cam = this->_registry.getComponent<Camera>(id);
+        Transform* transform = this->_registry.getComponent<Transform>(id);
 
         if (cam && transform) {
             if (cam->focusMode)

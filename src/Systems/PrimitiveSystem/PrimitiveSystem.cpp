@@ -4,17 +4,17 @@ PrimitiveSystem::PrimitiveSystem(ComponentRegistry& registry, EntityManager& ent
     : _registry(registry), _entityManager(entityMgr) {}
 
 void PrimitiveSystem::generateMeshes() {
-    for (EntityID id : _entityManager.getAllEntities()) {
-        if (Box* box = _registry.getComponent<Box>(id)) {
-            if (Renderable* render = _registry.getComponent<Renderable>(id))
+    for (EntityID id : this->_entityManager.getAllEntities()) {
+        if (Box* box = this->_registry.getComponent<Box>(id)) {
+            if (Renderable* render = this->_registry.getComponent<Renderable>(id))
                 render->mesh = generateBoxMesh(box->dimensions);
         }
-        if (Sphere* sphere = _registry.getComponent<Sphere>(id)) {
-            if (Renderable* render = _registry.getComponent<Renderable>(id))
+        if (Sphere* sphere = this->_registry.getComponent<Sphere>(id)) {
+            if (Renderable* render = this->_registry.getComponent<Renderable>(id))
                 render->mesh = generateSphereMesh(sphere->radius);
         }
-        if (Plane* plane = _registry.getComponent<Plane>(id)) {
-            if (Renderable* render = _registry.getComponent<Renderable>(id))
+        if (Plane* plane = this->_registry.getComponent<Plane>(id)) {
+            if (Renderable* render = this->_registry.getComponent<Renderable>(id))
                 render->mesh = generatePlaneMesh(plane->size);
         }
     }
