@@ -92,17 +92,15 @@
 
 ### Events/EventBridge.h
 
-- [ ] Référence vers EventManager
-- [ ] Constructeur avec EventManager*
-- [ ] `onKeyPressed(int key)`
-- [ ] `onKeyReleased(int key)`
-- [ ] `onMousePressed(int x, int y, int button)`
-- [ ] `onMouseReleased(int x, int y, int button)`
-- [ ] `onMouseMoved(int x, int y)`
-- [ ] `onMouseDragged(int x, int y, int button)`
-- [ ] `onMouseScrolled(int x, int y, float sx, float sy)`
-- [ ] `onWindowResized(int w, int h)`
-- [ ] `onDragEvent(ofDragInfo dragInfo)`
+- [x] Référence vers EventManager
+- [x] Constructeur avec EventManager*
+- [x] `onKeyPressed(int key)`
+- [x] `onKeyReleased(int key)`
+- [x] `onMousePressed(int x, int y, int button)`
+- [x] `onMouseReleased(int x, int y, int button)`
+- [x] `onMouseMoved(int x, int y)`
+- [x] `onMouseDragged(int x, int y, int button)`
+- [x] `onMouseScrolled(int x, int y, float sx, float sy)`
 
 ## 📁 Phase 4: Systèmes logiques
 

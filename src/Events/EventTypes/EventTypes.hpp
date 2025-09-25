@@ -2,6 +2,19 @@
 
 #include <chrono>
 
+enum class KeyEventType {
+    Pressed,
+    Released
+};
+
+enum class MouseEventType {
+    Pressed,
+    Released,
+    Moved,
+    Dragged,
+    Scrolled
+};
+
 enum class EventType {
     INPUT,
     SELECTION,
