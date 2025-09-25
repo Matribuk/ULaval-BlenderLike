@@ -8,7 +8,7 @@
 #   The location of your root openFrameworks installation
 #       (default) OF_ROOT = ../../.. 
 ################################################################################
-OF_ROOT = /home/krio/of_v0.12.1_linux64_gcc6_release
+# OF_ROOT is now loaded from .env file via Makefile
 
 ################################################################################
 # PROJECT ROOT
