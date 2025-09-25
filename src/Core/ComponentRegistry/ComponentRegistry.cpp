@@ -2,10 +2,10 @@
 
 ComponentRegistry::~ComponentRegistry()
 {
-    _componentStorage.clear();
+    this->_componentStorage.clear();
 }
 
 void ComponentRegistry::removeAllComponents(EntityID entityId)
 {
-    _componentStorage.erase(entityId);
+    this->_componentStorage.erase(entityId);
 }

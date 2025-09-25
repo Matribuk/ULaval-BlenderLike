@@ -10,4 +10,5 @@ ifndef OF_ROOT
 endif
 
 # call the project makefile!
+PROJECT_EXCLUSIONS += $(PROJECT_ROOT)/src/__test__%
 include $(OF_ROOT)/libs/openFrameworksCompiled/project/makefileCommon/compile.project.mk
