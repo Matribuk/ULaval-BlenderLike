@@ -31,11 +31,3 @@ struct Event {
     Event(EventType t)
         : type(t), timestamp(std::chrono::steady_clock::now()) {}
 };
-
-struct KeyEvent : public Event {
-    int key;
-    bool pressed;
-
-    KeyEvent(int k, bool p)
-        : Event(EventType::KEY), key(k), pressed(p) {}
-};
