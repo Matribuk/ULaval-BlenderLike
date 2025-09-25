@@ -1,9 +1,14 @@
 #include "EventManager.hpp"
 
-EventManager::EventManager()
+void EventManager::processEvents()
 {
-}
-
-EventManager::~EventManager()
-{
+    for (auto& e : this->_eventQueue) {
+        auto it = this->_subscribers.find(typeid(*e).hash_code());
+        if (it != this->_subscribers.end()) {
+            for (auto& callback : it->second) {
+                callback(*e);
+            }
+        }
+    }
+    this->_eventQueue.clear();
 }

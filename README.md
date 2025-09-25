@@ -83,13 +83,12 @@
 
 ### Events/EventManager.h
 
-- [ ] Map de callbacks par type d'événement
-- [ ] Queue d'événements à traiter
-- [ ] Template `subscribe<T>(callback)`
-- [ ] Template `unsubscribe<T>(callback)`
-- [ ] Template `emit<T>(event)`
-- [ ] Méthode `processEvents()` (vidage de la queue)
-- [ ] Système de priorités pour les événements
+- [x] Map de callbacks par type d'événement
+- [x] Queue d'événements à traiter
+- [x] Template `subscribe<T>(callback)`
+- [x] Template `unsubscribe<T>(callback)`
+- [x] Template `emit<T>(event)`
+- [x] Méthode `processEvents()` (vidage de la queue)
 
 ### Events/EventBridge.h
 
