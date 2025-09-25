@@ -4,8 +4,8 @@
 
 struct KeyEvent : public Event {
     int key;
-    bool pressed;
+    KeyEventType type;
 
-    KeyEvent(int k, bool p)
-        : Event(EventType::KEY), key(k), pressed(p) {}
+    KeyEvent(int k, KeyEventType t)
+        : Event(EventType::KEY), key(k), type(t) {}
 };
