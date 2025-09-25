@@ -12,31 +12,31 @@
 
 ### Core/ComponentRegistry.h
 
-- [X] Map pour stocker les composants par type
-- [X] Template `registerComponent<T>(EntityID)`
-- [X] Template `getComponent<T>(EntityID)`
-- [X] Template `removeComponent<T>(EntityID)`
-- [X] Template `hasComponent<T>(EntityID)`
-- [X] Méthode `removeAllComponents(EntityID)`
-- [X] Destructeur avec cleanup
+- [x] Map pour stocker les composants par type
+- [x] Template `registerComponent<T>(EntityID)`
+- [x] Template `getComponent<T>(EntityID)`
+- [x] Template `removeComponent<T>(EntityID)`
+- [x] Template `hasComponent<T>(EntityID)`
+- [x] Méthode `removeAllComponents(EntityID)`
+- [x] Destructeur avec cleanup
 
 ### Core/EntityManager.h
 
-- [X] Générateur d'IDs uniques
-- [X] Vector des entités actives
-- [X] Méthode `createEntity()` → EntityID
-- [X] Méthode `destroyEntity(EntityID)`
-- [X] Méthode `isEntityValid(EntityID)`
-- [X] Méthode `getAllEntities()`
+- [x] Générateur d'IDs uniques
+- [x] Vector des entités actives
+- [x] Méthode `createEntity()` → EntityID
+- [x] Méthode `destroyEntity(EntityID)`
+- [x] Méthode `isEntityValid(EntityID)`
+- [x] Méthode `getAllEntities()`
 
 ## 📁 Phase 2: Composants de base
 
 ### Components/Transform.h
 
-- [X] `glm::vec3 position`
-- [X] `glm::vec3 rotation`
-- [X] `glm::vec3 scale`
-- [X] Constructeur par défaut
+- [x] `glm::vec3 position`
+- [x] `glm::vec3 rotation`
+- [x] `glm::vec3 scale`
+- [x] Constructeur par défaut
 - [x] TransformSystem calcul les matrices
 
 ### Components/Renderable.h
@@ -73,13 +73,13 @@
 
 ### Events/EventTypes.h
 
-- [ ] Enum `EventType` (INPUT, SELECTION, CAMERA, etc.)
-- [ ] Struct de base `Event` avec type et timestamp
-- [ ] Structs spécialisés:
-  - [ ] `MouseEvent` (x, y, button, type)
-  - [ ] `KeyEvent` (key, type)
-  - [ ] `SelectionEvent` (entityID, selected)
-  - [ ] `CameraEvent` (position, target, type)
+- [x] Enum Class `EventType` (INPUT, SELECTION, CAMERA, etc.)
+- [x] Struct de base `Event` avec type et timestamp
+- [X] Structs spécialisés:
+  - [x] `MouseEvent` (x, y, button, type)
+  - [x] `KeyEvent` (key, type)
+  - [x] `SelectionEvent` (entityID, selected)
+  - [X] `CameraEvent` (position, target, type)
 
 ### Events/EventManager.h
 
