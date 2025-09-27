@@ -5,7 +5,7 @@
 #include "Core/EntityManager/EntityManager.hpp"
 #include "Core/ComponentRegistry/ComponentRegistry.hpp"
 
-#include "ofMain.h"
+#include "ofApp.h"
 
 class RenderSystem {
     public:
