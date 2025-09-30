@@ -1,6 +1,6 @@
 #include "Entity.hpp"
 
-Entity::Entity(EntityID id) : _id(id) {}
+Entity::Entity(EntityID id = INVALID_ENTITY) : _id(id) {}
 
 EntityID Entity::getId() const { return this->_id; }
 

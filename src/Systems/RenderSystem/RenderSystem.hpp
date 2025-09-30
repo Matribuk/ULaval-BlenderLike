@@ -2,10 +2,9 @@
 
 #include "Components/Renderable.hpp"
 #include "Components/Transform.hpp"
+#include "Components/Camera.hpp"
 #include "Core/EntityManager/EntityManager.hpp"
 #include "Core/ComponentRegistry/ComponentRegistry.hpp"
-
-#include "ofApp.h"
 
 class RenderSystem {
     public:
@@ -13,10 +12,14 @@ class RenderSystem {
         ~RenderSystem() = default;
 
         void render();
+        void setActiveCamera(EntityID cameraEntity);
+        void drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material *material = nullptr);
+
+        Camera *getActiveCameraObject() const;
+        EntityID getActiveCameraId() const;
 
     private:
         ComponentRegistry& _registry;
         EntityManager& _entityManager;
-
-        void drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color);
+        EntityID _activeCamera{INVALID_ENTITY};
 };

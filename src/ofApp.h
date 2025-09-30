@@ -5,7 +5,12 @@
 #include "Events/EventBridge/EventBridge.hpp"
 #include "Events/EventManager/EventManager.hpp"
 
-class ofApp : public ofBaseApp {
+#include "Core/ComponentRegistry/ComponentRegistry.hpp"
+#include "Core/EntityManager/EntityManager.hpp"
+#include "Systems/RenderSystem/RenderSystem.hpp"
+
+class ofApp : public ofBaseApp{
+
 	public:
 		void setup() override;
 		void update() override;
@@ -14,7 +19,7 @@ class ofApp : public ofBaseApp {
 
 		void keyPressed(int key) override;
 		void keyReleased(int key) override;
-		void mouseMoved(int x, int y) override;
+		void mouseMoved(int x, int y ) override;
 		void mouseDragged(int x, int y, int button) override;
 		void mousePressed(int x, int y, int button) override;
 		void mouseReleased(int x, int y, int button) override;
@@ -30,4 +35,9 @@ class ofApp : public ofBaseApp {
 		std::unique_ptr<EventManager> eventManager;
 		std::unique_ptr<EventBridge> eventBridge;
 
+		ComponentRegistry registry;
+		EntityManager entityManager;
+		std::unique_ptr<RenderSystem> renderSystem;
+
+		EntityID cameraEntity;
 };

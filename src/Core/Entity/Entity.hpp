@@ -7,7 +7,7 @@ constexpr EntityID INVALID_ENTITY = 0;
 
 class Entity {
     public:
-        explicit Entity(EntityID specificId = INVALID_ENTITY);
+        explicit Entity(EntityID specificId);
 
         ~Entity() = default;
 

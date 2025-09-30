@@ -1,10 +1,37 @@
 #include "ofApp.h"
 
-void ofApp::setup() {}
+void ofApp::setup() {
+    renderSystem = std::make_unique<RenderSystem>(registry, entityManager);
 
-void ofApp::update() {}
+    cameraEntity = entityManager.createEntity().getId();
+    Camera camera;
+    registry.registerComponent<Camera>(cameraEntity, camera);
+    renderSystem->setActiveCamera(cameraEntity);
 
-void ofApp::draw() {}
+    EntityID cubeEntity = entityManager.createEntity().getId();
+    Transform t;
+    t.matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
+    registry.registerComponent<Transform>(cubeEntity, t);
+
+    Renderable r;
+    r.mesh = ofMesh::box(100, 100, 100);
+    r.color = ofColor::red;
+    r.visible = true;
+    registry.registerComponent<Renderable>(cubeEntity, r);
+}
+
+void ofApp::update() {
+    Camera* cam = renderSystem->getActiveCameraObject();
+    if (cam) {
+        cam->position.x = 500.0f * sin(ofGetElapsedTimef());
+        cam->position.z = 500.0f * cos(ofGetElapsedTimef());
+    }
+}
+
+void ofApp::draw() {
+    ofBackground(50, 50, 50);
+    renderSystem->render();
+}
 
 void ofApp::exit() {}
 

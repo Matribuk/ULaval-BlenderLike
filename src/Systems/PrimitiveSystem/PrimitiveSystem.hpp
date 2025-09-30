@@ -6,8 +6,6 @@
 #include "Components/Renderable.hpp"
 #include "Core/ComponentRegistry/ComponentRegistry.hpp"
 #include "Core/EntityManager/EntityManager.hpp"
-#include "ofMesh.h"
-
 class PrimitiveSystem {
     public:
         PrimitiveSystem(ComponentRegistry& registry, EntityManager& entityMgr);
