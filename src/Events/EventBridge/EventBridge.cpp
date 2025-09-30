@@ -7,7 +7,8 @@ EventBridge::~EventBridge()
     remove();
 }
 
-void EventBridge::setup() {
+void EventBridge::setup()
+{
     ofAddListener(ofEvents().keyPressed, this, &EventBridge::onKeyPressed);
     ofAddListener(ofEvents().keyReleased, this, &EventBridge::onKeyReleased);
     ofAddListener(ofEvents().mouseMoved, this, &EventBridge::onMouseMoved);
@@ -15,7 +16,8 @@ void EventBridge::setup() {
     ofAddListener(ofEvents().mouseReleased, this, &EventBridge::onMouseReleased);
 }
 
-void EventBridge::remove() {
+void EventBridge::remove()
+{
     ofRemoveListener(ofEvents().keyPressed, this, &EventBridge::onKeyPressed);
     ofRemoveListener(ofEvents().keyReleased, this, &EventBridge::onKeyReleased);
     ofRemoveListener(ofEvents().mouseMoved, this, &EventBridge::onMouseMoved);
