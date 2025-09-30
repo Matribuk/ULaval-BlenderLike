@@ -28,34 +28,6 @@ void RenderSystem::render()
 
         if (!transform || !render || !render->visible) continue;
 
-        const auto& verts = render->mesh.getVertices();
-        if (verts.empty()) continue;
-
-        glm::vec3 vmin(std::numeric_limits<float>::max());
-        glm::vec3 vmax(-std::numeric_limits<float>::max());
-
-        for (const auto &v : verts) {
-            glm::vec4 worldV4 = transform->matrix * glm::vec4(v.x, v.y, v.z, 1.0f);
-            glm::vec3 worldV(worldV4.x, worldV4.y, worldV4.z);
-            vmin.x = std::min(vmin.x, worldV.x);
-            vmin.y = std::min(vmin.y, worldV.y);
-            vmin.z = std::min(vmin.z, worldV.z);
-            vmax.x = std::max(vmax.x, worldV.x);
-            vmax.y = std::max(vmax.y, worldV.y);
-            vmax.z = std::max(vmax.z, worldV.z);
-        }
-
-        glm::vec3 center = (vmin + vmax) * 0.5f;
-        glm::vec3 size = vmax - vmin;
-
-        glm::vec3 screenCenter = cam.worldToScreen(center);
-        glm::vec3 offsetWorld = center + glm::vec3(size.x * 0.5f, 0, 0);
-        glm::vec3 screenOffset = cam.worldToScreen(offsetWorld);
-        float radiusScreen = glm::distance(screenCenter, screenOffset);
-
-        if (screenCenter.x + radiusScreen < 0 || screenCenter.x - radiusScreen > ofGetWidth() ||
-            screenCenter.y + radiusScreen < 0 || screenCenter.y - radiusScreen > ofGetHeight()) continue;
-
         drawMesh(render->mesh, transform->matrix, render->color, render->material);
     }
 
@@ -67,7 +39,7 @@ void RenderSystem::setActiveCamera(EntityID cameraEntity)
         this->_activeCamera = cameraEntity;
     } else {
         std::cout << "Entity " << cameraEntity << " does not have a camera component." << std::endl;
-        _activeCamera = INVALID_ENTITY;
+        this->_activeCamera = INVALID_ENTITY;
     }
 }
 
