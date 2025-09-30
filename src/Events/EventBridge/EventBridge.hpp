@@ -3,20 +3,25 @@
 #include "../EventManager/EventManager.hpp"
 #include "../EventTypes/Events/MouseEvent.hpp"
 #include "../EventTypes/Events/KeyEvent.hpp"
+#include "../../Manager/InputManager/InputManager.hpp"
 #include "ofEvents.h"
 
 class EventBridge {
     public:
         EventBridge(EventManager& eventManager);
-        ~EventBridge() = default;
+        ~EventBridge();
 
-        void onKeyPressed(int key);
-        void onKeyReleased(int key);
-        void onMousePressed(int x, int y, int button);
-        void onMouseReleased(int x, int y, int button);
-        void onMouseMoved(int x, int y);
-        void onMouseDragged(int x, int y, int button);
-        void onMouseScrolled(int x, int y, float sx, float sy);
+        void setup();
+        void remove();
+
+        void onKeyPressed(ofKeyEventArgs & args);
+        void onKeyReleased(ofKeyEventArgs & args);
+
+        void onMousePressed(ofMouseEventArgs & args);
+        void onMouseReleased(ofMouseEventArgs & args);
+        void onMouseMoved(ofMouseEventArgs & args);
+        void onMouseDragged(ofMouseEventArgs & args);
+        void onMouseScrolled(ofMouseEventArgs & args);
 
     private:
         EventManager& _eventManager;
