@@ -13,7 +13,6 @@ class RenderSystem {
 
         void render();
         void setActiveCamera(EntityID cameraEntity);
-        void drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material *material = nullptr);
 
         Camera *getActiveCameraObject() const;
         EntityID getActiveCameraId() const;
@@ -22,4 +21,6 @@ class RenderSystem {
         ComponentRegistry& _registry;
         EntityManager& _entityManager;
         EntityID _activeCamera{INVALID_ENTITY};
+
+        void drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material *material = nullptr);
 };
