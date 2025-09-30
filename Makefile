@@ -1,9 +1,3 @@
-# Load environment variables from .env file if it exists
-ifneq ($(wildcard .env),)
-	include .env
-	export
-endif
-
 # Attempt to load a config.make file.
 # If none is found, project defaults in config.project.make will be used.
 ifneq ($(wildcard config.make),)
