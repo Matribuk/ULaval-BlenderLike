@@ -2,15 +2,19 @@
 
 void ofApp::setup() {
     renderSystem = std::make_unique<RenderSystem>(registry, entityManager);
+    transformSystem = std::make_unique<TransformSystem>(registry, entityManager);
 
     cameraEntity = entityManager.createEntity().getId();
     Camera camera;
     registry.registerComponent<Camera>(cameraEntity, camera);
     renderSystem->setActiveCamera(cameraEntity);
 
-    EntityID cubeEntity = entityManager.createEntity().getId();
+    cubeEntity = entityManager.createEntity().getId();
     Transform t;
-    t.matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
+    t.position = glm::vec3(0, 0, 0);
+    t.rotation = glm::vec3(0, 0, 0);
+    t.scale    = glm::vec3(1, 1, 1);
+    t.matrix   = glm::mat4(1.0f);
     registry.registerComponent<Transform>(cubeEntity, t);
 
     Renderable r;
@@ -25,7 +29,15 @@ void ofApp::update() {
     if (cam) {
         cam->position.x = 500.0f * sin(ofGetElapsedTimef());
         cam->position.z = 500.0f * cos(ofGetElapsedTimef());
+        cam->position.y = 200.0f;
     }
+
+    Transform* cubeTransform = registry.getComponent<Transform>(cubeEntity);
+    if (cubeTransform) {
+        cubeTransform->rotation.x += 0.01f;
+    }
+
+    transformSystem->update();
 }
 
 void ofApp::draw() {

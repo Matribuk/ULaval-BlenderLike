@@ -8,6 +8,7 @@
 #include "Core/ComponentRegistry/ComponentRegistry.hpp"
 #include "Core/EntityManager/EntityManager.hpp"
 #include "Systems/RenderSystem/RenderSystem.hpp"
+#include "Systems/TransformSystem/TransformSystem.hpp"
 
 class ofApp : public ofBaseApp{
 
@@ -19,7 +20,7 @@ class ofApp : public ofBaseApp{
 
 		void keyPressed(int key) override;
 		void keyReleased(int key) override;
-		void mouseMoved(int x, int y ) override;
+		void mouseMoved(int x, int y) override;
 		void mouseDragged(int x, int y, int button) override;
 		void mousePressed(int x, int y, int button) override;
 		void mouseReleased(int x, int y, int button) override;
@@ -38,6 +39,8 @@ class ofApp : public ofBaseApp{
 		ComponentRegistry registry;
 		EntityManager entityManager;
 		std::unique_ptr<RenderSystem> renderSystem;
+		std::unique_ptr<TransformSystem> transformSystem;
 
+		EntityID cubeEntity;
 		EntityID cameraEntity;
 };
