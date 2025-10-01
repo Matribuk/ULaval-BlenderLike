@@ -4,7 +4,6 @@
 #include <glm/mat4x4.hpp>
 
 struct Camera {
-    glm::vec3 position{0.0f, 0.0f, 5.0f};
     glm::vec3 forward{0.0f, 0.0f, -1.0f};
     glm::vec3 up{0.0f, 1.0f, 0.0f};
 
