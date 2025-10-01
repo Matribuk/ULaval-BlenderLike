@@ -71,10 +71,10 @@ void ofApp::_setupEventSubscribers()
         ss << (e.type == KeyEventType::Pressed ? "PRESSED" : "RELEASED");
 
         if (e.type == KeyEventType::Pressed) {
-            _keyPressCount++;
+            this->_keyPressCount++;
             this->_addLog(ss.str(), ofColor::yellow);
         } else {
-            _keyReleaseCount++;
+            this->_keyReleaseCount++;
             this->_addLog(ss.str(), ofColor::orange);
         }
 
@@ -92,20 +92,20 @@ void ofApp::_setupEventSubscribers()
             case MouseEventType::Pressed:
                 ss << "Mouse PRESSED at (" << e.x << ", " << e.y << ") btn:" << e.button;
                 this->_addLog(ss.str(), ofColor::lightBlue);
-                _mousePressCount++;
+                this->_mousePressCount++;
                 InputManager::get().onMousePressed(e.button);
                 break;
             case MouseEventType::Released:
                 ss << "Mouse RELEASED at (" << e.x << ", " << e.y << ") btn:" << e.button;
                 this->_addLog(ss.str(), ofColor::lightCyan);
-                _mouseReleaseCount++;
+                this->_mouseReleaseCount++;
                 InputManager::get().onMouseReleased(e.button);
                 break;
             case MouseEventType::Moved:
-                _mouseMoveCount++;
+                this->_mouseMoveCount++;
                 InputManager::get().onMouseMoved(e.x, e.y);
-                if (_mouseMoveCount % 30 == 0) {
-                    ss << "Mouse moved (" << e.x << ", " << e.y << ") [count:" << _mouseMoveCount << "]";
+                if (this->_mouseMoveCount % 30 == 0) {
+                    ss << "Mouse moved (" << e.x << ", " << e.y << ") [count:" << this->_mouseMoveCount << "]";
                     this->_addLog(ss.str(), ofColor(100, 100, 150));
                 }
                 break;
@@ -126,7 +126,7 @@ void ofApp::_setupEventSubscribers()
         ss << "SelectionEvent: Entity #" << e.entityID << " - ";
         ss << (e.selected ? "SELECTED" : "DESELECTED");
         this->_addLog(ss.str(), ofColor::lime);
-        _selectionEventCount++;
+        this->_selectionEventCount++;
 
         this->_selectedEntity = e.selected ? e.entityID : 0;
 
@@ -140,7 +140,7 @@ void ofApp::_setupEventSubscribers()
         std::stringstream ss;
         ss << "CameraEvent: pos(" << e.position.x << "," << e.position.y << "," << e.position.z << ")";
         this->_addLog(ss.str(), ofColor::pink);
-        _cameraEventCount++;
+        this->_cameraEventCount++;
 
         this->_cameraPosition = e.position;
         this->_cameraTarget = e.target;
@@ -239,13 +239,13 @@ void ofApp::_drawStats()
     glm::vec2 mousePos = input.getMousePosition();
     glm::vec2 mouseDelta = input.getMouseDelta();
 
-    ofDrawBitmapString("Key Presses: " + ofToString(_keyPressCount), 20, 50);
-    ofDrawBitmapString("Key Releases: " + ofToString(_keyReleaseCount), 20, 65);
-    ofDrawBitmapString("Mouse Presses: " + ofToString(_mousePressCount), 20, 80);
-    ofDrawBitmapString("Mouse Releases: " + ofToString(_mouseReleaseCount), 20, 95);
-    ofDrawBitmapString("Mouse Moves: " + ofToString(_mouseMoveCount), 20, 110);
-    ofDrawBitmapString("Selection Events: " + ofToString(_selectionEventCount), 20, 125);
-    ofDrawBitmapString("Camera Events: " + ofToString(_cameraEventCount), 20, 140);
+    ofDrawBitmapString("Key Presses: " + ofToString(this->_keyPressCount), 20, 50);
+    ofDrawBitmapString("Key Releases: " + ofToString(this->_keyReleaseCount), 20, 65);
+    ofDrawBitmapString("Mouse Presses: " + ofToString(this->_mousePressCount), 20, 80);
+    ofDrawBitmapString("Mouse Releases: " + ofToString(this->_mouseReleaseCount), 20, 95);
+    ofDrawBitmapString("Mouse Moves: " + ofToString(this->_mouseMoveCount), 20, 110);
+    ofDrawBitmapString("Selection Events: " + ofToString(this->_selectionEventCount), 20, 125);
+    ofDrawBitmapString("Camera Events: " + ofToString(this->_cameraEventCount), 20, 140);
     ofDrawBitmapString("Mouse: (" + ofToString((int)mousePos.x) + ", " + ofToString((int)mousePos.y) + ")", 220, 50);
     ofDrawBitmapString("Delta: (" + ofToString((int)mouseDelta.x) + ", " + ofToString((int)mouseDelta.y) + ")", 220, 65);
 }
