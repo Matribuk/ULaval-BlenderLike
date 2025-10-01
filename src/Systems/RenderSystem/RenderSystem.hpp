@@ -22,5 +22,8 @@ class RenderSystem {
         EntityManager& _entityManager;
         EntityID _activeCamera{INVALID_ENTITY};
 
+        void setupRenderState();
+        ofCamera buildCameraFromComponents(Camera& camera, const Transform& transform);
+        void renderEntities(ofCamera& cam);
         void drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material *material = nullptr);
 };

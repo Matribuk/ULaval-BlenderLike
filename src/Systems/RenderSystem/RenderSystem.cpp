@@ -8,31 +8,65 @@ void RenderSystem::render()
     Camera* activeCamera = getActiveCameraObject();
     if (!activeCamera) return;
 
-    ofCamera cam;
-    cam.setPosition(activeCamera->position);
-    cam.lookAt(activeCamera->target, activeCamera->up);
-    cam.setFov(activeCamera->fov);
-    cam.setNearClip(activeCamera->nearClip);
-    cam.setFarClip(activeCamera->farClip);
-    cam.setAspectRatio(activeCamera->aspectRatio);
+    Transform* camTransform = _registry.getComponent<Transform>(_activeCamera);
+    if (!camTransform) {
+        std::cout << "Active camera has no Transform component" << std::endl;
+        return;
+    }
 
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    ofEnableDepthTest();
+    ofCamera cam = buildCameraFromComponents(*activeCamera, *camTransform);
+
+    setupRenderState();
 
     cam.begin();
 
+    renderEntities(cam);
+
+    cam.end();
+}
+
+void RenderSystem::setupRenderState()
+{
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    ofEnableDepthTest();
+}
+
+ofCamera RenderSystem::buildCameraFromComponents(Camera& camera, const Transform& transform)
+{
+    glm::vec3 camPos = glm::vec3(transform.matrix[3]);
+    glm::vec3 forward = glm::normalize(glm::vec3(transform.matrix * glm::vec4(0, 0, -1, 0)));
+    glm::vec3 up = glm::normalize(glm::vec3(transform.matrix * glm::vec4(0, 1, 0, 0)));
+
+    glm::vec3 lookTarget = (camera.focusMode) ? camera.target : camPos + forward;
+
+    camera.viewMatrix = glm::lookAt(camPos, lookTarget, up);
+    if (camera.aspectRatio <= 0.0f) camera.aspectRatio = static_cast<float>(ofGetWidth()) / static_cast<float>(ofGetHeight());
+    camera.projMatrix = glm::perspective(glm::radians(camera.fov), camera.aspectRatio, camera.nearClip, camera.farClip);
+
+    ofCamera cam;
+    cam.setPosition(camPos);
+    cam.lookAt(lookTarget, up);
+    cam.setFov(camera.fov);
+    cam.setNearClip(camera.nearClip);
+    cam.setFarClip(camera.farClip);
+    cam.setAspectRatio(camera.aspectRatio);
+
+    return cam;
+}
+
+void RenderSystem::renderEntities(ofCamera& cam)
+{
     for (EntityID id : this->_entityManager.getAllEntities()) {
-        Transform* transform = this->_registry.getComponent<Transform>(id);
-        Renderable* render = this->_registry.getComponent<Renderable>(id);
+        Transform* transform = _registry.getComponent<Transform>(id);
+        Renderable* render   = _registry.getComponent<Renderable>(id);
 
         if (!transform || !render || !render->visible) continue;
 
         drawMesh(render->mesh, transform->matrix, render->color, render->material);
     }
-
-    cam.end();
 }
+
 void RenderSystem::setActiveCamera(EntityID cameraEntity)
 {
     if (this->_registry.hasComponent<Camera>(cameraEntity)) {
