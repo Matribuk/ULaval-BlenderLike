@@ -13,24 +13,27 @@ bool InputManager::isKeyPressed(int key) const
     return it != this->_keyStates.end() && it->second;
 }
 
-bool InputManager::wasKeyJustPressed(int key) const {
-    auto itNow = this->_keyStates.find(key);
-    auto itPrev = this->_prevKeyStates.find(key);
-
-    bool now = (itNow != this->_keyStates.end() && itNow->second);
-    bool prev = (itPrev != this->_prevKeyStates.end() && itPrev->second);
-
-    return now && !prev;
+bool InputManager::_getKeyState(int key, const std::unordered_map<int, bool>& stateMap) const
+{
+    auto it = stateMap.find(key);
+    return (it != stateMap.end() && it->second);
 }
 
-bool InputManager::wasKeyJustReleased(int key) const {
-    auto itNow = this->_keyStates.find(key);
-    auto itPrev = this->_prevKeyStates.find(key);
+bool InputManager::_checkTransition(int key, bool expectNow, bool expectPrev) const
+{
+    bool now = this->_getKeyState(key, this->_keyStates);
+    bool prev = this->_getKeyState(key, this->_prevKeyStates);
+    return (now == expectNow && prev == expectPrev);
+}
 
-    bool now = (itNow != this->_keyStates.end() && itNow->second);
-    bool prev = (itPrev != this->_prevKeyStates.end() && itPrev->second);
+bool InputManager::wasKeyJustPressed(int key) const
+{
+    return this->_checkTransition(key, true, false);
+}
 
-    return !now && prev;
+bool InputManager::wasKeyJustReleased(int key) const
+{
+    return this->_checkTransition(key, false, true);
 }
 
 glm::vec2 InputManager::getMousePosition() const

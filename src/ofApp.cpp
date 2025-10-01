@@ -6,76 +6,76 @@ void ofApp::setup()
     ofSetFrameRate(60);
     ofBackground(20);
 
-    eventBridge = std::make_unique<EventBridge>(eventManager);
-    eventBridge->setup();
+    this->_eventBridge = std::make_unique<EventBridge>(this->_eventManager);
+    this->_eventBridge->setup();
 
-    addLog("=== System Initialized ===", ofColor::green);
-    setupEventSubscribers();
-    setupShortcuts();
-    setupSystems();
-    setupScene();
-    testEntitySystem();
+    this->_addLog("=== System Initialized ===", ofColor::green);
+    this->_setupEventSubscribers();
+    this->_setupShortcuts();
+    this->_setupSystems();
+    this->_setupScene();
+    this->_testEntitySystem();
 
-    addLog("System ready! Press keys and move mouse to test.", ofColor::cyan);
+    this->_addLog("System ready! Press keys and move mouse to test.", ofColor::cyan);
 }
 
-void ofApp::setupSystems()
+void ofApp::_setupSystems()
 {
-    transformSystem = std::make_unique<TransformSystem>(componentRegistry, entityManager);
-    cameraSystem = std::make_unique<CameraSystem>(componentRegistry, entityManager);
-    primitiveSystem = std::make_unique<PrimitiveSystem>(componentRegistry, entityManager);
-    renderSystem = std::make_unique<RenderSystem>(componentRegistry, entityManager);
+    this->_transformSystem = std::make_unique<TransformSystem>(this->_componentRegistry, this->_entityManager);
+    this->_cameraSystem = std::make_unique<CameraSystem>(this->_componentRegistry, this->_entityManager);
+    this->_primitiveSystem = std::make_unique<PrimitiveSystem>(this->_componentRegistry, this->_entityManager);
+    this->_renderSystem = std::make_unique<RenderSystem>(this->_componentRegistry, this->_entityManager);
 
-    addLog("All systems initialized", ofColor::green);
+    this->_addLog("All systems initialized", ofColor::green);
 }
 
-void ofApp::setupScene()
+void ofApp::_setupScene()
 {
-    Entity camEntity = entityManager.createEntity();
-    cameraEntity = camEntity.getId();
-    componentRegistry.registerComponent(cameraEntity, Transform(glm::vec3(0, 5, 10)));
-    componentRegistry.registerComponent(cameraEntity, Camera());
-    renderSystem->setActiveCamera(cameraEntity);
-    addLog("Camera entity created (ID: " + ofToString(cameraEntity) + ")", ofColor::cyan);
+    Entity camEntity = this->_entityManager.createEntity();
+    this->_cameraEntity = camEntity.getId();
+    this->_componentRegistry.registerComponent(this->_cameraEntity, Transform(glm::vec3(0, 5, 10)));
+    this->_componentRegistry.registerComponent(this->_cameraEntity, Camera());
+    this->_renderSystem->setActiveCamera(this->_cameraEntity);
+    this->_addLog("Camera entity created (ID: " + ofToString(this->_cameraEntity) + ")", ofColor::cyan);
 
-    Entity boxEntity = entityManager.createEntity();
-    componentRegistry.registerComponent(boxEntity.getId(), Transform(glm::vec3(-3, 0, 0)));
-    componentRegistry.registerComponent(boxEntity.getId(), Box(glm::vec3(1.5f, 1.5f, 1.5f)));
-    componentRegistry.registerComponent(boxEntity.getId(), Renderable(ofMesh(), ofColor::red));
-    testEntities.push_back(boxEntity.getId());
-    addLog("Box entity created (ID: " + ofToString(boxEntity.getId()) + ")", ofColor::magenta);
+    Entity boxEntity = this->_entityManager.createEntity();
+    this->_componentRegistry.registerComponent(boxEntity.getId(), Transform(glm::vec3(-3, 0, 0)));
+    this->_componentRegistry.registerComponent(boxEntity.getId(), Box(glm::vec3(1.5f, 1.5f, 1.5f)));
+    this->_componentRegistry.registerComponent(boxEntity.getId(), Renderable(ofMesh(), ofColor::red));
+    this->_testEntities.push_back(boxEntity.getId());
+    this->_addLog("Box entity created (ID: " + ofToString(boxEntity.getId()) + ")", ofColor::magenta);
 
-    Entity sphereEntity = entityManager.createEntity();
-    componentRegistry.registerComponent(sphereEntity.getId(), Transform(glm::vec3(0, 0, 0)));
-    componentRegistry.registerComponent(sphereEntity.getId(), Sphere(1.2f));
-    componentRegistry.registerComponent(sphereEntity.getId(), Renderable(ofMesh(), ofColor::green));
-    testEntities.push_back(sphereEntity.getId());
-    addLog("Sphere entity created (ID: " + ofToString(sphereEntity.getId()) + ")", ofColor::magenta);
+    Entity sphereEntity = this->_entityManager.createEntity();
+    this->_componentRegistry.registerComponent(sphereEntity.getId(), Transform(glm::vec3(0, 0, 0)));
+    this->_componentRegistry.registerComponent(sphereEntity.getId(), Sphere(1.2f));
+    this->_componentRegistry.registerComponent(sphereEntity.getId(), Renderable(ofMesh(), ofColor::green));
+    this->_testEntities.push_back(sphereEntity.getId());
+    this->_addLog("Sphere entity created (ID: " + ofToString(sphereEntity.getId()) + ")", ofColor::magenta);
 
-    Entity planeEntity = entityManager.createEntity();
-    componentRegistry.registerComponent(planeEntity.getId(), Transform(glm::vec3(3, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
-    componentRegistry.registerComponent(planeEntity.getId(), Plane(glm::vec2(2.0f, 2.0f)));
-    componentRegistry.registerComponent(planeEntity.getId(), Renderable(ofMesh(), ofColor::blue));
-    testEntities.push_back(planeEntity.getId());
-    addLog("Plane entity created (ID: " + ofToString(planeEntity.getId()) + ")", ofColor::magenta);
+    Entity planeEntity = this->_entityManager.createEntity();
+    this->_componentRegistry.registerComponent(planeEntity.getId(), Transform(glm::vec3(3, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
+    this->_componentRegistry.registerComponent(planeEntity.getId(), Plane(glm::vec2(2.0f, 2.0f)));
+    this->_componentRegistry.registerComponent(planeEntity.getId(), Renderable(ofMesh(), ofColor::blue));
+    this->_testEntities.push_back(planeEntity.getId());
+    this->_addLog("Plane entity created (ID: " + ofToString(planeEntity.getId()) + ")", ofColor::magenta);
 
-    primitiveSystem->generateMeshes();
-    addLog("All primitive meshes generated", ofColor::green);
+    this->_primitiveSystem->generateMeshes();
+    this->_addLog("All primitive meshes generated", ofColor::green);
 }
 
-void ofApp::setupEventSubscribers()
+void ofApp::_setupEventSubscribers()
 {
-    eventManager.subscribe<KeyEvent>([this](const KeyEvent& e) {
+    this->_eventManager.subscribe<KeyEvent>([this](const KeyEvent& e) {
         std::stringstream ss;
         ss << "KeyEvent: " << (char)e.key << " (" << e.key << ") - ";
         ss << (e.type == KeyEventType::Pressed ? "PRESSED" : "RELEASED");
 
         if (e.type == KeyEventType::Pressed) {
             _keyPressCount++;
-            addLog(ss.str(), ofColor::yellow);
+            this->_addLog(ss.str(), ofColor::yellow);
         } else {
             _keyReleaseCount++;
-            addLog(ss.str(), ofColor::orange);
+            this->_addLog(ss.str(), ofColor::orange);
         }
 
         if (e.type == KeyEventType::Pressed) {
@@ -85,19 +85,19 @@ void ofApp::setupEventSubscribers()
         }
     });
 
-    eventManager.subscribe<MouseEvent>([this](const MouseEvent& e) {
+    this->_eventManager.subscribe<MouseEvent>([this](const MouseEvent& e) {
         std::stringstream ss;
 
         switch(e.type) {
             case MouseEventType::Pressed:
                 ss << "Mouse PRESSED at (" << e.x << ", " << e.y << ") btn:" << e.button;
-                addLog(ss.str(), ofColor::lightBlue);
+                this->_addLog(ss.str(), ofColor::lightBlue);
                 _mousePressCount++;
                 InputManager::get().onMousePressed(e.button);
                 break;
             case MouseEventType::Released:
                 ss << "Mouse RELEASED at (" << e.x << ", " << e.y << ") btn:" << e.button;
-                addLog(ss.str(), ofColor::lightCyan);
+                this->_addLog(ss.str(), ofColor::lightCyan);
                 _mouseReleaseCount++;
                 InputManager::get().onMouseReleased(e.button);
                 break;
@@ -106,131 +106,131 @@ void ofApp::setupEventSubscribers()
                 InputManager::get().onMouseMoved(e.x, e.y);
                 if (_mouseMoveCount % 30 == 0) {
                     ss << "Mouse moved (" << e.x << ", " << e.y << ") [count:" << _mouseMoveCount << "]";
-                    addLog(ss.str(), ofColor(100, 100, 150));
+                    this->_addLog(ss.str(), ofColor(100, 100, 150));
                 }
                 break;
             case MouseEventType::Dragged:
                 ss << "Mouse DRAGGED at (" << e.x << ", " << e.y << ") btn:" << e.button;
-                addLog(ss.str(), ofColor::purple);
+                this->_addLog(ss.str(), ofColor::purple);
                 InputManager::get().onMouseMoved(e.x, e.y);
                 break;
             case MouseEventType::Scrolled:
                 ss << "Mouse SCROLLED at (" << e.x << ", " << e.y << ")";
-                addLog(ss.str(), ofColor::magenta);
+                this->_addLog(ss.str(), ofColor::magenta);
                 break;
         }
     });
 
-    eventManager.subscribe<SelectionEvent>([this](const SelectionEvent& e) {
+    this->_eventManager.subscribe<SelectionEvent>([this](const SelectionEvent& e) {
         std::stringstream ss;
         ss << "SelectionEvent: Entity #" << e.entityID << " - ";
         ss << (e.selected ? "SELECTED" : "DESELECTED");
-        addLog(ss.str(), ofColor::lime);
+        this->_addLog(ss.str(), ofColor::lime);
         _selectionEventCount++;
 
-        selectedEntity = e.selected ? e.entityID : 0;
+        this->_selectedEntity = e.selected ? e.entityID : 0;
 
-        if (e.selected && componentRegistry.hasComponent<Renderable>(e.entityID)) {
-            Renderable* r = componentRegistry.getComponent<Renderable>(e.entityID);
+        if (e.selected && this->_componentRegistry.hasComponent<Renderable>(e.entityID)) {
+            Renderable* r = this->_componentRegistry.getComponent<Renderable>(e.entityID);
             if (r) r->color = ofColor::yellow;
         }
     });
 
-    eventManager.subscribe<CameraEvent>([this](const CameraEvent& e) {
+    this->_eventManager.subscribe<CameraEvent>([this](const CameraEvent& e) {
         std::stringstream ss;
         ss << "CameraEvent: pos(" << e.position.x << "," << e.position.y << "," << e.position.z << ")";
-        addLog(ss.str(), ofColor::pink);
+        this->_addLog(ss.str(), ofColor::pink);
         _cameraEventCount++;
 
-        cameraPosition = e.position;
-        cameraTarget = e.target;
+        this->_cameraPosition = e.position;
+        this->_cameraTarget = e.target;
 
-        if (cameraEntity != INVALID_ENTITY) {
-            Transform* t = componentRegistry.getComponent<Transform>(cameraEntity);
+        if (this->_cameraEntity != INVALID_ENTITY) {
+            Transform* t = this->_componentRegistry.getComponent<Transform>(this->_cameraEntity);
             if (t) t->position = e.position;
         }
     });
 
-    addLog("Event subscribers registered", ofColor::green);
+    this->_addLog("Event subscribers registered", ofColor::green);
 }
 
-void ofApp::setupShortcuts()
+void ofApp::_setupShortcuts()
 {
     InputManager::get().registerShortcut({OF_KEY_CONTROL, 's'}, [this]() {
-        addLog("Shortcut: Ctrl+S triggered!", ofColor::yellow);
+        this->_addLog("Shortcut: Ctrl+S triggered!", ofColor::yellow);
     });
 
     InputManager::get().registerShortcut({OF_KEY_CONTROL, 'o'}, [this]() {
-        addLog("Shortcut: Ctrl+O triggered!", ofColor::yellow);
-        cameraPosition.z += 1.0f;
-        eventManager.emit(CameraEvent(cameraPosition, cameraTarget));
+        this->_addLog("Shortcut: Ctrl+O triggered!", ofColor::yellow);
+        this->_cameraPosition.z += 1.0f;
+        this->_eventManager.emit(CameraEvent(this->_cameraPosition, this->_cameraTarget));
     });
 
     InputManager::get().registerShortcut({OF_KEY_CONTROL, 'p'}, [this]() {
-        addLog("Shortcut: Ctrl+p triggered!", ofColor::yellow);
-        cameraPosition.z -= 1.0f;
-        eventManager.emit(CameraEvent(cameraPosition, cameraTarget));
+        this->_addLog("Shortcut: Ctrl+p triggered!", ofColor::yellow);
+        this->_cameraPosition.z -= 1.0f;
+        this->_eventManager.emit(CameraEvent(this->_cameraPosition, this->_cameraTarget));
     });
 
-    addLog("Keyboard shortcuts registered (Ctrl+S, Ctrl+O, Ctrl+P)", ofColor::green);
+    this->_addLog("Keyboard shortcuts registered (Ctrl+S, Ctrl+O, Ctrl+P)", ofColor::green);
 }
 
-void ofApp::testEntitySystem()
+void ofApp::_testEntitySystem()
 {
     std::stringstream ss;
-    ss << "Total entities in scene: " << entityManager.getEntityCount();
-    addLog(ss.str(), ofColor::green);
+    ss << "Total entities in scene: " << this->_entityManager.getEntityCount();
+    this->_addLog(ss.str(), ofColor::green);
 }
 
 void ofApp::update()
 {
-    eventManager.processEvents();
+    this->_eventManager.processEvents();
 
     auto& input = InputManager::get();
 
-    for (EntityID id : testEntities) {
-        Transform* t = componentRegistry.getComponent<Transform>(id);
+    for (EntityID id : this->_testEntities) {
+        Transform* t = this->_componentRegistry.getComponent<Transform>(id);
         if (t) {
             t->rotation.y += 0.01f;
             t->rotation.x += 0.005f;
         }
     }
 
-    transformSystem->update();
-    cameraSystem->update();
+    this->_transformSystem->update();
+    this->_cameraSystem->update();
 
     input.processShortcuts();
     input.endFrame();
 }
 
 void ofApp::draw() {
-    renderSystem->render();
+    this->_renderSystem->render();
 
     ofDisableDepthTest();
     glDisable(GL_CULL_FACE);
-    
+
     ofPushView();
     ofSetupScreen();
 
-    drawUI();
-    
+    this->_drawUI();
+
     ofPopView();
 }
 
-void ofApp::drawUI() {
+void ofApp::_drawUI() {
     ofSetColor(30, 30, 40, 200);
     ofDrawRectangle(10, 10, 400, 150);
     ofDrawRectangle(10, 170, 400, 400);
     ofDrawRectangle(10, 580, 400, 178);
     ofDrawRectangle(420, 10, 300, 200);
 
-    drawStats();
-    drawEventLog();
-    drawInstructions();
-    drawEntityList();
+    this->_drawStats();
+    this->_drawEventLog();
+    this->_drawInstructions();
+    this->_drawEntityList();
 }
 
-void ofApp::drawStats()
+void ofApp::_drawStats()
 {
     ofSetColor(255);
     ofDrawBitmapString("=== EVENT & INPUT STATISTICS ===", 20, 30);
@@ -250,15 +250,15 @@ void ofApp::drawStats()
     ofDrawBitmapString("Delta: (" + ofToString((int)mouseDelta.x) + ", " + ofToString((int)mouseDelta.y) + ")", 220, 65);
 }
 
-void ofApp::drawEventLog()
+void ofApp::_drawEventLog()
 {
     ofSetColor(255);
-    ofDrawBitmapString("=== EVENT LOG (Last " + ofToString(MAX_LOGS) + " events) ===", 20, 190);
+    ofDrawBitmapString("=== EVENT LOG (Last " + ofToString(this->_MAX_LOGS) + " events) ===", 20, 190);
 
     int y = 210;
     auto now = std::chrono::steady_clock::now();
 
-    for (auto it = eventLogs.rbegin(); it != eventLogs.rend() && y < 560; ++it) {
+    for (auto it = this->_eventLogs.rbegin(); it != this->_eventLogs.rend() && y < 560; ++it) {
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - it->timestamp).count();
 
         ofSetColor(it->color);
@@ -268,7 +268,7 @@ void ofApp::drawEventLog()
     }
 }
 
-void ofApp::drawInstructions()
+void ofApp::_drawInstructions()
 {
     ofSetColor(255);
     ofDrawBitmapString("=== INSTRUCTIONS ===", 20, 600);
@@ -283,26 +283,26 @@ void ofApp::drawInstructions()
     ofDrawBitmapString("Ctrl+C: Move camera forward", 20, 740);
 }
 
-void ofApp::drawEntityList()
+void ofApp::_drawEntityList()
 {
     ofSetColor(255);
     ofDrawBitmapString("=== ENTITIES ===", 430, 30);
-    ofDrawBitmapString("Total: " + ofToString(entityManager.getEntityCount()), 430, 50);
-    ofDrawBitmapString("Selected: " + ofToString(selectedEntity), 430, 65);
-    ofDrawBitmapString("Camera: " + ofToString(cameraEntity), 430, 80);
+    ofDrawBitmapString("Total: " + ofToString(this->_entityManager.getEntityCount()), 430, 50);
+    ofDrawBitmapString("Selected: " + ofToString(this->_selectedEntity), 430, 65);
+    ofDrawBitmapString("Camera: " + ofToString(this->_cameraEntity), 430, 80);
 
     int y = 100;
     int idx = 1;
-    for (EntityID id : entityManager.getAllEntities()) {
+    for (EntityID id : this->_entityManager.getAllEntities()) {
         if (y > 195) break;
 
         std::string type = "";
-        if (componentRegistry.hasComponent<Box>(id)) type = "[BOX]";
-        else if (componentRegistry.hasComponent<Sphere>(id)) type = "[SPHERE]";
-        else if (componentRegistry.hasComponent<Plane>(id)) type = "[PLANE]";
-        else if (componentRegistry.hasComponent<Camera>(id)) type = "[CAMERA]";
+        if (this->_componentRegistry.hasComponent<Box>(id)) type = "[BOX]";
+        else if (this->_componentRegistry.hasComponent<Sphere>(id)) type = "[SPHERE]";
+        else if (this->_componentRegistry.hasComponent<Plane>(id)) type = "[PLANE]";
+        else if (this->_componentRegistry.hasComponent<Camera>(id)) type = "[CAMERA]";
 
-        if (id == selectedEntity) {
+        if (id == this->_selectedEntity) {
             ofSetColor(0, 255, 0);
             ofDrawBitmapString("> Entity #" + ofToString(id) + " " + type, 430, y);
         } else {
@@ -314,56 +314,56 @@ void ofApp::drawEntityList()
     }
 }
 
-void ofApp::addLog(const std::string& message, const ofColor& color)
+void ofApp::_addLog(const std::string& message, const ofColor& color)
 {
     EventLog log;
     log.message = message;
     log.timestamp = std::chrono::steady_clock::now();
     log.color = color;
 
-    eventLogs.insert(eventLogs.begin(), log);
+    this->_eventLogs.insert(this->_eventLogs.begin(), log);
 
-    if (eventLogs.size() > MAX_LOGS)
-        eventLogs.resize(MAX_LOGS);
+    if (this->_eventLogs.size() > this->_MAX_LOGS)
+        this->_eventLogs.resize(this->_MAX_LOGS);
 }
 
 void ofApp::exit()
 {
-    eventBridge->remove();
-    addLog("System shutdown", ofColor::red);
+    this->_eventBridge->remove();
+    this->_addLog("System shutdown", ofColor::red);
 }
 
 void ofApp::keyPressed(int key)
 {
     if (key == ' ') {
-        eventLogs.clear();
-        addLog("Event log cleared", ofColor::white);
+        this->_eventLogs.clear();
+        this->_addLog("Event log cleared", ofColor::white);
         return;
     }
 
     if (key >= '1' && key <= '3') {
         int idx = key - '1';
-        if (idx < testEntities.size()) {
-            if (selectedEntity != 0 && componentRegistry.hasComponent<Renderable>(selectedEntity)) {
-                Renderable* prev = componentRegistry.getComponent<Renderable>(selectedEntity);
+        if (idx < this->_testEntities.size()) {
+            if (this->_selectedEntity != 0 && this->_componentRegistry.hasComponent<Renderable>(this->_selectedEntity)) {
+                Renderable* prev = this->_componentRegistry.getComponent<Renderable>(this->_selectedEntity);
                 if (prev) {
-                    if (componentRegistry.hasComponent<Box>(selectedEntity)) prev->color = ofColor::red;
-                    else if (componentRegistry.hasComponent<Sphere>(selectedEntity)) prev->color = ofColor::green;
-                    else if (componentRegistry.hasComponent<Plane>(selectedEntity)) prev->color = ofColor::blue;
+                    if (this->_componentRegistry.hasComponent<Box>(this->_selectedEntity)) prev->color = ofColor::red;
+                    else if (this->_componentRegistry.hasComponent<Sphere>(this->_selectedEntity)) prev->color = ofColor::green;
+                    else if (this->_componentRegistry.hasComponent<Plane>(this->_selectedEntity)) prev->color = ofColor::blue;
                 }
             }
-            eventManager.emit(SelectionEvent(testEntities[idx], true));
+            this->_eventManager.emit(SelectionEvent(this->_testEntities[idx], true));
         }
     }
 
     if (key == 'c' || key == 'C') {
-        cameraPosition.y += 1.0f;
-        eventManager.emit(CameraEvent(cameraPosition, cameraTarget));
+        this->_cameraPosition.y += 1.0f;
+        this->_eventManager.emit(CameraEvent(this->_cameraPosition, this->_cameraTarget));
     }
 
     if (key == 'r' || key == 'R') {
-        primitiveSystem->generateMeshes();
-        addLog("Primitive meshes regenerated", ofColor::cyan);
+        this->_primitiveSystem->generateMeshes();
+        this->_addLog("Primitive meshes regenerated", ofColor::cyan);
     }
 }
 

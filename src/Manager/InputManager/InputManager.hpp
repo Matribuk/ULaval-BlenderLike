@@ -30,6 +30,9 @@ class InputManager {
     private:
         InputManager() = default;
 
+        bool _getKeyState(int key, const std::unordered_map<int, bool>& stateMap) const;
+        bool _checkTransition(int key, bool expectNow, bool expectPrev) const;
+
         std::unordered_map<int, bool> _keyStates;
         std::unordered_map<int, bool> _prevKeyStates;
 

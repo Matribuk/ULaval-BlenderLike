@@ -38,15 +38,15 @@ public:
     void mouseScrolled(int x, int y, float scrollX, float scrollY);
 
 private:
-    EventManager eventManager;
-    std::unique_ptr<EventBridge> eventBridge;
-    EntityManager entityManager;
-    ComponentRegistry componentRegistry;
+    EventManager _eventManager;
+    std::unique_ptr<EventBridge> _eventBridge;
+    EntityManager _entityManager;
+    ComponentRegistry _componentRegistry;
 
-    std::unique_ptr<TransformSystem> transformSystem;
-    std::unique_ptr<CameraSystem> cameraSystem;
-    std::unique_ptr<RenderSystem> renderSystem;
-    std::unique_ptr<PrimitiveSystem> primitiveSystem;
+    std::unique_ptr<TransformSystem> _transformSystem;
+    std::unique_ptr<CameraSystem> _cameraSystem;
+    std::unique_ptr<RenderSystem> _renderSystem;
+    std::unique_ptr<PrimitiveSystem> _primitiveSystem;
 
     struct EventLog {
         std::string message;
@@ -54,15 +54,15 @@ private:
         ofColor color;
     };
     
-    std::vector<EventLog> eventLogs;
-    const size_t MAX_LOGS = 20;
+    std::vector<EventLog> _eventLogs;
+    const size_t _MAX_LOGS = 20;
 
-    std::vector<EntityID> testEntities;
-    EntityID selectedEntity = 0;
-    EntityID cameraEntity = INVALID_ENTITY;
+    std::vector<EntityID> _testEntities;
+    EntityID _selectedEntity = 0;
+    EntityID _cameraEntity = INVALID_ENTITY;
 
-    glm::vec3 cameraPosition{0.0f, 5.0f, 10.0f};
-    glm::vec3 cameraTarget{0.0f, 0.0f, 0.0f};
+    glm::vec3 _cameraPosition{0.0f, 5.0f, 10.0f};
+    glm::vec3 _cameraTarget{0.0f, 0.0f, 0.0f};
 
     int _keyPressCount = 0;
     int _keyReleaseCount = 0;
@@ -72,15 +72,15 @@ private:
     int _selectionEventCount = 0;
     int _cameraEventCount = 0;
 
-    void addLog(const std::string& message, const ofColor& color = ofColor::white);
-    void setupEventSubscribers();
-    void setupShortcuts();
-    void setupSystems();
-    void setupScene();
-    void testEntitySystem();
-    void drawUI();
-    void drawStats();
-    void drawEventLog();
-    void drawInstructions();
-    void drawEntityList();
+    void _addLog(const std::string& message, const ofColor& color = ofColor::white);
+    void _setupEventSubscribers();
+    void _setupShortcuts();
+    void _setupSystems();
+    void _setupScene();
+    void _testEntitySystem();
+    void _drawUI();
+    void _drawStats();
+    void _drawEventLog();
+    void _drawInstructions();
+    void _drawEntityList();
 };
