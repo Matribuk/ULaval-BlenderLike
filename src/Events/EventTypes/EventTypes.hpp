@@ -30,4 +30,6 @@ struct Event {
 
     Event(EventType t)
         : type(t), timestamp(std::chrono::steady_clock::now()) {}
+
+    virtual ~Event() = default;
 };

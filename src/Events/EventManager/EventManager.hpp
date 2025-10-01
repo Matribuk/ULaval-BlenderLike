@@ -4,6 +4,8 @@
 #include <memory>
 #include <functional>
 #include "../EventTypes/EventTypes.hpp"
+#include <ostream>
+#include <iostream>
 
 class EventManager {
     public:

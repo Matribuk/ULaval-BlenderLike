@@ -6,7 +6,7 @@
 
 class InputManager {
     public:
-        static InputManager& get(); // Singleton global
+        static InputManager& get();
 
         bool isKeyPressed(int key) const;
         bool wasKeyJustPressed(int key) const;
@@ -17,6 +17,7 @@ class InputManager {
         bool isMouseButtonPressed(int button) const;
 
         void registerShortcut(const std::vector<int>& keys, std::function<void()> action);
+        void processShortcuts();
 
         void onKeyPressed(int key);
         void onKeyReleased(int key);

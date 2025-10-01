@@ -25,37 +25,37 @@ void EventBridge::remove()
     ofRemoveListener(ofEvents().mouseReleased, this, &EventBridge::onMouseReleased);
 }
 
-void EventBridge::onKeyPressed(ofKeyEventArgs & args)
+void EventBridge::onKeyPressed(ofKeyEventArgs& args)
 {
     this->_eventManager.emit(KeyEvent(args.key, KeyEventType::Pressed));
 }
 
-void EventBridge::onKeyReleased(ofKeyEventArgs & args)
+void EventBridge::onKeyReleased(ofKeyEventArgs& args)
 {
     this->_eventManager.emit(KeyEvent(args.key, KeyEventType::Released));
 }
 
-void EventBridge::onMousePressed(ofMouseEventArgs & args)
+void EventBridge::onMousePressed(ofMouseEventArgs& args)
 {
     this->_eventManager.emit(MouseEvent(args.x, args.y, args.button, MouseEventType::Pressed));
 }
 
-void EventBridge::onMouseReleased(ofMouseEventArgs & args)
+void EventBridge::onMouseReleased(ofMouseEventArgs& args)
 {
     this->_eventManager.emit(MouseEvent(args.x, args.y, args.button, MouseEventType::Released));
 }
 
-void EventBridge::onMouseMoved(ofMouseEventArgs & args)
+void EventBridge::onMouseMoved(ofMouseEventArgs& args)
 {
     this->_eventManager.emit(MouseEvent(args.x, args.y, -1, MouseEventType::Moved));
 }
 
-void EventBridge::onMouseDragged(ofMouseEventArgs & args)
+void EventBridge::onMouseDragged(ofMouseEventArgs& args)
 {
     this->_eventManager.emit(MouseEvent(args.x, args.y, args.button, MouseEventType::Dragged));
 }
 
-void EventBridge::onMouseScrolled(ofMouseEventArgs & args)
+void EventBridge::onMouseScrolled(ofMouseEventArgs& args)
 {
     this->_eventManager.emit(MouseEvent(args.x, args.y, -1, MouseEventType::Scrolled));
 }

@@ -54,6 +54,22 @@ void InputManager::registerShortcut(const std::vector<int>& keys, std::function<
     this->_shortcuts.emplace_back(keys, action);
 }
 
+void InputManager::processShortcuts() {
+    for (auto& [keys, action] : _shortcuts) {
+        bool allPressed = true;
+        for (int key : keys) {
+            auto it = _keyStates.find(key);
+            if (it == _keyStates.end() || !it->second) {
+                allPressed = false;
+                break;
+            }
+        }
+        if (allPressed) {
+            action();
+        }
+    }
+}
+
 void InputManager::onKeyPressed(int key)
 {
     this->_keyStates[key] = true;
