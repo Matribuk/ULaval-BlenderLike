@@ -1,46 +1,86 @@
 #pragma once
 
 #include "ofMain.h"
-#include "Core/SceneManager/SceneManager.hpp"
-#include "Events/EventBridge/EventBridge.hpp"
-#include "Events/EventManager/EventManager.hpp"
+#include "./Events/EventManager/EventManager.hpp"
+#include "./Events/EventBridge/EventBridge.hpp"
+#include "./Events/EventTypes/Events/MouseEvent.hpp"
+#include "./Events/EventTypes/Events/KeyEvent.hpp"
+#include "./Events/EventTypes/Events/CameraEvent.hpp"
+#include "./Events/EventTypes/Events/SelectionEvent.hpp"
+#include "./Manager/InputManager/InputManager.hpp"
+#include "./Core/EntityManager/EntityManager.hpp"
+#include "./Core/ComponentRegistry/ComponentRegistry.hpp"
+#include "./Systems/TransformSystem/TransformSystem.hpp"
+#include "./Systems/CameraSystem/CameraSystem.hpp"
+#include "./Systems/RenderSystem/RenderSystem.hpp"
+#include "./Systems/PrimitiveSystem/PrimitiveSystem.hpp"
+#include "./Components/Transform.hpp"
+#include "./Components/Camera.hpp"
+#include "./Components/Renderable.hpp"
+#include "./Components/Primitive/Box.hpp"
+#include "./Components/Primitive/Sphere.hpp"
+#include "./Components/Primitive/Plane.hpp"
+#include <sstream>
 
-#include "Core/ComponentRegistry/ComponentRegistry.hpp"
-#include "Core/EntityManager/EntityManager.hpp"
-#include "Systems/RenderSystem/RenderSystem.hpp"
-#include "Systems/TransformSystem/TransformSystem.hpp"
+class ofApp : public ofBaseApp {
+public:
+    void setup();
+    void update();
+    void draw();
+    void exit();
 
-class ofApp : public ofBaseApp{
+    void keyPressed(int key);
+    void keyReleased(int key);
+    void mouseMoved(int x, int y);
+    void mouseDragged(int x, int y, int button);
+    void mousePressed(int x, int y, int button);
+    void mouseReleased(int x, int y, int button);
+    void mouseScrolled(int x, int y, float scrollX, float scrollY);
 
-	public:
-		void setup() override;
-		void update() override;
-		void draw() override;
-		void exit() override;
+private:
+    EventManager _eventManager;
+    std::unique_ptr<EventBridge> _eventBridge;
+    EntityManager _entityManager;
+    ComponentRegistry _componentRegistry;
 
-		void keyPressed(int key) override;
-		void keyReleased(int key) override;
-		void mouseMoved(int x, int y) override;
-		void mouseDragged(int x, int y, int button) override;
-		void mousePressed(int x, int y, int button) override;
-		void mouseReleased(int x, int y, int button) override;
-		void mouseScrolled(int x, int y, float scrollX, float scrollY) override;
-		void mouseEntered(int x, int y) override;
-		void mouseExited(int x, int y) override;
-		void windowResized(int w, int h) override;
-		void dragEvent(ofDragInfo dragInfo) override;
-		void gotMessage(ofMessage msg) override;
+    std::unique_ptr<TransformSystem> _transformSystem;
+    std::unique_ptr<CameraSystem> _cameraSystem;
+    std::unique_ptr<RenderSystem> _renderSystem;
+    std::unique_ptr<PrimitiveSystem> _primitiveSystem;
 
-	private:
-		std::unique_ptr<SceneManager> sceneManager;
-		std::unique_ptr<EventManager> eventManager;
-		std::unique_ptr<EventBridge> eventBridge;
+    struct EventLog {
+        std::string message;
+        std::chrono::time_point<std::chrono::steady_clock> timestamp;
+        ofColor color;
+    };
+    
+    std::vector<EventLog> _eventLogs;
+    const size_t _MAX_LOGS = 20;
 
-		ComponentRegistry registry;
-		EntityManager entityManager;
-		std::unique_ptr<RenderSystem> renderSystem;
-		std::unique_ptr<TransformSystem> transformSystem;
+    std::vector<EntityID> _testEntities;
+    EntityID _selectedEntity = 0;
+    EntityID _cameraEntity = INVALID_ENTITY;
 
-		EntityID cubeEntity;
-		EntityID cameraEntity;
+    glm::vec3 _cameraPosition{0.0f, 5.0f, 10.0f};
+    glm::vec3 _cameraTarget{0.0f, 0.0f, 0.0f};
+
+    int _keyPressCount = 0;
+    int _keyReleaseCount = 0;
+    int _mousePressCount = 0;
+    int _mouseReleaseCount = 0;
+    int _mouseMoveCount = 0;
+    int _selectionEventCount = 0;
+    int _cameraEventCount = 0;
+
+    void _addLog(const std::string& message, const ofColor& color = ofColor::white);
+    void _setupEventSubscribers();
+    void _setupShortcuts();
+    void _setupSystems();
+    void _setupScene();
+    void _testEntitySystem();
+    void _drawUI();
+    void _drawStats();
+    void _drawEventLog();
+    void _drawInstructions();
+    void _drawEntityList();
 };

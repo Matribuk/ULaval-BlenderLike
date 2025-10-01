@@ -145,13 +145,13 @@
 
 ### Manager/InputManager.h
 
-- [ ] État actuel clavier/souris
-- [ ] Historique des inputs
-- [ ] Méthodes `isKeyPressed(int key)`
-- [ ] Méthodes `getMousePosition()`
-- [ ] Méthodes `getMouseDelta()`
-- [ ] Gestion raccourcis clavier
-- [ ] Subscribe aux EventBridge events
+- [x] État actuel clavier/souris
+- [x] Historique des inputs
+- [x] Méthodes `isKeyPressed(int key)`
+- [x] Méthodes `getMousePosition()`
+- [x] Méthodes `getMouseDelta()`
+- [x] Gestion raccourcis clavier
+- [x] Subscribe aux EventBridge events
 
 ### Manager/CameraManager.h
 
