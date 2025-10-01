@@ -14,14 +14,14 @@ class EventBridge {
         void setup();
         void remove();
 
-        void onKeyPressed(ofKeyEventArgs & args);
-        void onKeyReleased(ofKeyEventArgs & args);
+        void onKeyPressed(ofKeyEventArgs& args);
+        void onKeyReleased(ofKeyEventArgs& args);
 
-        void onMousePressed(ofMouseEventArgs & args);
-        void onMouseReleased(ofMouseEventArgs & args);
-        void onMouseMoved(ofMouseEventArgs & args);
-        void onMouseDragged(ofMouseEventArgs & args);
-        void onMouseScrolled(ofMouseEventArgs & args);
+        void onMousePressed(ofMouseEventArgs& args);
+        void onMouseReleased(ofMouseEventArgs& args);
+        void onMouseMoved(ofMouseEventArgs& args);
+        void onMouseDragged(ofMouseEventArgs& args);
+        void onMouseScrolled(ofMouseEventArgs& args);
 
     private:
         EventManager& _eventManager;
