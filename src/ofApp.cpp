@@ -4,38 +4,51 @@ void ofApp::setup() {
     renderSystem = std::make_unique<RenderSystem>(registry, entityManager);
     transformSystem = std::make_unique<TransformSystem>(registry, entityManager);
 
-    cameraEntity = entityManager.createEntity().getId();
-    Camera camera;
-    registry.registerComponent<Camera>(cameraEntity, camera);
-    renderSystem->setActiveCamera(cameraEntity);
-
     cubeEntity = entityManager.createEntity().getId();
-    Transform t;
-    t.position = glm::vec3(0, 0, 0);
-    t.rotation = glm::vec3(0, 0, 0);
-    t.scale    = glm::vec3(1, 1, 1);
-    t.matrix   = glm::mat4(1.0f);
-    registry.registerComponent<Transform>(cubeEntity, t);
+
+    Transform cubeTransform;
+    cubeTransform.position = glm::vec3(0, 0, 0);
+    cubeTransform.rotation = glm::vec3(0, 0, 0);
+    cubeTransform.scale    = glm::vec3(1, 1, 1);
+    cubeTransform.matrix   = glm::mat4(1.0f);
+    registry.registerComponent<Transform>(cubeEntity, cubeTransform);
 
     Renderable r;
     r.mesh = ofMesh::box(100, 100, 100);
     r.color = ofColor::red;
     r.visible = true;
     registry.registerComponent<Renderable>(cubeEntity, r);
+
+    cameraEntity = entityManager.createEntity().getId();
+
+    Transform camTransform;
+    camTransform.position = glm::vec3(0, 100, 500);
+    camTransform.rotation = glm::vec3(0, 0, 0);
+    camTransform.scale = glm::vec3(1, 1, 1);
+    registry.registerComponent<Transform>(cameraEntity, camTransform);
+
+    Camera camera;
+    camera.target = cubeTransform.position;
+    camera.focusMode = true;
+    registry.registerComponent<Camera>(cameraEntity, camera);
+
+    renderSystem->setActiveCamera(cameraEntity);
 }
 
 void ofApp::update() {
-    Camera* cam = renderSystem->getActiveCameraObject();
-    if (cam) {
-        cam->position.x = 500.0f * sin(ofGetElapsedTimef());
-        cam->position.z = 500.0f * cos(ofGetElapsedTimef());
-        cam->position.y = 200.0f;
-    }
-
     Transform* cubeTransform = registry.getComponent<Transform>(cubeEntity);
-    if (cubeTransform) {
-        cubeTransform->rotation.x += 0.01f;
+    Transform* camTransform = registry.getComponent<Transform>(cameraEntity);
+    if (camTransform && cubeTransform) {
+        float time = ofGetElapsedTimef();
+        float radius = 500.0f;
+        float height = 200.0f;
+        glm::vec3 cubePos = cubeTransform->position;
+
+        camTransform->position.x = cubePos.x + radius * sin(time);
+        camTransform->position.z = cubePos.z + radius * cos(time);
+        camTransform->position.y = cubePos.y + height;
     }
+    cubeTransform->rotation.x += 0.01f;
 
     transformSystem->update();
 }
