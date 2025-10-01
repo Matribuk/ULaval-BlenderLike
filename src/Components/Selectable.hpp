@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ofColor.h"
+#include <ofMain.h>
 
 struct Selectable
 {

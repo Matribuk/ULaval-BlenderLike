@@ -101,18 +101,20 @@
 - [x] `onMouseMoved(int x, int y)`
 - [x] `onMouseDragged(int x, int y, int button)`
 - [x] `onMouseScrolled(int x, int y, float sx, float sy)`
+- [x] `onWindowResized(int w, int h)`
+- [x] `onDragEvent(ofDragInfo dragInfo)`
 
 ## 📁 Phase 4: Systèmes logiques
 
 ### Systems/RenderSystem.h
 
-- [ ] Référence vers ComponentRegistry
-- [ ] Référence vers caméra active
-- [ ] Méthode `render()`
-- [ ] Méthode `setActiveCamera(EntityID)`
-- [ ] Rendu des entités avec Transform + Renderable
-- [ ] Gestion des materials et shaders
-- [ ] Culling et optimisations
+- [x] Référence vers ComponentRegistry
+- [x] Référence vers caméra active
+- [x] Méthode `render()`
+- [x] Méthode `setActiveCamera(EntityID)`
+- [x] Rendu des entités avec Transform + Renderable
+- [x] Gestion des materials et shaders
+- [x] Culling et optimisations
 
 ### Systems/SelectionSystem.h
 

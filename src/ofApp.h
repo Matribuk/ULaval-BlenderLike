@@ -5,7 +5,13 @@
 #include "Events/EventBridge/EventBridge.hpp"
 #include "Events/EventManager/EventManager.hpp"
 
-class ofApp : public ofBaseApp {
+#include "Core/ComponentRegistry/ComponentRegistry.hpp"
+#include "Core/EntityManager/EntityManager.hpp"
+#include "Systems/RenderSystem/RenderSystem.hpp"
+#include "Systems/TransformSystem/TransformSystem.hpp"
+
+class ofApp : public ofBaseApp{
+
 	public:
 		void setup() override;
 		void update() override;
@@ -30,4 +36,11 @@ class ofApp : public ofBaseApp {
 		std::unique_ptr<EventManager> eventManager;
 		std::unique_ptr<EventBridge> eventBridge;
 
+		ComponentRegistry registry;
+		EntityManager entityManager;
+		std::unique_ptr<RenderSystem> renderSystem;
+		std::unique_ptr<TransformSystem> transformSystem;
+
+		EntityID cubeEntity;
+		EntityID cameraEntity;
 };
