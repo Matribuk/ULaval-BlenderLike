@@ -43,7 +43,6 @@ private:
     EntityManager entityManager;
     ComponentRegistry componentRegistry;
 
-    // Systems
     std::unique_ptr<TransformSystem> transformSystem;
     std::unique_ptr<CameraSystem> cameraSystem;
     std::unique_ptr<RenderSystem> renderSystem;
