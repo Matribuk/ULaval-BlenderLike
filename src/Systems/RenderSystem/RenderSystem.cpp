@@ -34,11 +34,11 @@ void RenderSystem::setupRenderState()
 
 ofCamera RenderSystem::buildCameraFromComponents(Camera& camera, const Transform& transform)
 {
-    glm::vec3 camPos = glm::vec3(transform.matrix[3]);
-    glm::vec3 forward = glm::normalize(glm::vec3(transform.matrix * glm::vec4(0, 0, -1, 0)));
-    glm::vec3 up = glm::normalize(glm::vec3(transform.matrix * glm::vec4(0, 1, 0, 0)));
+    glm::vec3 camPos = transform.position;
+    glm::vec3 forward = glm::normalize(camera.forward);
+    glm::vec3 up = glm::normalize(camera.up);
 
-    glm::vec3 lookTarget = (camera.focusMode) ? camera.target : camPos + forward;
+    glm::vec3 lookTarget = camera.focusMode ? camera.target : camPos + forward;
 
     camera.viewMatrix = glm::lookAt(camPos, lookTarget, up);
     if (camera.aspectRatio <= 0.0f) camera.aspectRatio = static_cast<float>(ofGetWidth()) / static_cast<float>(ofGetHeight());
