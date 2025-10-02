@@ -6,7 +6,10 @@ void ofApp::setup()
     ofSetFrameRate(60);
     ofBackground(20);
 
+    this->_gui.setup();
+
     this->_eventBridge = std::make_unique<EventBridge>(this->_eventManager);
+    this->_toolbar = std::make_unique<Toolbar>();
     this->_eventBridge->setup();
 
     this->_addLog("=== System Initialized ===", ofColor::green);
@@ -198,6 +201,7 @@ void ofApp::update()
 
     this->_transformSystem->update();
     this->_cameraSystem->update();
+    if (this->_toolbar) this->_toolbar->update();
 
     input.processShortcuts();
     input.endFrame();
@@ -213,6 +217,7 @@ void ofApp::draw() {
     ofSetupScreen();
 
     this->_drawUI();
+    
 
     ofPopView();
 }
@@ -228,6 +233,12 @@ void ofApp::_drawUI() {
     this->_drawEventLog();
     this->_drawInstructions();
     this->_drawEntityList();
+
+    this->_gui.begin();
+
+    if (this->_toolbar) this->_toolbar->render();
+
+    this->_gui.end();
 }
 
 void ofApp::_drawStats()
@@ -279,8 +290,9 @@ void ofApp::_drawInstructions()
     ofDrawBitmapString("Press C to emit CameraEvent", 20, 680);
     ofDrawBitmapString("Press R to regenerate meshes", 20, 695);
     ofDrawBitmapString("Press SPACE to clear log", 20, 710);
-    ofDrawBitmapString("Ctrl+S: Select first entity", 20, 725);
-    ofDrawBitmapString("Ctrl+C: Move camera forward", 20, 740);
+    ofDrawBitmapString("Ctrl+S: Do nothing", 20, 725);
+    ofDrawBitmapString("Ctrl+O: Move forward", 20, 740);
+    ofDrawBitmapString("Ctrl+P: Move backward", 20, 740);
 }
 
 void ofApp::_drawEntityList()

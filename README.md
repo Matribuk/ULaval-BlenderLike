@@ -193,11 +193,11 @@
 
 ### UI/ToolBar.h
 
-- [ ] Liste des outils disponibles
-- [ ] Outil actuellement sélectionné
-- [ ] Méthodes `addTool(Tool)`
-- [ ] Méthodes `selectTool(ToolType)`
-- [ ] Méthodes `render()`
+- [x] Liste des outils disponibles
+- [x] Outil actuellement sélectionné
+- [x] Méthodes `addTool(Tool)`
+- [x] Méthodes `selectTool(ToolType)`
+- [x] Méthodes `render()`
 - [ ] Gestion événements clic outils
 
 ### UI/ColorPalette.h

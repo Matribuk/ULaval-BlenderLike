@@ -20,6 +20,9 @@
 #include "./Components/Primitive/Box.hpp"
 #include "./Components/Primitive/Sphere.hpp"
 #include "./Components/Primitive/Plane.hpp"
+#include "./UI/ToolBar/ToolBar.hpp"
+#include "ofxImGui.h"
+
 #include <sstream>
 
 class ofApp : public ofBaseApp {
@@ -39,7 +42,9 @@ public:
 
 private:
     EventManager _eventManager;
+
     std::unique_ptr<EventBridge> _eventBridge;
+    std::unique_ptr<Toolbar> _toolbar;
     EntityManager _entityManager;
     ComponentRegistry _componentRegistry;
 
@@ -53,10 +58,11 @@ private:
         std::chrono::time_point<std::chrono::steady_clock> timestamp;
         ofColor color;
     };
-    
+
     std::vector<EventLog> _eventLogs;
     const size_t _MAX_LOGS = 20;
 
+    ofxImGui::Gui _gui;
     std::vector<EntityID> _testEntities;
     EntityID _selectedEntity = 0;
     EntityID _cameraEntity = INVALID_ENTITY;
