@@ -26,8 +26,8 @@ void Toolbar::renderToolButton(size_t i, const ImVec2& size)
         this->_selectedTool = static_cast<int>(i);
         if (const ToolButton* tool = getSelectedTool()) {
             for (auto& callback : tool->action) {
-            callback(std::any{});
-        }
+                callback(std::any{});
+            }
         }
     }
 
@@ -63,7 +63,7 @@ void Toolbar::render()
     {
         ImVec2 availableSize = ImGui::GetContentRegionAvail();
 
-        float totalSpacing = _buttonSpacing * (this->_tools.size() - 1);
+        float totalSpacing = this->_buttonSpacing * (this->_tools.size() - 1);
         float buttonWidth = (this->_size.x - totalSpacing) / static_cast<float>(this->_tools.size()) * 0.1;
         float buttonHeight = availableSize.y;
         ImVec2 buttonSize(buttonWidth, buttonHeight);
@@ -82,9 +82,9 @@ void Toolbar::render()
 
 const ToolButton* Toolbar::getSelectedTool() const
 {
-    if (_selectedTool < 0 || _selectedTool >= static_cast<int>(_tools.size()))
+    if (this->_selectedTool < 0 || this->_selectedTool >= static_cast<int>(this->_tools.size()))
         return nullptr;
-    return &_tools[_selectedTool];
+    return &this->_tools[this->_selectedTool];
 }
 
 void Toolbar::setSelectedTool(int tool)
