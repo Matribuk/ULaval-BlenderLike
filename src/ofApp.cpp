@@ -30,9 +30,9 @@ void ofApp::setup()
 void ofApp::_setupSystems()
 {
     this->_transformSystem = std::make_unique<TransformSystem>(this->_componentRegistry, this->_entityManager);
-    this->_cameraSystem = std::make_unique<CameraSystem>(this->_componentRegistry, this->_entityManager);
     this->_primitiveSystem = std::make_unique<PrimitiveSystem>(this->_componentRegistry, this->_entityManager);
     this->_renderSystem = std::make_unique<RenderSystem>(this->_componentRegistry, this->_entityManager);
+    this->_cameraSystem = std::make_unique<CameraSystem>(this->_componentRegistry, this->_entityManager);
 
     this->_addLog("All systems initialized", ofColor::green);
 }
@@ -44,6 +44,7 @@ void ofApp::_setupScene()
     this->_componentRegistry.registerComponent(this->_cameraEntity, Transform(glm::vec3(0, 5, 10)));
     this->_componentRegistry.registerComponent(this->_cameraEntity, Camera());
     this->_renderSystem->setActiveCamera(this->_cameraEntity);
+    this->_cameraSystem->addCamera(this->_cameraEntity);
     this->_addLog("Camera entity created (ID: " + ofToString(this->_cameraEntity) + ")", ofColor::cyan);
 
     Entity boxEntity = this->_entityManager.createEntity();
@@ -168,38 +169,67 @@ void ofApp::_setupEventSubscribers()
 
 void ofApp::_setupShortcuts()
 {
-    InputManager::get().registerShortcut({OF_KEY_CONTROL, 's'}, [this]() {
+    auto& input = InputManager::get();
+
+    input.registerShortcut({OF_KEY_CONTROL, 's'}, [this]() {
         this->_addLog("Shortcut: Ctrl+S triggered!", ofColor::yellow);
     });
 
-    InputManager::get().registerShortcut({OF_KEY_CONTROL, 'o'}, [this]() {
+    input.registerShortcut({OF_KEY_CONTROL, 'o'}, [this]() {
         this->_addLog("Shortcut: Ctrl+O triggered!", ofColor::yellow);
         this->_cameraPosition.z += 1.0f;
         this->_eventManager.emit(CameraEvent(this->_cameraPosition, this->_cameraTarget));
     });
 
-    InputManager::get().registerShortcut({OF_KEY_CONTROL, 'p'}, [this]() {
+    input.registerShortcut({OF_KEY_CONTROL, 'p'}, [this]() {
         this->_addLog("Shortcut: Ctrl+P triggered!", ofColor::yellow);
         this->_cameraPosition.z -= 1.0f;
         this->_eventManager.emit(CameraEvent(this->_cameraPosition, this->_cameraTarget));
     });
 
-    InputManager::get().registerShortcut({OF_KEY_CONTROL, 'n', 'o'}, [this]() {
+    input.registerShortcut({OF_KEY_CONTROL, 'n', 'o'}, [this]() {
         this->_addLog("Shortcut: Ctrl+N+O triggered!", ofColor::yellow);
         this->_fileManager->importMesh("nier.obj");
     });
 
-    InputManager::get().registerShortcut({OF_KEY_CONTROL, 'n', 's'}, [this]() {
+    input.registerShortcut({OF_KEY_CONTROL, 'n', 's'}, [this]() {
         this->_addLog("Shortcut: Ctrl+N+S triggered!", ofColor::yellow);
         this->_fileManager->importMesh("nier.stl");
     });
 
-        InputManager::get().registerShortcut({OF_KEY_CONTROL, 'c'}, [this]() {
+    input.registerShortcut({OF_KEY_CONTROL, 'c'}, [this]() {
         this->_addLog("Shortcut: Ctrl+C triggered!", ofColor::yellow);
         this->_fileManager->importMesh("chair.ply");
     });
 
-    this->_addLog("Keyboard shortcuts registered (Ctrl+S, Ctrl+O, Ctrl+P)", ofColor::green);
+    input.registerShortcut({'k'}, [this]() {
+        _cameraSystem->zoom(1.0f);
+        this->_addLog("Shortcut: k (zoom in) triggered!", ofColor::yellow);
+    });
+    input.registerShortcut({'l'}, [this]() {
+        _cameraSystem->zoom(-1.0f);
+        this->_addLog("Shortcut: l (zoom out) triggered!", ofColor::yellow);
+    });
+    input.registerShortcut({'n'}, [this]() {
+        _cameraSystem->switchCamera();
+        this->_addLog("Shortcut: n (switch camera) triggered!", ofColor::yellow);
+    });
+    input.registerShortcut({'f'}, [this]() {
+        _cameraSystem->focusTarget();
+        this->_addLog("Shortcut: f (focus camera) triggered!", ofColor::yellow);
+    });
+
+    input.registerShortcut({OF_KEY_LEFT},  [this](){ _cameraSystem->panKeyboard(1.0f, 0.0f); });
+    input.registerShortcut({OF_KEY_RIGHT}, [this](){ _cameraSystem->panKeyboard(-1.0f, 0.0f); });
+    input.registerShortcut({OF_KEY_UP},    [this](){ _cameraSystem->panKeyboard(0.0f, -1.0f); });
+    input.registerShortcut({OF_KEY_DOWN},  [this](){ _cameraSystem->panKeyboard(0.0f, 1.0f); });
+
+    input.registerShortcut({'a'}, [this](){ _cameraSystem->orbitKeyboard(1.0f, 0.0f); });
+    input.registerShortcut({'d'}, [this](){ _cameraSystem->orbitKeyboard(-1.0f, 0.0f); });
+    input.registerShortcut({'w'}, [this](){ _cameraSystem->orbitKeyboard(0.0f, -1.0f); });
+    input.registerShortcut({'s'}, [this](){ _cameraSystem->orbitKeyboard(0.0f, 1.0f); });
+
+    this->_addLog("Keyboard shortcuts registered (Ctrl+S, Ctrl+O, Ctrl+P, k - zoom in, l - zoom out, n - switch camera, f - focus camera)", ofColor::green);
 }
 
 void ofApp::_testEntitySystem()
