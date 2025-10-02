@@ -2,9 +2,6 @@
 
 Toolbar::Toolbar() : _selectedTool(-1), _buttonSpacing(5.0)
 {
-    setPosition(0, 0);
-    setSize(ofGetWindowWidth(), 20);
-
     this->_tools.emplace_back(ToolButton{"Select", {}});
     this->_tools.emplace_back(ToolButton{"Move", {}});
 }
@@ -40,7 +37,7 @@ void Toolbar::renderToolButton(size_t i, const ImVec2& size)
 void Toolbar::render()
 {
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(ofGetWindowWidth(), 20.0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(ofGetWindowWidth(), 20), ImGuiCond_Always);
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar |
                             ImGuiWindowFlags_NoResize |
@@ -64,7 +61,7 @@ void Toolbar::render()
         ImVec2 availableSize = ImGui::GetContentRegionAvail();
 
         float totalSpacing = this->_buttonSpacing * (this->_tools.size() - 1);
-        float buttonWidth = (this->_size.x - totalSpacing) / static_cast<float>(this->_tools.size()) * 0.1;
+        float buttonWidth = (ofGetWindowWidth() - totalSpacing) / static_cast<float>(this->_tools.size()) * 0.1;
         float buttonHeight = availableSize.y;
         ImVec2 buttonSize(buttonWidth, buttonHeight);
 

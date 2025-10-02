@@ -21,6 +21,7 @@
 #include "./Components/Primitive/Sphere.hpp"
 #include "./Components/Primitive/Plane.hpp"
 #include "./UI/ToolBar/ToolBar.hpp"
+#include "./UI/Viewport/Viewport.hpp"
 #include "ofxImGui.h"
 
 #include <sstream>
@@ -45,6 +46,7 @@ private:
 
     std::unique_ptr<EventBridge> _eventBridge;
     std::unique_ptr<Toolbar> _toolbar;
+    std::unique_ptr<Viewport> _viewport;
     EntityManager _entityManager;
     ComponentRegistry _componentRegistry;
 

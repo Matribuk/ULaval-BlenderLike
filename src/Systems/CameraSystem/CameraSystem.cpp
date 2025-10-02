@@ -3,12 +3,16 @@
 CameraSystem::CameraSystem(ComponentRegistry& registry, EntityManager& entityMgr)
     : _registry(registry), _entityManager(entityMgr) {}
 
-void CameraSystem::update() {
+void CameraSystem::update(int viewportWidth, int viewportHeight) {
+    float newAspect = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
+
     for (EntityID id : this->_entityManager.getAllEntities()) {
         Camera* cam = this->_registry.getComponent<Camera>(id);
         Transform* transform = this->_registry.getComponent<Transform>(id);
 
         if (cam && transform) {
+            cam->aspectRatio = newAspect;
+
             if (cam->focusMode)
                 cam->viewMatrix = glm::lookAt(transform->position, cam->target, cam->up);
             else
@@ -22,4 +26,14 @@ void CameraSystem::update() {
             );
         }
     }
+}
+
+EntityManager& CameraSystem::getEntityManager()
+{
+    return _entityManager;
+}
+
+ComponentRegistry& CameraSystem::getRegistry()
+{
+    return _registry;
 }

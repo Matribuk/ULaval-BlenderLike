@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../APanel/APanel.hpp"
+#include "../ColorTheme.hpp"
 #include "ofMain.h"
 #include "ofxImGui.h"
 #include <vector>
@@ -14,11 +14,11 @@ struct ToolButton {
         : name(n), action(a) {}
 };
 
-class Toolbar : public APanel {
+class Toolbar {
     public:
         Toolbar();
 
-        void render() override;
+        void render();
 
         const ToolButton* getSelectedTool() const;
         void setSelectedTool(int tool);

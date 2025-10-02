@@ -9,7 +9,6 @@ void ofApp::setup()
     this->_gui.setup();
 
     this->_eventBridge = std::make_unique<EventBridge>(this->_eventManager);
-    this->_toolbar = std::make_unique<Toolbar>();
     this->_eventBridge->setup();
 
     this->_addLog("=== System Initialized ===", ofColor::green);
@@ -17,6 +16,9 @@ void ofApp::setup()
     this->_setupShortcuts();
     this->_setupSystems();
     this->_setupScene();
+    this->_toolbar = std::make_unique<Toolbar>();
+    this->_viewport = std::make_unique<Viewport>(*this->_cameraSystem, *this->_renderSystem);
+
     this->_testEntitySystem();
 
     this->_addLog("System ready! Press keys and move mouse to test.", ofColor::cyan);
@@ -200,16 +202,13 @@ void ofApp::update()
     }
 
     this->_transformSystem->update();
-    this->_cameraSystem->update();
-    if (this->_toolbar) this->_toolbar->update();
 
     input.processShortcuts();
     input.endFrame();
 }
 
-void ofApp::draw() {
-    this->_renderSystem->render();
-
+void ofApp::draw()
+{
     ofDisableDepthTest();
     glDisable(GL_CULL_FACE);
 
@@ -217,113 +216,111 @@ void ofApp::draw() {
     ofSetupScreen();
 
     this->_drawUI();
-    
 
     ofPopView();
 }
 
-void ofApp::_drawUI() {
-    ofSetColor(30, 30, 40, 200);
-    ofDrawRectangle(10, 10, 400, 150);
-    ofDrawRectangle(10, 170, 400, 400);
-    ofDrawRectangle(10, 580, 400, 178);
-    ofDrawRectangle(420, 10, 300, 200);
+void ofApp::_drawUI()
+{
+    this->_gui.begin();
 
     this->_drawStats();
     this->_drawEventLog();
     this->_drawInstructions();
     this->_drawEntityList();
 
-    this->_gui.begin();
-
     if (this->_toolbar) this->_toolbar->render();
+    if (this->_viewport) this->_viewport->render();
 
     this->_gui.end();
 }
 
 void ofApp::_drawStats()
 {
-    ofSetColor(255);
-    ofDrawBitmapString("=== EVENT & INPUT STATISTICS ===", 20, 30);
+    ImGui::SetNextWindowPos(ImVec2(10, 80));
+    ImGui::SetNextWindowSize(ImVec2(400, 150));
+    if (ImGui::Begin("Event & Input Stats", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+        auto& input = InputManager::get();
+        glm::vec2 mousePos = input.getMousePosition();
+        glm::vec2 mouseDelta = input.getMouseDelta();
 
-    auto& input = InputManager::get();
-    glm::vec2 mousePos = input.getMousePosition();
-    glm::vec2 mouseDelta = input.getMouseDelta();
-
-    ofDrawBitmapString("Key Presses: " + ofToString(this->_keyPressCount), 20, 50);
-    ofDrawBitmapString("Key Releases: " + ofToString(this->_keyReleaseCount), 20, 65);
-    ofDrawBitmapString("Mouse Presses: " + ofToString(this->_mousePressCount), 20, 80);
-    ofDrawBitmapString("Mouse Releases: " + ofToString(this->_mouseReleaseCount), 20, 95);
-    ofDrawBitmapString("Mouse Moves: " + ofToString(this->_mouseMoveCount), 20, 110);
-    ofDrawBitmapString("Selection Events: " + ofToString(this->_selectionEventCount), 20, 125);
-    ofDrawBitmapString("Camera Events: " + ofToString(this->_cameraEventCount), 20, 140);
-    ofDrawBitmapString("Mouse: (" + ofToString((int)mousePos.x) + ", " + ofToString((int)mousePos.y) + ")", 220, 50);
-    ofDrawBitmapString("Delta: (" + ofToString((int)mouseDelta.x) + ", " + ofToString((int)mouseDelta.y) + ")", 220, 65);
+        ImGui::Text("Key Presses: %d", this->_keyPressCount);
+        ImGui::Text("Key Releases: %d", this->_keyReleaseCount);
+        ImGui::Text("Mouse Presses: %d", this->_mousePressCount);
+        ImGui::Text("Mouse Releases: %d", this->_mouseReleaseCount);
+        ImGui::Text("Mouse Moves: %d", this->_mouseMoveCount);
+        ImGui::Text("Selection Events: %d", this->_selectionEventCount);
+        ImGui::Text("Camera Events: %d", this->_cameraEventCount);
+        ImGui::Separator();
+        ImGui::Text("Mouse Position: (%.1f, %.1f)", mousePos.x, mousePos.y);
+        ImGui::Text("Mouse Delta: (%.1f, %.1f)", mouseDelta.x, mouseDelta.y);
+    }
+    ImGui::End();
 }
 
 void ofApp::_drawEventLog()
 {
-    ofSetColor(255);
-    ofDrawBitmapString("=== EVENT LOG (Last " + ofToString(this->_MAX_LOGS) + " events) ===", 20, 190);
-
-    int y = 210;
-    auto now = std::chrono::steady_clock::now();
-
-    for (auto it = this->_eventLogs.rbegin(); it != this->_eventLogs.rend() && y < 560; ++it) {
-        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - it->timestamp).count();
-
-        ofSetColor(it->color);
-        std::string timeStr = "[" + ofToString(elapsed / 1000.0f, 2) + "s] ";
-        ofDrawBitmapString(timeStr + it->message, 20, y);
-        y += 15;
+    ImGui::SetNextWindowPos(ImVec2(10, 240));
+    ImGui::SetNextWindowSize(ImVec2(400, 400));
+    if (ImGui::Begin("Event Log", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+        auto now = std::chrono::steady_clock::now();
+        for (auto it = this->_eventLogs.rbegin(); it != this->_eventLogs.rend(); ++it) {
+            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - it->timestamp).count();
+            ImGui::TextColored(
+                ImVec4(it->color.r / 255.0f, it->color.g / 255.0f, it->color.b / 255.0f, it->color.a / 255.0f),
+                "[%.2fs] %s", elapsed / 1000.0f, it->message.c_str()
+            );
+        }
     }
+    ImGui::End();
 }
 
 void ofApp::_drawInstructions()
 {
-    ofSetColor(255);
-    ofDrawBitmapString("=== INSTRUCTIONS ===", 20, 600);
-    ofDrawBitmapString("Press any KEY to test KeyEvent", 20, 620);
-    ofDrawBitmapString("Move MOUSE to test MouseEvent", 20, 635);
-    ofDrawBitmapString("Click MOUSE buttons to test", 20, 650);
-    ofDrawBitmapString("Press 1-3 to select primitives", 20, 665);
-    ofDrawBitmapString("Press C to emit CameraEvent", 20, 680);
-    ofDrawBitmapString("Press R to regenerate meshes", 20, 695);
-    ofDrawBitmapString("Press SPACE to clear log", 20, 710);
-    ofDrawBitmapString("Ctrl+S: Do nothing", 20, 725);
-    ofDrawBitmapString("Ctrl+O: Move forward", 20, 740);
-    ofDrawBitmapString("Ctrl+P: Move backward", 20, 740);
+    ImGui::SetNextWindowPos(ImVec2(10, 650));
+    ImGui::SetNextWindowSize(ImVec2(400, 250));
+    if (ImGui::Begin("Instructions", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+        ImGui::TextWrapped(
+            "Press any KEY to test KeyEvent\n"
+            "Move MOUSE to test MouseEvent\n"
+            "Click MOUSE buttons to test\n"
+            "Press 1-3 to select primitives\n"
+            "Press C to emit CameraEvent\n"
+            "Press R to regenerate meshes\n"
+            "Press SPACE to clear log\n"
+            "Ctrl+S: Do nothing\n"
+            "Ctrl+O: Move forward\n"
+            "Ctrl+P: Move backward"
+        );
+    }
+    ImGui::End();
 }
 
 void ofApp::_drawEntityList()
 {
-    ofSetColor(255);
-    ofDrawBitmapString("=== ENTITIES ===", 430, 30);
-    ofDrawBitmapString("Total: " + ofToString(this->_entityManager.getEntityCount()), 430, 50);
-    ofDrawBitmapString("Selected: " + ofToString(this->_selectedEntity), 430, 65);
-    ofDrawBitmapString("Camera: " + ofToString(this->_cameraEntity), 430, 80);
+    ImGui::SetNextWindowPos(ImVec2(420, 80));
+    ImGui::SetNextWindowSize(ImVec2(300, 150));
+    if (ImGui::Begin("Entities", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+        ImGui::Text("Total: %d", this->_entityManager.getEntityCount());
+        ImGui::Text("Selected: %d", this->_selectedEntity);
+        ImGui::Text("Camera: %d", this->_cameraEntity);
+        ImGui::Separator();
 
-    int y = 100;
-    int idx = 1;
-    for (EntityID id : this->_entityManager.getAllEntities()) {
-        if (y > 195) break;
+        for (EntityID id : this->_entityManager.getAllEntities()) {
+            std::string type = "";
+            if (this->_componentRegistry.hasComponent<Box>(id)) type = "[BOX]";
+            else if (this->_componentRegistry.hasComponent<Sphere>(id)) type = "[SPHERE]";
+            else if (this->_componentRegistry.hasComponent<Plane>(id)) type = "[PLANE]";
+            else if (this->_componentRegistry.hasComponent<Camera>(id)) type = "[CAMERA]";
 
-        std::string type = "";
-        if (this->_componentRegistry.hasComponent<Box>(id)) type = "[BOX]";
-        else if (this->_componentRegistry.hasComponent<Sphere>(id)) type = "[SPHERE]";
-        else if (this->_componentRegistry.hasComponent<Plane>(id)) type = "[PLANE]";
-        else if (this->_componentRegistry.hasComponent<Camera>(id)) type = "[CAMERA]";
-
-        if (id == this->_selectedEntity) {
-            ofSetColor(0, 255, 0);
-            ofDrawBitmapString("> Entity #" + ofToString(id) + " " + type, 430, y);
-        } else {
-            ofSetColor(200);
-            ofDrawBitmapString("  Entity #" + ofToString(id) + " " + type, 430, y);
+            if (id == this->_selectedEntity) {
+                ImGui::TextColored(ImVec4(0, 1, 0, 1), "> Entity #%d %s", id, type.c_str());
+            } else {
+                ImGui::Text("  Entity #%d %s", id, type.c_str());
+            }
         }
-        y += 15;
-        idx++;
     }
+    ImGui::End();
 }
 
 void ofApp::_addLog(const std::string& message, const ofColor& color)
@@ -355,7 +352,7 @@ void ofApp::keyPressed(int key)
 
     if (key >= '1' && key <= '3') {
         int idx = key - '1';
-        if (idx < this->_testEntities.size()) {
+        if (idx < static_cast<int>(this->_testEntities.size())) {
             if (this->_selectedEntity != 0 && this->_componentRegistry.hasComponent<Renderable>(this->_selectedEntity)) {
                 Renderable* prev = this->_componentRegistry.getComponent<Renderable>(this->_selectedEntity);
                 if (prev) {

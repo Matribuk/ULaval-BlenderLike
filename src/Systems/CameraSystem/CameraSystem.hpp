@@ -12,8 +12,10 @@ public:
     CameraSystem(ComponentRegistry& registry, EntityManager& entityMgr);
     ~CameraSystem() = default;
 
-    void update();
+    void update(int viewportWidth, int viewportHeight);
 
+    EntityManager& getEntityManager();
+    ComponentRegistry& getRegistry();
 private:
     ComponentRegistry& _registry;
     EntityManager& _entityManager;
