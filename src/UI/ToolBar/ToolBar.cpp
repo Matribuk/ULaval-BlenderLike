@@ -5,8 +5,8 @@ Toolbar::Toolbar() : _selectedTool(-1), _buttonSpacing(5.0)
     setPosition(0, 0);
     setSize(ofGetWindowWidth(), 20);
 
-    this->_tools.emplace_back("Select");
-    this->_tools.emplace_back("Move");
+    this->_tools.emplace_back(ToolButton{"Select", {}});
+    this->_tools.emplace_back(ToolButton{"Move", {}});
 }
 
 void Toolbar::renderToolButton(size_t i, const ImVec2& size)

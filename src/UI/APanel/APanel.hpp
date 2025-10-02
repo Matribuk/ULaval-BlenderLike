@@ -1,8 +1,8 @@
 #pragma once
 
 #include "ofMain.h"
+#include "ofxImGui.h"
 #include "../IPanel.hpp"
-
 
 struct SelectedTheme {
     ImVec4 colorText = {1.0, 1.0, 10., 1.0};
