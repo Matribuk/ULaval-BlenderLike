@@ -222,7 +222,8 @@
 
 - [x] Zone de rendu 3D principal
 - [ ] Gestion resize
-- [ ] Overlays (grid, axes, gizmos)
+- [ ] Overlays (gizmos)
+- [x] Overlays (grid, axes)
 - [x] Méthodes `render()`
 - [x] Conversion coordonnées écran ↔ 3D
 - [ ] Gestion multi-viewport
