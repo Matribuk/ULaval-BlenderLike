@@ -30,10 +30,10 @@ void CameraSystem::update(int viewportWidth, int viewportHeight) {
 
 EntityManager& CameraSystem::getEntityManager()
 {
-    return _entityManager;
+    return this->_entityManager;
 }
 
 ComponentRegistry& CameraSystem::getRegistry()
 {
-    return _registry;
+    return this->_registry;
 }

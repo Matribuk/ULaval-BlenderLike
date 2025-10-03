@@ -1,15 +1,14 @@
 #include "Viewport.hpp"
 
-Viewport::Viewport(CameraSystem& cameraSystem, RenderSystem& renderSystem)
-    : _cameraSystem(cameraSystem), _renderSystem(renderSystem), _fboInitialized(false)
+Viewport::Viewport(CameraSystem& cameraSystem, RenderSystem& renderSystem, ViewportID id)
+    : _cameraSystem(cameraSystem), _renderSystem(renderSystem), _fboInitialized(false), _id(id)
 {
-    this->_size = ImVec2(1075, 605);
-    this->_position = ImVec2((ofGetWindowWidth() - this->_size.x) / 2 , (ofGetWindowHeight() - this->_size.y) / 2 );
+    this->_rect = ofRectangle((ofGetWindowWidth() - 1075) / 2 , (ofGetWindowHeight() - 605) / 2 , 1075, 605);
 }
 
 Viewport::~Viewport()
 {
-    if (_fboInitialized)
+    if (this->_fboInitialized)
         this->_fbo.clear();
 }
 
@@ -32,13 +31,13 @@ void Viewport::_initializeFbo(int width, int height)
 
 void Viewport::renderScene()
 {
-    if (!_fboInitialized) return;
+    if (!this->_fboInitialized) return;
 
     this->_fbo.begin();
 
     ofClear(50, 50, 60, 255);
 
-    this->_cameraSystem.update(this->_size.x, this->_size.y);
+    this->_cameraSystem.update(this->_rect.width, this->_rect.height);
 
     Camera* activeCam = nullptr;
     Transform* activeTf = nullptr;
@@ -77,16 +76,15 @@ void Viewport::renderScene()
 
 void Viewport::render()
 {
-    ImGui::SetNextWindowPos(this->_position, ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(this->_size, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(this->_rect.x, this->_rect.y), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(this->_rect.width, this->_rect.height), ImGuiCond_FirstUseEver);
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar |
-                             ImGuiWindowFlags_NoCollapse |
-                             ImGuiWindowFlags_NoMove;
+                             ImGuiWindowFlags_NoCollapse;
 
     ImGui::PushStyleColor(ImGuiCol_WindowBg, this->_defaultTheme.colorWindowBg);
-
-    if (ImGui::Begin("Viewport", nullptr, flags))
+    std::string windowName = "Viewport " + std::to_string(this->_id);
+    if (ImGui::Begin(windowName.c_str(), nullptr, flags))
     {
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 
@@ -106,3 +104,32 @@ void Viewport::render()
     ImGui::End();
     ImGui::PopStyleColor();
 }
+
+ViewportID Viewport::getId() const
+{
+    return this->_id;
+}
+
+void Viewport::setRect(const ofRectangle& rect)
+{
+    this->_rect = rect;
+}
+
+ofRectangle Viewport::getRect() const
+{
+    return this->_rect;
+}
+
+void Viewport::setTexture(const ofTexture& texture)
+{
+    if (!this->_fboInitialized) return;
+
+    this->_fbo.getTexture().clear();
+    this->_fbo.getTexture() = texture;
+}
+
+ofTexture& Viewport::getTexture()
+{
+    return this->_fbo.getTexture();
+}
+

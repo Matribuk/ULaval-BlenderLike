@@ -17,7 +17,9 @@ void ofApp::setup()
     this->_setupSystems();
     this->_setupScene();
     this->_toolbar = std::make_unique<Toolbar>();
-    this->_viewport = std::make_unique<Viewport>(*this->_cameraSystem, *this->_renderSystem);
+    this->_viewportManager = std::make_unique<ViewportManager>();
+    this->_viewportManager->createViewport(*this->_cameraSystem, *this->_renderSystem);
+    this->_viewportManager->createViewport(*this->_cameraSystem, *this->_renderSystem);
 
     this->_testEntitySystem();
 
@@ -189,8 +191,6 @@ void ofApp::_testEntitySystem()
 
 void ofApp::update()
 {
-    this->_eventManager.processEvents();
-
     auto& input = InputManager::get();
 
     for (EntityID id : this->_testEntities) {
@@ -200,6 +200,8 @@ void ofApp::update()
             t->rotation.x += 0.005f;
         }
     }
+
+    this->_eventManager.processEvents();
 
     this->_transformSystem->update();
 
@@ -230,7 +232,28 @@ void ofApp::_drawUI()
     this->_drawEntityList();
 
     if (this->_toolbar) this->_toolbar->render();
-    if (this->_viewport) this->_viewport->render();
+
+    auto& viewports = this->_viewportManager->getViewports();
+    size_t viewportCount = viewports.size();
+
+    if (viewportCount > 0) {
+        float totalWidth = 1075;
+        float totalHeight = 605;
+        float startX = (ofGetWindowWidth() - totalWidth) / 2;
+        float startY = (ofGetWindowHeight() - totalHeight) / 2;
+
+        float viewportWidth = totalWidth / viewportCount;
+
+        for (size_t i = 0; i < viewportCount; ++i) {
+            auto& vp = viewports[i];
+            float xPos = startX + (i * viewportWidth);
+
+            vp->setRect(ofRectangle(xPos, startY, viewportWidth, totalHeight));
+            this->_cameraSystem->update(viewportWidth, totalHeight);
+
+            vp->render();
+        }
+    }
 
     this->_gui.end();
 }

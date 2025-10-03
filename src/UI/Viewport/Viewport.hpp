@@ -3,20 +3,29 @@
 #include "../ColorTheme.hpp"
 #include "../../Systems/CameraSystem/CameraSystem.hpp"
 #include "../../Systems/RenderSystem/RenderSystem.hpp"
+#include "../../Manager/ViewportTypes.hpp"
 #include "ofMain.h"
 #include "ofxImGui.h"
 
 class Viewport {
     public:
-        Viewport(CameraSystem& cameraSystem, RenderSystem& renderSystem);
+        Viewport(CameraSystem& cameraSystem, RenderSystem& renderSystem, ViewportID id = INVALID_VIEWPORT);
         ~Viewport();
 
         void render();
         void renderScene();
 
+        ViewportID getId() const;
+
+        void setRect(const ofRectangle& rect);
+        ofRectangle getRect() const;
+
+        void setTexture(const ofTexture& texture);
+        ofTexture& getTexture();
+
     private:
-        ImVec2 _size;
-        ImVec2 _position;
+        ofRectangle _rect;
+        ViewportID _id;
 
         SelectedTheme _selectedTheme;
         DefaultTheme _defaultTheme;

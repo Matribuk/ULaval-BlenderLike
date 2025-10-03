@@ -226,7 +226,7 @@
 - [x] Overlays (grid, axes)
 - [x] Méthodes `render()`
 - [x] Conversion coordonnées écran ↔ 3D
-- [ ] Gestion multi-viewport
+- [x] Gestion multi-viewport
 
 ## 📁 Phase 7: Core Systems
 
