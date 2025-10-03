@@ -1,10 +1,40 @@
 #pragma once
 
+#include "../ColorTheme.hpp"
+#include "../../Systems/CameraSystem/CameraSystem.hpp"
+#include "../../Systems/RenderSystem/RenderSystem.hpp"
+#include "../../Manager/ViewportTypes.hpp"
+#include "ofMain.h"
+#include "ofxImGui.h"
+
 class Viewport {
     public:
-        Viewport();
+        Viewport(CameraSystem& cameraSystem, RenderSystem& renderSystem, ViewportID id = INVALID_VIEWPORT);
         ~Viewport();
 
-    protected:
+        void render();
+        void renderScene();
+
+        ViewportID getId() const;
+
+        void setRect(const ofRectangle& rect);
+        ofRectangle getRect() const;
+
+        void setTexture(const ofTexture& texture);
+        ofTexture& getTexture();
+
     private:
+        ofRectangle _rect;
+        ViewportID _id;
+
+        SelectedTheme _selectedTheme;
+        DefaultTheme _defaultTheme;
+
+        CameraSystem& _cameraSystem;
+        RenderSystem& _renderSystem;
+
+        ofFbo _fbo;
+        bool _fboInitialized;
+
+        void _initializeFbo(int width, int height);
 };

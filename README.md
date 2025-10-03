@@ -220,12 +220,13 @@
 
 ### UI/Viewport.h
 
-- [ ] Zone de rendu 3D principal
+- [x] Zone de rendu 3D principal
 - [ ] Gestion resize
-- [ ] Overlays (grid, axes, gizmos)
-- [ ] Méthodes `render()`
-- [ ] Conversion coordonnées écran ↔ 3D
-- [ ] Gestion multi-viewport
+- [ ] Overlays (gizmos)
+- [x] Overlays (grid, axes)
+- [x] Méthodes `render()`
+- [x] Conversion coordonnées écran ↔ 3D
+- [x] Gestion multi-viewport
 
 ## 📁 Phase 7: Core Systems
 

@@ -8,6 +8,7 @@
 #include "./Events/EventTypes/Events/CameraEvent.hpp"
 #include "./Events/EventTypes/Events/SelectionEvent.hpp"
 #include "./Manager/InputManager/InputManager.hpp"
+#include "./Manager/ViewportManager/ViewportManager.hpp"
 #include "./Core/EntityManager/EntityManager.hpp"
 #include "./Core/ComponentRegistry/ComponentRegistry.hpp"
 #include "./Systems/TransformSystem/TransformSystem.hpp"
@@ -21,6 +22,7 @@
 #include "./Components/Primitive/Sphere.hpp"
 #include "./Components/Primitive/Plane.hpp"
 #include "./UI/ToolBar/ToolBar.hpp"
+#include "./UI/Viewport/Viewport.hpp"
 #include "ofxImGui.h"
 
 #include <sstream>
@@ -45,6 +47,7 @@ private:
 
     std::unique_ptr<EventBridge> _eventBridge;
     std::unique_ptr<Toolbar> _toolbar;
+    std::unique_ptr<ViewportManager> _viewportManager;
     EntityManager _entityManager;
     ComponentRegistry _componentRegistry;
 
