@@ -202,11 +202,11 @@
 
 ### UI/ColorPalette.h
 
-- [ ] Couleur actuellement sélectionnée
-- [ ] Palette de couleurs prédéfinies
-- [ ] Méthodes `setSelectedColor(ofColor)`
-- [ ] Méthodes `getSelectedColor()`
-- [ ] Méthodes `render()`
+- [x] Couleur actuellement sélectionnée
+- [x] Palette de couleurs prédéfinies
+- [x] Méthodes `setSelectedColor(ofColor)`
+- [x] Méthodes `getSelectedColor()`
+- [x] Méthodes `render()`
 - [ ] Interface picker couleur
 
 ### UI/Properties.h
@@ -221,7 +221,7 @@
 ### UI/Viewport.h
 
 - [x] Zone de rendu 3D principal
-- [ ] Gestion resize
+- [x] Gestion resize
 - [ ] Overlays (gizmos)
 - [x] Overlays (grid, axes)
 - [x] Méthodes `render()`

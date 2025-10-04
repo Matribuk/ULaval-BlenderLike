@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../ColorTheme.hpp"
 #include "ofMain.h"
 #include "ofxImGui.h"
 #include <vector>
@@ -30,8 +29,4 @@ class Toolbar {
         int _selectedTool;
         float _buttonSpacing;
         std::vector<ToolButton> _tools;
-
-        SelectedTheme _selectedTheme;
-        DefaultTheme _defaultTheme;
-
 };

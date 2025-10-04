@@ -23,6 +23,7 @@
 #include "./Components/Primitive/Plane.hpp"
 #include "./UI/ToolBar/ToolBar.hpp"
 #include "./UI/Viewport/Viewport.hpp"
+#include "./UI/ColorPalette/ColorPalette.hpp"
 #include "ofxImGui.h"
 
 #include <sstream>
@@ -45,6 +46,7 @@ public:
 private:
     EventManager _eventManager;
 
+    std::unique_ptr<ColorPalette> _colorPalette;
     std::unique_ptr<EventBridge> _eventBridge;
     std::unique_ptr<Toolbar> _toolbar;
     std::unique_ptr<ViewportManager> _viewportManager;

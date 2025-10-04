@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../ColorTheme.hpp"
 #include "../../Systems/CameraSystem/CameraSystem.hpp"
 #include "../../Systems/RenderSystem/RenderSystem.hpp"
 #include "../../Manager/ViewportTypes.hpp"
@@ -26,9 +25,6 @@ class Viewport {
     private:
         ofRectangle _rect;
         ViewportID _id;
-
-        SelectedTheme _selectedTheme;
-        DefaultTheme _defaultTheme;
 
         CameraSystem& _cameraSystem;
         RenderSystem& _renderSystem;

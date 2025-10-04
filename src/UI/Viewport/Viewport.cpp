@@ -82,7 +82,6 @@ void Viewport::render()
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar |
                              ImGuiWindowFlags_NoCollapse;
 
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, this->_defaultTheme.colorWindowBg);
     std::string windowName = "Viewport " + std::to_string(this->_id);
     if (ImGui::Begin(windowName.c_str(), nullptr, flags))
     {
@@ -102,7 +101,6 @@ void Viewport::render()
     }
 
     ImGui::End();
-    ImGui::PopStyleColor();
 }
 
 ViewportID Viewport::getId() const
