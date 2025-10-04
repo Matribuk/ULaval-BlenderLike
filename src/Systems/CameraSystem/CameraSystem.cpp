@@ -1,13 +1,13 @@
 #include "CameraSystem.hpp"
 
 CameraSystem::CameraSystem(ComponentRegistry& registry, EntityManager& entityMgr)
-    : _registry(registry), _entityManager(entityMgr)
+    : _componentRegistry(registry), _entityManager(entityMgr)
 {
 }
 
 Camera* CameraSystem::getActiveCamera() const {
     if (_cameraEntities.empty()) return nullptr;
-    return _registry.getComponent<Camera>(_cameraEntities[_activeCameraIndex]);
+    return _componentRegistry.getComponent<Camera>(_cameraEntities[_activeCameraIndex]);
 }
 
 EntityID CameraSystem::getActiveCameraId() const {
@@ -15,8 +15,12 @@ EntityID CameraSystem::getActiveCameraId() const {
     return _cameraEntities[_activeCameraIndex];
 }
 
-void CameraSystem::addCamera(EntityID cameraID) {
+void CameraSystem::addCamera(glm::vec3 pos) {
+    EntityID cameraID = _entityManager.createEntity().getId();
+    Transform transform(pos);
     if (std::find(_cameraEntities.begin(), _cameraEntities.end(), cameraID) == _cameraEntities.end()) {
+        _componentRegistry.registerComponent<Transform>(cameraID, transform);
+        _componentRegistry.registerComponent<Camera>(cameraID, Camera());
         _cameraEntities.push_back(cameraID);
         if (_activeCamera == INVALID_ENTITY) setActiveCamera(cameraID);
     }
@@ -33,15 +37,16 @@ void CameraSystem::setActiveCamera(EntityID id) {
 }
 
 void CameraSystem::switchCamera() {
-    if (_cameraEntities.empty()) return;
+    if (_cameraEntities.empty() || _activeCamera == INVALID_ENTITY) return;
     _activeCameraIndex = (_activeCameraIndex + 1) % static_cast<int>(_cameraEntities.size());
     _activeCamera = _cameraEntities[_activeCameraIndex];
 }
 
 void CameraSystem::panKeyboard(float horizontal, float vertical) {
-    if (_activeCamera == INVALID_ENTITY) return;
+    if (_cameraEntities.empty() || _activeCamera == INVALID_ENTITY)
+        return;
     Camera* cam = getActiveCamera();
-    Transform* t = _registry.getComponent<Transform>(_activeCamera);
+    Transform* t = _componentRegistry.getComponent<Transform>(_activeCamera);
     if (!cam || !t) return;
 
     cam->focusMode = false;
@@ -53,9 +58,9 @@ void CameraSystem::panKeyboard(float horizontal, float vertical) {
 }
 
 void CameraSystem::orbitKeyboard(float horizontal, float vertical) {
-    if (_activeCamera == INVALID_ENTITY) return;
-    Camera* cam = _registry.getComponent<Camera>(_activeCamera);
-    Transform* t = _registry.getComponent<Transform>(_activeCamera);
+    if (_cameraEntities.empty() || _activeCamera == INVALID_ENTITY) return;
+    Camera* cam = _componentRegistry.getComponent<Camera>(_activeCamera);
+    Transform* t = _componentRegistry.getComponent<Transform>(_activeCamera);
     if (!cam || !t) return;
 
     float angleY = horizontal * cam->orbitSensitivity;
@@ -82,9 +87,9 @@ void CameraSystem::orbitKeyboard(float horizontal, float vertical) {
 }
 
 void CameraSystem::zoom(float amount) {
-    if (_activeCamera == INVALID_ENTITY) return;
+    if (_cameraEntities.empty() || _activeCamera == INVALID_ENTITY) return;
     Camera* cam = getActiveCamera();
-    Transform* t = _registry.getComponent<Transform>(_activeCamera);
+    Transform* t = _componentRegistry.getComponent<Transform>(_activeCamera);
     if (!cam || !t) return;
 
     glm::vec3 forward = _getCameraForward(_activeCamera);
@@ -94,9 +99,9 @@ void CameraSystem::zoom(float amount) {
 }
 
 void CameraSystem::focusTarget() {
-    if (_activeCamera == INVALID_ENTITY) return;
+    if (_cameraEntities.empty() || _activeCamera == INVALID_ENTITY) return;
     Camera* cam = getActiveCamera();
-    Transform* t = _registry.getComponent<Transform>(_activeCamera);
+    Transform* t = _componentRegistry.getComponent<Transform>(_activeCamera);
     if (!cam || !t) return;
 
     cam->focusMode = true;
@@ -112,9 +117,10 @@ void CameraSystem::focusTarget() {
 }
 
 void CameraSystem::update() {
+    if (_cameraEntities.empty() || _activeCamera == INVALID_ENTITY) return;
     for (EntityID id : _cameraEntities) {
-        Camera* cam = _registry.getComponent<Camera>(id);
-        Transform* t = _registry.getComponent<Transform>(id);
+        Camera* cam = _componentRegistry.getComponent<Camera>(id);
+        Transform* t = _componentRegistry.getComponent<Transform>(id);
         if (!cam || !t) continue;
 
         if (cam->focusMode)
@@ -130,15 +136,20 @@ void CameraSystem::update() {
 }
 
 glm::vec3 CameraSystem::_getCameraForward(EntityID id) const {
-    Transform* t = _registry.getComponent<Transform>(id);
-    Camera* cam = _registry.getComponent<Camera>(id);
-    if (!t || !cam) return glm::vec3(0,0,-1);
+    Transform* t = _componentRegistry.getComponent<Transform>(id);
+    Camera* cam = _componentRegistry.getComponent<Camera>(id);
+    if (!t || !cam) return glm::vec3(0, 0, -1);
     return glm::normalize(cam->target - t->position);
 }
 
 glm::vec3 CameraSystem::_getCameraRight(EntityID id) const {
     glm::vec3 forward = _getCameraForward(id);
-    Camera* cam = _registry.getComponent<Camera>(id);
-    if (!cam) return glm::vec3(1,0,0);
+    Camera* cam = _componentRegistry.getComponent<Camera>(id);
+    if (!cam) return glm::vec3(1, 0, 0);
     return glm::normalize(glm::cross(forward, cam->up));
+}
+
+EntityID CameraSystem::getCameraAtIndex(int index) const {
+    if (index < 0 || index >= static_cast<int>(_cameraEntities.size())) return INVALID_ENTITY;
+    return _cameraEntities[index];
 }
