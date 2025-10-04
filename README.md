@@ -135,11 +135,11 @@
 
 ### Systems/CameraSystem.h
 
-- [ ] Subscribe aux événements caméra
-- [ ] Gestion multiple caméras
-- [ ] Méthodes de déplacement (orbit, pan, zoom)
+- [x] Subscribe aux événements caméra
+- [x] Gestion multiple caméras
+- [x] Méthodes de déplacement (orbit, pan, zoom)
 - [ ] Méthode `updateCamera(float deltaTime)`
-- [ ] Contraintes de mouvement
+- [x] Contraintes de mouvement
 
 ## 📁 Phase 5: Managers globaux
 
