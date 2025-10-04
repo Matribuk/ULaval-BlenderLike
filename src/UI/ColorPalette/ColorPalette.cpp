@@ -40,7 +40,7 @@ void ColorPalette::render()
                 static_cast<unsigned char>(color.z * 255.0f),
                 static_cast<unsigned char>(color.w * 255.0f)
             );
-            setSelectedColor(_color);
+            setSelectedColor(this->_color);
         }
     }
 
@@ -54,7 +54,7 @@ void ColorPalette::setSelectedColor(ofColor color)
     if (this->_renderable) this->_renderable->color = this->_color;
 }
 
-ofColor& ColorPalette::getSelectedColor()
+const ofColor& ColorPalette::getSelectedColor() const
 {
     return this->_color;
 }

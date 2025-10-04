@@ -13,7 +13,7 @@ class ColorPalette {
         void render();
 
         void setSelectedColor(ofColor color);
-        ofColor& getSelectedColor();
+        const ofColor& getSelectedColor() const ;
 
         void setEntity(EntityID entityId);
 
@@ -23,9 +23,3 @@ class ColorPalette {
         ComponentRegistry& _componentRegistry;
         Renderable* _renderable;
 };
-
-Display actuel color of items want select - DONE
-Create color panel - DONE
-Create methodes setSelectedColor(ofColor) - DONE
-Create methodes getSelectedColor() - DONE
-Create methodes render() - DONE
