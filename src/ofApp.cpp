@@ -31,21 +31,20 @@ void ofApp::_setupSystems()
 {
     this->_transformSystem = std::make_unique<TransformSystem>(this->_componentRegistry, this->_entityManager);
     this->_primitiveSystem = std::make_unique<PrimitiveSystem>(this->_componentRegistry, this->_entityManager);
-    this->_renderSystem = std::make_unique<RenderSystem>(this->_componentRegistry, this->_entityManager);
     this->_cameraSystem = std::make_unique<CameraSystem>(this->_componentRegistry, this->_entityManager);
+    this->_renderSystem = std::make_unique<RenderSystem>(this->_componentRegistry, this->_entityManager, *this->_cameraSystem);
 
     this->_addLog("All systems initialized", ofColor::green);
 }
 
 void ofApp::_setupScene()
 {
-    Entity camEntity = this->_entityManager.createEntity();
-    this->_cameraEntity = camEntity.getId();
-    this->_componentRegistry.registerComponent(this->_cameraEntity, Transform(glm::vec3(0, 5, 10)));
-    this->_componentRegistry.registerComponent(this->_cameraEntity, Camera());
-    this->_renderSystem->setActiveCamera(this->_cameraEntity);
-    this->_cameraSystem->addCamera(this->_cameraEntity);
-    this->_addLog("Camera entity created (ID: " + ofToString(this->_cameraEntity) + ")", ofColor::cyan);
+    this->_cameraSystem->addCamera(glm::vec3(0, 5, 10));
+    this->_addLog("Camera entity created (ID: 1)", ofColor::cyan);
+    this->_cameraSystem->addCamera(glm::vec3(10, 0, 5));
+    this->_addLog("Camera entity created (ID: 2)", ofColor::cyan);
+    this->_cameraSystem->addCamera(glm::vec3(5, 10, 0));
+    this->_addLog("Camera entity created (ID: 3)", ofColor::cyan);
 
     Entity boxEntity = this->_entityManager.createEntity();
     this->_componentRegistry.registerComponent(boxEntity.getId(), Transform(glm::vec3(-3, 0, 0)));
@@ -158,8 +157,8 @@ void ofApp::_setupEventSubscribers()
         this->_cameraPosition = e.position;
         this->_cameraTarget = e.target;
 
-        if (this->_cameraEntity != INVALID_ENTITY) {
-            Transform* t = this->_componentRegistry.getComponent<Transform>(this->_cameraEntity);
+        if (this->_cameraSystem->getActiveCameraId() != INVALID_ENTITY) {
+            Transform* t = this->_componentRegistry.getComponent<Transform>(this->_cameraSystem->getActiveCameraId());
             if (t) t->position = e.position;
         }
     });
@@ -382,7 +381,7 @@ void ofApp::_drawEntityList()
     if (ImGui::Begin("Entities", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
         ImGui::Text("Total: %ld", this->_entityManager.getEntityCount());
         ImGui::Text("Selected: %d", this->_selectedEntity);
-        ImGui::Text("Camera: %d", this->_cameraEntity);
+        ImGui::Text("Camera: %d", this->_cameraSystem->getActiveCameraId());
         ImGui::Separator();
 
         for (EntityID id : this->_entityManager.getAllEntities()) {
