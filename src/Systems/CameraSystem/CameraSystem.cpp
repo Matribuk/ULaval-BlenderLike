@@ -116,8 +116,22 @@ void CameraSystem::focusTarget() {
     t->position = cam->target - cam->forward * distance;
 }
 
-void CameraSystem::update() {
+void CameraSystem::update(float deltaTime) {
     if (_cameraEntities.empty() || _activeCamera == INVALID_ENTITY) return;
+
+    if (_zoomInput != 0.0f)
+        zoom(_zoomInput * deltaTime);
+
+    if (_panInput.x != 0.0f || _panInput.y != 0.0f)
+        panKeyboard(_panInput.x * deltaTime, _panInput.y * deltaTime);
+
+    if (_orbitInput.x != 0.0f || _orbitInput.y != 0.0f)
+        orbitKeyboard(_orbitInput.x * deltaTime, _orbitInput.y * deltaTime);
+
+    _zoomInput = 0.0f;
+    _panInput = glm::vec2(0.0f);
+    _orbitInput = glm::vec2(0.0f);
+
     for (EntityID id : _cameraEntities) {
         Camera* cam = _componentRegistry.getComponent<Camera>(id);
         Transform* t = _componentRegistry.getComponent<Transform>(id);

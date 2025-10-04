@@ -138,7 +138,7 @@
 - [x] Subscribe aux événements caméra
 - [x] Gestion multiple caméras
 - [x] Méthodes de déplacement (orbit, pan, zoom)
-- [ ] Méthode `updateCamera(float deltaTime)`
+- [x] Méthode `updateCamera(float deltaTime)`
 - [x] Contraintes de mouvement
 
 ## 📁 Phase 5: Managers globaux

@@ -240,6 +240,9 @@ void ofApp::_testEntitySystem()
 
 void ofApp::update()
 {
+    float deltaTime = ofGetLastFrameTime();
+    this->_eventManager.processEvents();
+
     auto& input = InputManager::get();
 
     for (EntityID id : this->_testEntities) {
@@ -253,6 +256,8 @@ void ofApp::update()
     this->_eventManager.processEvents();
 
     this->_transformSystem->update();
+    this->_cameraSystem->update(deltaTime);
+    if (this->_toolbar) this->_toolbar->update();
 
     input.processShortcuts();
     input.endFrame();

@@ -26,7 +26,11 @@ class CameraSystem {
         void zoom(float amount);
         void focusTarget();
 
-        void update();
+        void applyZoom(float dir) { _zoomInput += dir; }
+        void applyPan(float x, float y) { _panInput += glm::vec2(x, y); }
+        void applyOrbit(float x, float y) { _orbitInput += glm::vec2(x, y); }
+
+        void update(float deltaTime);
 
     private:
         ComponentRegistry& _componentRegistry;
@@ -34,6 +38,10 @@ class CameraSystem {
         std::vector<EntityID> _cameraEntities;
         EntityID _activeCamera = INVALID_ENTITY;
         int _activeCameraIndex = 0;
+
+        float _zoomInput = 0.0f;
+        glm::vec2 _panInput {0.0f, 0.0f};
+        glm::vec2 _orbitInput {0.0f, 0.0f};
 
         glm::vec3 _getCameraForward(EntityID id) const;
         glm::vec3 _getCameraRight(EntityID id) const;
