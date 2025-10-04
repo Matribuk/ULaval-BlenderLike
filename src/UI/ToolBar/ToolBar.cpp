@@ -10,13 +10,6 @@ void Toolbar::renderToolButton(size_t i, const ImVec2& size)
 {
     ImGui::PushID(static_cast<int>(i));
 
-    bool isSelected = (static_cast<int>(i) == this->_selectedTool);
-    if (isSelected) {
-        ImGui::PushStyleColor(ImGuiCol_Text, this->_selectedTheme.colorText);
-        ImGui::PushStyleColor(ImGuiCol_Button, this->_selectedTheme.colorButton);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, this->_selectedTheme.colorButtonHover);
-    }
-
     bool clicked = ImGui::Button(this->_tools[i].name.c_str(), size);
 
     if (clicked) {
@@ -27,9 +20,6 @@ void Toolbar::renderToolButton(size_t i, const ImVec2& size)
             }
         }
     }
-
-    if (isSelected)
-        ImGui::PopStyleColor(3);
 
     ImGui::PopID();
 }
@@ -48,14 +38,6 @@ void Toolbar::render()
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0);
 
-    ImGui::PushStyleColor(ImGuiCol_Text, this->_defaultTheme.colorText);
-
-    ImGui::PushStyleColor(ImGuiCol_Button, this->_defaultTheme.colorButton);
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, this->_defaultTheme.colorButtonHover);
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, this->_defaultTheme.colorButtonActive);
-
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, this->_defaultTheme.colorWindowBg);
-
     if (ImGui::Begin("Toolbar", nullptr, flags))
     {
         ImVec2 availableSize = ImGui::GetContentRegionAvail();
@@ -73,7 +55,6 @@ void Toolbar::render()
 
     ImGui::End();
 
-    ImGui::PopStyleColor(5);
     ImGui::PopStyleVar(1);
 }
 

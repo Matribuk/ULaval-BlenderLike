@@ -137,10 +137,14 @@ void ofApp::_setupEventSubscribers()
 
         this->_selectedEntity = e.selected ? e.entityID : 0;
 
-        if (e.selected && this->_componentRegistry.hasComponent<Renderable>(e.entityID)) {
-            Renderable* r = this->_componentRegistry.getComponent<Renderable>(e.entityID);
-            if (r) r->color = ofColor::yellow;
-        }
+        if (this->_selectedEntity != INVALID_ENTITY) {
+            if (!this->_colorPalette)
+                this->_colorPalette = std::make_unique<ColorPalette>(this->_selectedEntity, this->_componentRegistry);
+            else
+                this->_colorPalette->setEntity(this->_selectedEntity);
+        } else
+            this->_colorPalette.reset();
+
     });
 
     this->_eventManager.subscribe<CameraEvent>([this](const CameraEvent& e) {
@@ -255,6 +259,9 @@ void ofApp::_drawUI()
         }
     }
 
+    if (this->_colorPalette)
+        this->_colorPalette->render();
+
     this->_gui.end();
 }
 
@@ -324,7 +331,7 @@ void ofApp::_drawEntityList()
     ImGui::SetNextWindowPos(ImVec2(420, 80));
     ImGui::SetNextWindowSize(ImVec2(300, 150));
     if (ImGui::Begin("Entities", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-        ImGui::Text("Total: %d", this->_entityManager.getEntityCount());
+        ImGui::Text("Total: %ld", this->_entityManager.getEntityCount());
         ImGui::Text("Selected: %d", this->_selectedEntity);
         ImGui::Text("Camera: %d", this->_cameraEntity);
         ImGui::Separator();
@@ -376,14 +383,6 @@ void ofApp::keyPressed(int key)
     if (key >= '1' && key <= '3') {
         int idx = key - '1';
         if (idx < static_cast<int>(this->_testEntities.size())) {
-            if (this->_selectedEntity != 0 && this->_componentRegistry.hasComponent<Renderable>(this->_selectedEntity)) {
-                Renderable* prev = this->_componentRegistry.getComponent<Renderable>(this->_selectedEntity);
-                if (prev) {
-                    if (this->_componentRegistry.hasComponent<Box>(this->_selectedEntity)) prev->color = ofColor::red;
-                    else if (this->_componentRegistry.hasComponent<Sphere>(this->_selectedEntity)) prev->color = ofColor::green;
-                    else if (this->_componentRegistry.hasComponent<Plane>(this->_selectedEntity)) prev->color = ofColor::blue;
-                }
-            }
             this->_eventManager.emit(SelectionEvent(this->_testEntities[idx], true));
         }
     }
