@@ -13,27 +13,27 @@ class CameraSystem {
     public:
         CameraSystem(ComponentRegistry& registry, EntityManager& entityMgr);
 
-        void update();
+        Camera* getActiveCamera() const;
+        EntityID getActiveCameraId() const;
+        EntityID getCameraAtIndex(int index) const;
+
+        void addCamera(glm::vec3 pos);
+        void setActiveCamera(EntityID id);
+        void switchCamera();
 
         void panKeyboard(float horizontal, float vertical);
         void orbitKeyboard(float horizontal, float vertical);
         void zoom(float amount);
         void focusTarget();
 
-        void addCamera(EntityID cameraID);
-        void setActiveCamera(EntityID id);
-        void switchCamera();
-
-        Camera* getActiveCamera() const;
-        EntityID getActiveCameraId() const;
+        void update();
 
     private:
-        ComponentRegistry& _registry;
+        ComponentRegistry& _componentRegistry;
         EntityManager& _entityManager;
-
-        EntityID _activeCamera{INVALID_ENTITY};
         std::vector<EntityID> _cameraEntities;
-        int _activeCameraIndex{0};
+        EntityID _activeCamera = INVALID_ENTITY;
+        int _activeCameraIndex = 0;
 
         glm::vec3 _getCameraForward(EntityID id) const;
         glm::vec3 _getCameraRight(EntityID id) const;
