@@ -1,14 +1,15 @@
 #include "RenderSystem.hpp"
 
-RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr)
-    : _registry(registry), _entityManager(entityMgr) {}
+RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr, CameraSystem &camSystem)
+    : _registry(registry), _entityManager(entityMgr), _cameraSystem(camSystem) {}
 
 void RenderSystem::render()
 {
-    Camera* activeCamera = getActiveCameraObject();
-    if (!activeCamera) return;
+    Camera* activeCamera = _cameraSystem.getActiveCamera();
+    EntityID activeCameraId = _cameraSystem.getActiveCameraId();
+    if (activeCameraId == INVALID_ENTITY) return;
 
-    Transform* camTransform = _registry.getComponent<Transform>(_activeCamera);
+    Transform* camTransform = _registry.getComponent<Transform>(activeCameraId);
     if (!camTransform) {
         std::cout << "Active camera has no Transform component" << std::endl;
         return;
@@ -65,27 +66,6 @@ void RenderSystem::renderEntities(ofCamera& cam)
 
         drawMesh(render->mesh, transform->matrix, render->color, render->material);
     }
-}
-
-void RenderSystem::setActiveCamera(EntityID cameraEntity)
-{
-    if (this->_registry.hasComponent<Camera>(cameraEntity)) {
-        this->_activeCamera = cameraEntity;
-    } else {
-        std::cout << "Entity " << cameraEntity << " does not have a camera component." << std::endl;
-        this->_activeCamera = INVALID_ENTITY;
-    }
-}
-
-Camera* RenderSystem::getActiveCameraObject() const
-{
-    if (this->_activeCamera == INVALID_ENTITY) return nullptr;
-    return this->_registry.getComponent<Camera>(this->_activeCamera);
-}
-
-EntityID RenderSystem::getActiveCameraId() const
-{
-    return this->_activeCamera;
 }
 
 void RenderSystem::drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material *material)
