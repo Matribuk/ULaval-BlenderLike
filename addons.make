@@ -1,1 +1,3 @@
 ofxImGui
+ofxAssimpModelLoader
+ofxAssimpModel

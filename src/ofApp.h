@@ -9,6 +9,8 @@
 #include "./Events/EventTypes/Events/SelectionEvent.hpp"
 #include "./Manager/InputManager/InputManager.hpp"
 #include "./Manager/ViewportManager/ViewportManager.hpp"
+#include "./Manager/FileManager/FileManager.hpp"
+
 #include "./Core/EntityManager/EntityManager.hpp"
 #include "./Core/ComponentRegistry/ComponentRegistry.hpp"
 #include "./Systems/TransformSystem/TransformSystem.hpp"
@@ -47,6 +49,7 @@ private:
     EventManager _eventManager;
 
     std::unique_ptr<ColorPalette> _colorPalette;
+    std::unique_ptr<FileManager> _fileManager;
     std::unique_ptr<EventBridge> _eventBridge;
     std::unique_ptr<Toolbar> _toolbar;
     std::unique_ptr<ViewportManager> _viewportManager;
