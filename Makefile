@@ -1,6 +1,3 @@
-# --- Define PROJECT_ROOT manually ---
-PROJECT_ROOT := $(realpath .)
-
 # --- Define OF_ROOT before including anything ---
 ifndef OF_ROOT
 	OF_ROOT=../../..
