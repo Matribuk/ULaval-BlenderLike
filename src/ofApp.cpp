@@ -183,31 +183,31 @@ void ofApp::_setupShortcuts()
     });
 
     input.registerShortcut({'k'}, [this]() {
-        _cameraSystem->zoom(1.0f);
+        this->_cameraSystem->zoom(1.0f);
         this->_addLog("Shortcut: k (zoom in) triggered!", ofColor::yellow);
     });
     input.registerShortcut({'l'}, [this]() {
-        _cameraSystem->zoom(-1.0f);
+        this->_cameraSystem->zoom(-1.0f);
         this->_addLog("Shortcut: l (zoom out) triggered!", ofColor::yellow);
     });
     input.registerShortcut({'j'}, [this]() {
-        _cameraSystem->switchCamera();
+        this->_cameraSystem->switchCamera();
         this->_addLog("Shortcut: j (switch camera) triggered!", ofColor::yellow);
     });
     input.registerShortcut({'f'}, [this]() {
-        _cameraSystem->focusTarget();
+        this->_cameraSystem->focusTarget();
         this->_addLog("Shortcut: f (focus camera) triggered!", ofColor::yellow);
     });
 
-    input.registerShortcut({OF_KEY_LEFT},  [this](){ _cameraSystem->panKeyboard(1.0f, 0.0f); });
-    input.registerShortcut({OF_KEY_RIGHT}, [this](){ _cameraSystem->panKeyboard(-1.0f, 0.0f); });
-    input.registerShortcut({OF_KEY_UP},    [this](){ _cameraSystem->panKeyboard(0.0f, 1.0f); });
-    input.registerShortcut({OF_KEY_DOWN},  [this](){ _cameraSystem->panKeyboard(0.0f, -1.0f); });
+    input.registerShortcut({OF_KEY_LEFT},  [this](){ this->_cameraSystem->panKeyboard(1.0f, 0.0f); });
+    input.registerShortcut({OF_KEY_RIGHT}, [this](){ this->_cameraSystem->panKeyboard(-1.0f, 0.0f); });
+    input.registerShortcut({OF_KEY_UP},    [this](){ this->_cameraSystem->panKeyboard(0.0f, 1.0f); });
+    input.registerShortcut({OF_KEY_DOWN},  [this](){ this->_cameraSystem->panKeyboard(0.0f, -1.0f); });
 
-    input.registerShortcut({'a'}, [this](){ _cameraSystem->orbitKeyboard(1.0f, 0.0f); });
-    input.registerShortcut({'d'}, [this](){ _cameraSystem->orbitKeyboard(-1.0f, 0.0f); });
-    input.registerShortcut({'w'}, [this](){ _cameraSystem->orbitKeyboard(0.0f, -1.0f); });
-    input.registerShortcut({'s'}, [this](){ _cameraSystem->orbitKeyboard(0.0f, 1.0f); });
+    input.registerShortcut({'a'}, [this](){ this->_cameraSystem->orbitKeyboard(1.0f, 0.0f); });
+    input.registerShortcut({'d'}, [this](){ this->_cameraSystem->orbitKeyboard(-1.0f, 0.0f); });
+    input.registerShortcut({'w'}, [this](){ this->_cameraSystem->orbitKeyboard(0.0f, -1.0f); });
+    input.registerShortcut({'s'}, [this](){ this->_cameraSystem->orbitKeyboard(0.0f, 1.0f); });
 
     this->_addLog("Keyboard shortcuts registered (Ctrl+S, Ctrl+O, Ctrl+P, k - zoom in, l - zoom out, n - switch camera, f - focus camera)", ofColor::green);
 }

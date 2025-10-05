@@ -5,11 +5,11 @@ RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr
 
 void RenderSystem::render()
 {
-    Camera* activeCamera = _cameraSystem.getActiveCamera();
-    EntityID activeCameraId = _cameraSystem.getActiveCameraId();
+    Camera* activeCamera = this->_cameraSystem.getActiveCamera();
+    EntityID activeCameraId = this->_cameraSystem.getActiveCameraId();
     if (activeCameraId == INVALID_ENTITY) return;
 
-    Transform* camTransform = _registry.getComponent<Transform>(activeCameraId);
+    Transform* camTransform = this->_registry.getComponent<Transform>(activeCameraId);
     if (!camTransform) {
         std::cout << "Active camera has no Transform component" << std::endl;
         return;
@@ -39,7 +39,7 @@ ofCamera RenderSystem::buildCameraFromComponents(Camera& camera, const Transform
     glm::vec3 forward = glm::normalize(camera.forward);
     glm::vec3 up = glm::normalize(camera.up);
 
-    glm::vec3 lookTarget = camera.focusMode ? camera.target : camPos + forward;
+    glm::vec3 lookTarget = (camera.focusMode ? camera.target : camPos + forward);
 
     camera.viewMatrix = glm::lookAt(camPos, lookTarget, up);
     if (camera.aspectRatio <= 0.0f) camera.aspectRatio = static_cast<float>(ofGetWidth()) / static_cast<float>(ofGetHeight());
@@ -59,8 +59,8 @@ ofCamera RenderSystem::buildCameraFromComponents(Camera& camera, const Transform
 void RenderSystem::renderEntities(ofCamera& cam)
 {
     for (EntityID id : this->_entityManager.getAllEntities()) {
-        Transform* transform = _registry.getComponent<Transform>(id);
-        Renderable* render   = _registry.getComponent<Renderable>(id);
+        Transform* transform = this->_registry.getComponent<Transform>(id);
+        Renderable* render   = this->_registry.getComponent<Renderable>(id);
 
         if (!transform || !render || !render->visible) continue;
 
