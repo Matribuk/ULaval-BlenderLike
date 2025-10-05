@@ -73,9 +73,6 @@ class ofApp : public ofBaseApp {
         std::vector<EntityID> _testEntities;
         EntityID _selectedEntity = 0;
 
-        glm::vec3 _cameraPosition{0.0f, 5.0f, 10.0f};
-        glm::vec3 _cameraTarget{0.0f, 0.0f, 0.0f};
-
         int _keyPressCount = 0;
         int _keyReleaseCount = 0;
         int _mousePressCount = 0;

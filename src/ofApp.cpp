@@ -53,13 +53,6 @@ void ofApp::_setupScene()
     this->_testEntities.push_back(boxEntity.getId());
     this->_addLog("Box entity created (ID: " + ofToString(boxEntity.getId()) + ")", ofColor::magenta);
 
-    Entity sphereEntity = this->_entityManager.createEntity();
-    this->_componentRegistry.registerComponent(sphereEntity.getId(), Transform(glm::vec3(0, 0, 0)));
-    this->_componentRegistry.registerComponent(sphereEntity.getId(), Sphere(1.2f));
-    this->_componentRegistry.registerComponent(sphereEntity.getId(), Renderable(ofMesh(), ofColor::green));
-    this->_testEntities.push_back(sphereEntity.getId());
-    this->_addLog("Sphere entity created (ID: " + ofToString(sphereEntity.getId()) + ")", ofColor::magenta);
-
     Entity planeEntity = this->_entityManager.createEntity();
     this->_componentRegistry.registerComponent(planeEntity.getId(), Transform(glm::vec3(3, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
     this->_componentRegistry.registerComponent(planeEntity.getId(), Plane(glm::vec2(2.0f, 2.0f)));
@@ -174,18 +167,6 @@ void ofApp::_setupShortcuts()
         this->_addLog("Shortcut: Ctrl+S triggered!", ofColor::yellow);
     });
 
-    input.registerShortcut({OF_KEY_CONTROL, 'o'}, [this]() {
-        this->_addLog("Shortcut: Ctrl+O triggered!", ofColor::yellow);
-        this->_cameraPosition.z += 1.0f;
-        this->_eventManager.emit(CameraEvent(this->_cameraPosition, this->_cameraTarget));
-    });
-
-    input.registerShortcut({OF_KEY_CONTROL, 'p'}, [this]() {
-        this->_addLog("Shortcut: Ctrl+P triggered!", ofColor::yellow);
-        this->_cameraPosition.z -= 1.0f;
-        this->_eventManager.emit(CameraEvent(this->_cameraPosition, this->_cameraTarget));
-    });
-
     input.registerShortcut({OF_KEY_CONTROL, 'n', 'o'}, [this]() {
         this->_addLog("Shortcut: Ctrl+N+O triggered!", ofColor::yellow);
         this->_fileManager->importMesh("nier.obj");
@@ -209,9 +190,9 @@ void ofApp::_setupShortcuts()
         _cameraSystem->zoom(-1.0f);
         this->_addLog("Shortcut: l (zoom out) triggered!", ofColor::yellow);
     });
-    input.registerShortcut({'n'}, [this]() {
+    input.registerShortcut({'j'}, [this]() {
         _cameraSystem->switchCamera();
-        this->_addLog("Shortcut: n (switch camera) triggered!", ofColor::yellow);
+        this->_addLog("Shortcut: j (switch camera) triggered!", ofColor::yellow);
     });
     input.registerShortcut({'f'}, [this]() {
         _cameraSystem->focusTarget();
@@ -369,8 +350,12 @@ void ofApp::_drawInstructions()
             "ctrl+N+S to import B2 in stl"
             "ctrl+C if your back hurt"
             "Ctrl+S: Do nothing\n"
-            "Ctrl+O: Move forward\n"
-            "Ctrl+P: Move backward"
+            "Key K: Zoom in\n"
+            "Key L: Zoom out\n"
+            "Key J: Switch camera\n"
+            "Key F: Focus camera\n"
+            "Arrow Keys: Pan camera\n"
+            "Keys WASD: Orbit camera"
         );
     }
     ImGui::End();
