@@ -173,12 +173,12 @@
 
 ### Manager/FileManager.h
 
-- [ ] Méthodes `saveScene(string filename)`
-- [ ] Méthodes `loadScene(string filename)`
-- [ ] Méthodes `exportMesh(EntityID, string filename)`
-- [ ] Méthodes `importMesh(string filename)` → EntityID
-- [ ] Support formats (OBJ, PLY, STL)
-- [ ] Gestion erreurs et validations
+- [ ] Méthodes `saveScene(string filename)` - optionel
+- [ ] Méthodes `loadScene(string filename)` - optionel
+- [x] Méthodes `exportMesh(EntityID, string filename)`
+- [x] Méthodes `importMesh(string filename)` → EntityID
+- [x] Support formats (OBJ, PLY, STL)
+- [x] Gestion erreurs et validations
 
 ### Manager/ResourceManager.h
 

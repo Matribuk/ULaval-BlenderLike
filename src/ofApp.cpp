@@ -17,6 +17,7 @@ void ofApp::setup()
     this->_setupSystems();
     this->_setupScene();
     this->_toolbar = std::make_unique<Toolbar>();
+    this->_fileManager = std::make_unique<FileManager>(this->_componentRegistry, this->_entityManager);
     this->_viewportManager = std::make_unique<ViewportManager>();
     this->_viewportManager->createViewport(*this->_cameraSystem, *this->_renderSystem);
     this->_viewportManager->createViewport(*this->_cameraSystem, *this->_renderSystem);
@@ -178,9 +179,24 @@ void ofApp::_setupShortcuts()
     });
 
     InputManager::get().registerShortcut({OF_KEY_CONTROL, 'p'}, [this]() {
-        this->_addLog("Shortcut: Ctrl+p triggered!", ofColor::yellow);
+        this->_addLog("Shortcut: Ctrl+P triggered!", ofColor::yellow);
         this->_cameraPosition.z -= 1.0f;
         this->_eventManager.emit(CameraEvent(this->_cameraPosition, this->_cameraTarget));
+    });
+
+    InputManager::get().registerShortcut({OF_KEY_CONTROL, 'n', 'o'}, [this]() {
+        this->_addLog("Shortcut: Ctrl+N+O triggered!", ofColor::yellow);
+        this->_fileManager->importMesh("nier.obj");
+    });
+
+    InputManager::get().registerShortcut({OF_KEY_CONTROL, 'n', 's'}, [this]() {
+        this->_addLog("Shortcut: Ctrl+N+S triggered!", ofColor::yellow);
+        this->_fileManager->importMesh("nier.stl");
+    });
+
+        InputManager::get().registerShortcut({OF_KEY_CONTROL, 'c'}, [this]() {
+        this->_addLog("Shortcut: Ctrl+C triggered!", ofColor::yellow);
+        this->_fileManager->importMesh("chair.ply");
     });
 
     this->_addLog("Keyboard shortcuts registered (Ctrl+S, Ctrl+O, Ctrl+P)", ofColor::green);
@@ -315,9 +331,12 @@ void ofApp::_drawInstructions()
             "Move MOUSE to test MouseEvent\n"
             "Click MOUSE buttons to test\n"
             "Press 1-3 to select primitives\n"
-            "Press C to emit CameraEvent\n"
             "Press R to regenerate meshes\n"
             "Press SPACE to clear log\n"
+            "Press X to export selected entity\n"
+            "ctrl+N+O to import B2 in obj"
+            "ctrl+N+S to import B2 in stl"
+            "ctrl+C if your back hurt"
             "Ctrl+S: Do nothing\n"
             "Ctrl+O: Move forward\n"
             "Ctrl+P: Move backward"
@@ -380,17 +399,15 @@ void ofApp::keyPressed(int key)
         return;
     }
 
-    if (key >= '1' && key <= '3') {
+    if (key >= '1' && key <= '6') {
         int idx = key - '1';
         if (idx < static_cast<int>(this->_testEntities.size())) {
             this->_eventManager.emit(SelectionEvent(this->_testEntities[idx], true));
         }
     }
 
-    if (key == 'c' || key == 'C') {
-        this->_cameraPosition.y += 1.0f;
-        this->_eventManager.emit(CameraEvent(this->_cameraPosition, this->_cameraTarget));
-    }
+    if (key == 'x' || key == 'X')
+        this->_fileManager->exportMesh(_selectedEntity, "ExportedEntity");
 
     if (key == 'r' || key == 'R') {
         this->_primitiveSystem->generateMeshes();

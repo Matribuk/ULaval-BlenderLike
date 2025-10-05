@@ -11,6 +11,8 @@ struct Transform {
 
     Transform() = default;
     Transform(const glm::vec3& pos) : position(pos) {}
+    Transform(const glm::vec3& pos, const glm::vec3& scl)
+        : position(pos), scale(scl) {}
     Transform(const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scl)
         : position(pos), rotation(rot), scale(scl) {}
 };
