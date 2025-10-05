@@ -12,8 +12,5 @@ ifneq ($(wildcard config.make),)
 	include config.make
 endif
 
-# Exclude test folder
-PROJECT_EXCLUSIONS += $(PROJECT_ROOT)/src/__test__%
-
 # --- Finally include the openFrameworks project compiler ---
 include $(OF_ROOT)/libs/openFrameworksCompiled/project/makefileCommon/compile.project.mk
