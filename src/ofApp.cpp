@@ -30,21 +30,21 @@ void ofApp::setup()
 void ofApp::_setupSystems()
 {
     this->_transformSystem = std::make_unique<TransformSystem>(this->_componentRegistry, this->_entityManager);
-    this->_cameraSystem = std::make_unique<CameraSystem>(this->_componentRegistry, this->_entityManager);
     this->_primitiveSystem = std::make_unique<PrimitiveSystem>(this->_componentRegistry, this->_entityManager);
-    this->_renderSystem = std::make_unique<RenderSystem>(this->_componentRegistry, this->_entityManager);
+    this->_cameraSystem = std::make_unique<CameraSystem>(this->_componentRegistry, this->_entityManager);
+    this->_renderSystem = std::make_unique<RenderSystem>(this->_componentRegistry, this->_entityManager, *this->_cameraSystem);
 
     this->_addLog("All systems initialized", ofColor::green);
 }
 
 void ofApp::_setupScene()
 {
-    Entity camEntity = this->_entityManager.createEntity();
-    this->_cameraEntity = camEntity.getId();
-    this->_componentRegistry.registerComponent(this->_cameraEntity, Transform(glm::vec3(0, 5, 10)));
-    this->_componentRegistry.registerComponent(this->_cameraEntity, Camera());
-    this->_renderSystem->setActiveCamera(this->_cameraEntity);
-    this->_addLog("Camera entity created (ID: " + ofToString(this->_cameraEntity) + ")", ofColor::cyan);
+    this->_cameraSystem->addCamera(glm::vec3(0, 5, 10));
+    this->_addLog("Camera entity created (ID: 1)", ofColor::cyan);
+    this->_cameraSystem->addCamera(glm::vec3(10, 0, 5));
+    this->_addLog("Camera entity created (ID: 2)", ofColor::cyan);
+    this->_cameraSystem->addCamera(glm::vec3(5, 10, 0));
+    this->_addLog("Camera entity created (ID: 3)", ofColor::cyan);
 
     Entity boxEntity = this->_entityManager.createEntity();
     this->_componentRegistry.registerComponent(boxEntity.getId(), Transform(glm::vec3(-3, 0, 0)));
@@ -52,13 +52,6 @@ void ofApp::_setupScene()
     this->_componentRegistry.registerComponent(boxEntity.getId(), Renderable(ofMesh(), ofColor::red));
     this->_testEntities.push_back(boxEntity.getId());
     this->_addLog("Box entity created (ID: " + ofToString(boxEntity.getId()) + ")", ofColor::magenta);
-
-    Entity sphereEntity = this->_entityManager.createEntity();
-    this->_componentRegistry.registerComponent(sphereEntity.getId(), Transform(glm::vec3(0, 0, 0)));
-    this->_componentRegistry.registerComponent(sphereEntity.getId(), Sphere(1.2f));
-    this->_componentRegistry.registerComponent(sphereEntity.getId(), Renderable(ofMesh(), ofColor::green));
-    this->_testEntities.push_back(sphereEntity.getId());
-    this->_addLog("Sphere entity created (ID: " + ofToString(sphereEntity.getId()) + ")", ofColor::magenta);
 
     Entity planeEntity = this->_entityManager.createEntity();
     this->_componentRegistry.registerComponent(planeEntity.getId(), Transform(glm::vec3(3, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
@@ -157,8 +150,8 @@ void ofApp::_setupEventSubscribers()
         this->_cameraPosition = e.position;
         this->_cameraTarget = e.target;
 
-        if (this->_cameraEntity != INVALID_ENTITY) {
-            Transform* t = this->_componentRegistry.getComponent<Transform>(this->_cameraEntity);
+        if (this->_cameraSystem->getActiveCameraId() != INVALID_ENTITY) {
+            Transform* t = this->_componentRegistry.getComponent<Transform>(this->_cameraSystem->getActiveCameraId());
             if (t) t->position = e.position;
         }
     });
@@ -168,38 +161,55 @@ void ofApp::_setupEventSubscribers()
 
 void ofApp::_setupShortcuts()
 {
-    InputManager::get().registerShortcut({OF_KEY_CONTROL, 's'}, [this]() {
+    auto& input = InputManager::get();
+
+    input.registerShortcut({OF_KEY_CONTROL, 's'}, [this]() {
         this->_addLog("Shortcut: Ctrl+S triggered!", ofColor::yellow);
     });
 
-    InputManager::get().registerShortcut({OF_KEY_CONTROL, 'o'}, [this]() {
-        this->_addLog("Shortcut: Ctrl+O triggered!", ofColor::yellow);
-        this->_cameraPosition.z += 1.0f;
-        this->_eventManager.emit(CameraEvent(this->_cameraPosition, this->_cameraTarget));
-    });
-
-    InputManager::get().registerShortcut({OF_KEY_CONTROL, 'p'}, [this]() {
-        this->_addLog("Shortcut: Ctrl+P triggered!", ofColor::yellow);
-        this->_cameraPosition.z -= 1.0f;
-        this->_eventManager.emit(CameraEvent(this->_cameraPosition, this->_cameraTarget));
-    });
-
-    InputManager::get().registerShortcut({OF_KEY_CONTROL, 'n', 'o'}, [this]() {
+    input.registerShortcut({OF_KEY_CONTROL, 'n', 'o'}, [this]() {
         this->_addLog("Shortcut: Ctrl+N+O triggered!", ofColor::yellow);
         this->_fileManager->importMesh("nier.obj");
     });
 
-    InputManager::get().registerShortcut({OF_KEY_CONTROL, 'n', 's'}, [this]() {
+    input.registerShortcut({OF_KEY_CONTROL, 'n', 's'}, [this]() {
         this->_addLog("Shortcut: Ctrl+N+S triggered!", ofColor::yellow);
         this->_fileManager->importMesh("nier.stl");
     });
 
-        InputManager::get().registerShortcut({OF_KEY_CONTROL, 'c'}, [this]() {
+    input.registerShortcut({OF_KEY_CONTROL, 'c'}, [this]() {
         this->_addLog("Shortcut: Ctrl+C triggered!", ofColor::yellow);
         this->_fileManager->importMesh("chair.ply");
     });
 
-    this->_addLog("Keyboard shortcuts registered (Ctrl+S, Ctrl+O, Ctrl+P)", ofColor::green);
+    input.registerShortcut({'k'}, [this]() {
+        this->_cameraSystem->zoom(1.0f);
+        this->_addLog("Shortcut: k (zoom in) triggered!", ofColor::yellow);
+    });
+    input.registerShortcut({'l'}, [this]() {
+        this->_cameraSystem->zoom(-1.0f);
+        this->_addLog("Shortcut: l (zoom out) triggered!", ofColor::yellow);
+    });
+    input.registerShortcut({'j'}, [this]() {
+        this->_cameraSystem->switchCamera();
+        this->_addLog("Shortcut: j (switch camera) triggered!", ofColor::yellow);
+    });
+    input.registerShortcut({'f'}, [this]() {
+        this->_cameraSystem->focusTarget();
+        this->_addLog("Shortcut: f (focus camera) triggered!", ofColor::yellow);
+    });
+
+    input.registerShortcut({OF_KEY_LEFT},  [this](){ this->_cameraSystem->panKeyboard(1.0f, 0.0f); });
+    input.registerShortcut({OF_KEY_RIGHT}, [this](){ this->_cameraSystem->panKeyboard(-1.0f, 0.0f); });
+    input.registerShortcut({OF_KEY_UP},    [this](){ this->_cameraSystem->panKeyboard(0.0f, 1.0f); });
+    input.registerShortcut({OF_KEY_DOWN},  [this](){ this->_cameraSystem->panKeyboard(0.0f, -1.0f); });
+
+    input.registerShortcut({'a'}, [this](){ this->_cameraSystem->orbitKeyboard(1.0f, 0.0f); });
+    input.registerShortcut({'d'}, [this](){ this->_cameraSystem->orbitKeyboard(-1.0f, 0.0f); });
+    input.registerShortcut({'w'}, [this](){ this->_cameraSystem->orbitKeyboard(0.0f, -1.0f); });
+    input.registerShortcut({'s'}, [this](){ this->_cameraSystem->orbitKeyboard(0.0f, 1.0f); });
+
+    this->_addLog("Keyboard shortcuts registered (Ctrl+S, Ctrl+O, Ctrl+P, k - zoom in, l - zoom out, n - switch camera, f - focus camera)", ofColor::green);
 }
 
 void ofApp::_testEntitySystem()
@@ -211,6 +221,8 @@ void ofApp::_testEntitySystem()
 
 void ofApp::update()
 {
+    this->_eventManager.processEvents();
+
     auto& input = InputManager::get();
 
     for (EntityID id : this->_testEntities) {
@@ -338,8 +350,12 @@ void ofApp::_drawInstructions()
             "ctrl+N+S to import B2 in stl"
             "ctrl+C if your back hurt"
             "Ctrl+S: Do nothing\n"
-            "Ctrl+O: Move forward\n"
-            "Ctrl+P: Move backward"
+            "Key K: Zoom in\n"
+            "Key L: Zoom out\n"
+            "Key J: Switch camera\n"
+            "Key F: Focus camera\n"
+            "Arrow Keys: Pan camera\n"
+            "Keys WASD: Orbit camera"
         );
     }
     ImGui::End();
@@ -352,7 +368,7 @@ void ofApp::_drawEntityList()
     if (ImGui::Begin("Entities", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
         ImGui::Text("Total: %ld", this->_entityManager.getEntityCount());
         ImGui::Text("Selected: %d", this->_selectedEntity);
-        ImGui::Text("Camera: %d", this->_cameraEntity);
+        ImGui::Text("Camera: %d", this->_cameraSystem->getActiveCameraId());
         ImGui::Separator();
 
         for (EntityID id : this->_entityManager.getAllEntities()) {

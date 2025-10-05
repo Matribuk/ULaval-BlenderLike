@@ -72,7 +72,6 @@ class ofApp : public ofBaseApp {
         ofxImGui::Gui _gui;
         std::vector<EntityID> _testEntities;
         EntityID _selectedEntity = 0;
-        EntityID _cameraEntity = INVALID_ENTITY;
 
         glm::vec3 _cameraPosition{0.0f, 5.0f, 10.0f};
         glm::vec3 _cameraTarget{0.0f, 0.0f, 0.0f};
