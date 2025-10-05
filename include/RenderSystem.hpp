@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Components/Renderable.hpp"
-#include "Components/Transform.hpp"
-#include "Components/Camera.hpp"
-#include "Core/EntityManager/EntityManager.hpp"
-#include "Core/ComponentRegistry/ComponentRegistry.hpp"
-#include "Manager/CameraManager/CameraManager.hpp"
+#include "Renderable.hpp"
+#include "Transform.hpp"
+#include "Camera.hpp"
+#include "EntityManager.hpp"
+#include "ComponentRegistry.hpp"
+#include "CameraManager.hpp"
 
 class RenderSystem {
     public:

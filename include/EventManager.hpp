@@ -1,9 +1,9 @@
 #pragma once
 
+#include "EventTypes.hpp"
 #include <vector>
 #include <memory>
 #include <functional>
-#include "../EventTypes/EventTypes.hpp"
 #include <ostream>
 #include <iostream>
 

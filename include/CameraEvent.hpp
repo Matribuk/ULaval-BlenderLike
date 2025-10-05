@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../EventTypes.hpp"
+#include "EventTypes.hpp"
 #include <glm/vec3.hpp>
 
 struct CameraEvent : public Event

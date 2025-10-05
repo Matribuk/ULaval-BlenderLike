@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../Manager/CameraManager/CameraManager.hpp"
-#include "../../Systems/RenderSystem/RenderSystem.hpp"
-#include "../../Manager/ViewportTypes.hpp"
+#include "CameraSystem.hpp"
+#include "RenderSystem.hpp"
+#include "ViewportTypes.hpp"
 #include "ofMain.h"
 #include "ofxImGui.h"
 

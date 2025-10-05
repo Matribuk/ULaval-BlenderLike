@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Entity/Entity.hpp"
+#include "Entity.hpp"
 #include <vector>
 #include <unordered_set>
 #include <algorithm>

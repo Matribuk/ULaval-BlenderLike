@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../EventTypes.hpp"
+#include "EventTypes.hpp"
 
 struct MouseEvent : public Event {
     int x;

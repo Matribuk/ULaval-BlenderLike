@@ -1,11 +1,12 @@
 #pragma once
 
-#include "Components/Primitive/Box.hpp"
-#include "Components/Primitive/Sphere.hpp"
-#include "Components/Primitive/Plane.hpp"
-#include "Components/Renderable.hpp"
-#include "Core/ComponentRegistry/ComponentRegistry.hpp"
-#include "Core/EntityManager/EntityManager.hpp"
+#include "Box.hpp"
+#include "Sphere.hpp"
+#include "Plane.hpp"
+#include "Renderable.hpp"
+#include "ComponentRegistry.hpp"
+#include "EntityManager.hpp"
+
 class PrimitiveSystem {
     public:
         PrimitiveSystem(ComponentRegistry& registry, EntityManager& entityMgr);

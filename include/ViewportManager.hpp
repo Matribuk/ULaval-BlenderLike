@@ -1,9 +1,10 @@
 #pragma once
 
-#include "../../UI/Viewport/Viewport.hpp"
-#include "../ViewportTypes.hpp"
-#include "../../Manager/CameraManager/CameraManager.hpp"
-#include "../../Systems/RenderSystem/RenderSystem.hpp"
+#include "Viewport.hpp"
+#include "ViewportTypes.hpp"
+#include "CameraManager.hpp"
+#include "CameraSystem.hpp"
+#include "RenderSystem.hpp"
 #include "ofMain.h"
 #include "ofxImGui.h"
 
