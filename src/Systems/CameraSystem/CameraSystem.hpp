@@ -8,6 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <iostream>
+#include "ofMain.h"
 
 class CameraSystem {
     public:
@@ -16,6 +17,8 @@ class CameraSystem {
         Camera* getActiveCamera() const;
         EntityID getActiveCameraId() const;
         EntityID getCameraAtIndex(int index) const;
+        EntityManager& getEntityManager();
+        ComponentRegistry& getRegistry();
 
         void addCamera(glm::vec3 pos);
         void setActiveCamera(EntityID id);
@@ -30,7 +33,7 @@ class CameraSystem {
         void applyPan(float x, float y) { _panInput += glm::vec2(x, y); }
         void applyOrbit(float x, float y) { _orbitInput += glm::vec2(x, y); }
 
-        void update(float deltaTime);
+        void update(int viewportWidth, int viewportHeight);
 
     private:
         ComponentRegistry& _componentRegistry;

@@ -106,7 +106,6 @@ void CameraSystem::focusTarget() {
 
     cam->focusMode = true;
 
-    glm::vec3 dir = glm::normalize(t->position - cam->target);
     float distance = glm::length(t->position - cam->target);
 
     if (distance < cam->minDistance || distance > cam->maxDistance) {
@@ -116,8 +115,10 @@ void CameraSystem::focusTarget() {
     t->position = cam->target - cam->forward * distance;
 }
 
-void CameraSystem::update(float deltaTime) {
+void CameraSystem::update(int viewportWidth, int viewportHeight) {
+    float deltaTime = ofGetLastFrameTime();
     if (_cameraEntities.empty() || _activeCamera == INVALID_ENTITY) return;
+    float newAspect = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
 
     if (_zoomInput != 0.0f)
         zoom(_zoomInput * deltaTime);
@@ -134,18 +135,19 @@ void CameraSystem::update(float deltaTime) {
 
     for (EntityID id : _cameraEntities) {
         Camera* cam = _componentRegistry.getComponent<Camera>(id);
-        Transform* t = _componentRegistry.getComponent<Transform>(id);
-        if (!cam || !t) continue;
+        Transform* transform = _componentRegistry.getComponent<Transform>(id);
+        if (cam && transform) {
+            cam->aspectRatio = newAspect;
+            if (cam->focusMode)
+                cam->viewMatrix = glm::lookAt(transform->position, cam->target, cam->up);
+            else
+                cam->viewMatrix = glm::lookAt(transform->position, transform->position + cam->forward, cam->up);
 
-        if (cam->focusMode)
-            cam->viewMatrix = glm::lookAt(t->position, cam->target, cam->up);
-        else
-            cam->viewMatrix = glm::lookAt(t->position, t->position + cam->forward, cam->up);
-
-        cam->projMatrix = glm::perspective(glm::radians(cam->fov),
-                                           cam->aspectRatio,
-                                           cam->nearClip,
-                                           cam->farClip);
+            cam->projMatrix = glm::perspective(glm::radians(cam->fov),
+                                               cam->aspectRatio,
+                                               cam->nearClip,
+                                               cam->farClip);
+        }
     }
 }
 
@@ -166,4 +168,13 @@ glm::vec3 CameraSystem::_getCameraRight(EntityID id) const {
 EntityID CameraSystem::getCameraAtIndex(int index) const {
     if (index < 0 || index >= static_cast<int>(_cameraEntities.size())) return INVALID_ENTITY;
     return _cameraEntities[index];
+}
+
+EntityManager& CameraSystem::getEntityManager(){
+    return this->_entityManager;
+}
+
+ComponentRegistry& CameraSystem::getRegistry()
+{
+    return this->_componentRegistry;
 }
