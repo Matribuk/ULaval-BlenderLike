@@ -66,7 +66,7 @@ void CameraSystem::orbitKeyboard(float horizontal, float vertical) {
     float angleY = horizontal * cam->orbitSensitivity;
     float angleX = vertical * cam->orbitSensitivity;
 
-    glm::vec3 pivot = (cam->focusMode ? cam->target : t->position + cam->forward * 5.0f);
+    glm::vec3 pivot = (cam->focusMode) ? (cam->target) : (t->position + cam->forward * 5.0f);
 
     glm::vec3 dir = t->position - pivot;
 

@@ -39,7 +39,7 @@ ofCamera RenderSystem::buildCameraFromComponents(Camera& camera, const Transform
     glm::vec3 forward = glm::normalize(camera.forward);
     glm::vec3 up = glm::normalize(camera.up);
 
-    glm::vec3 lookTarget = (camera.focusMode ? camera.target : camPos + forward);
+    glm::vec3 lookTarget = (camera.focusMode) ? (camera.target) : (camPos + forward);
 
     camera.viewMatrix = glm::lookAt(camPos, lookTarget, up);
     if (camera.aspectRatio <= 0.0f) camera.aspectRatio = static_cast<float>(ofGetWidth()) / static_cast<float>(ofGetHeight());
