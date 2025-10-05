@@ -5,19 +5,22 @@
 #include "Components/Camera.hpp"
 #include "Core/EntityManager/EntityManager.hpp"
 #include "Core/ComponentRegistry/ComponentRegistry.hpp"
-#include "Systems/CameraSystem/CameraSystem.hpp"
 
 class RenderSystem {
     public:
-        RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr, CameraSystem& camSystem);
+        RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr);
         ~RenderSystem() = default;
 
         void render();
+        void setActiveCamera(EntityID cameraEntity);
+
+        Camera *getActiveCameraObject() const;
+        EntityID getActiveCameraId() const;
 
     private:
         ComponentRegistry& _registry;
         EntityManager& _entityManager;
-        CameraSystem& _cameraSystem;
+        EntityID _activeCamera{INVALID_ENTITY};
 
         void setupRenderState();
         ofCamera buildCameraFromComponents(Camera& camera, const Transform& transform);

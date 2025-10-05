@@ -19,17 +19,5 @@ struct Camera {
     glm::mat4 viewMatrix{1.0f};
     glm::mat4 projMatrix{1.0f};
 
-    float yaw{0.0f};
-    float pitch{0.0f};
-    float distanceToTarget{10.0f};
-
-    float minDistance{1.0f};
-    float maxDistance{50.0f};
-    float minPitch{-89.0f};
-    float maxPitch{89.0f};
-    float orbitSensitivity{0.1f};
-    float panSensitivity{0.2f};
-    float zoomSensitivity{0.3f};
-
     Camera() = default;
 };
