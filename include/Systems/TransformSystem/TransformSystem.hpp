@@ -1,8 +1,11 @@
 #pragma once
 
-#include "Transform.hpp"
-#include "ComponentRegistry.hpp"
-#include "EntityManager.hpp"
+// Components
+#include "Components/Transform.hpp"
+
+// Core
+#include "Core/ComponentRegistry/ComponentRegistry.hpp"
+#include "Core/EntityManager/EntityManager.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

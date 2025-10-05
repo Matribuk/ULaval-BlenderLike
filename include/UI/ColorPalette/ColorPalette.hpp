@@ -1,10 +1,13 @@
 #pragma once
 
-#include "ofxImGui.h"
+// Components
+#include "Components/Renderable.hpp"
 
-#include "Entity.hpp"
-#include "ComponentRegistry.hpp"
-#include "Renderable.hpp"
+// Core
+#include "Core/Entity/Entity.hpp"
+#include "Core/ComponentRegistry/ComponentRegistry.hpp"
+
+#include "ofxImGui.h"
 
 class ColorPalette {
     public:

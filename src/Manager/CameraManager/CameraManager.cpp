@@ -1,4 +1,4 @@
-#include "CameraManager.hpp"
+#include "Manager/CameraManager/CameraManager.hpp"
 
 CameraManager::CameraManager(ComponentRegistry &componentRegistry, EntityManager &entityManager, CameraSystem &cameraSystem)
     : _componentRegistry(componentRegistry), _entityManager(entityManager), _cameraSystem(cameraSystem)

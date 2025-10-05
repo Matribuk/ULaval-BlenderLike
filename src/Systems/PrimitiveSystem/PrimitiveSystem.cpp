@@ -1,4 +1,4 @@
-#include "PrimitiveSystem.hpp"
+#include "Systems/PrimitiveSystem/PrimitiveSystem.hpp"
 
 PrimitiveSystem::PrimitiveSystem(ComponentRegistry& registry, EntityManager& entityMgr)
     : _registry(registry), _entityManager(entityMgr) {}

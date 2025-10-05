@@ -1,4 +1,4 @@
-#include "EventManager.hpp"
+#include "Events/EventManager/EventManager.hpp"
 
 void EventManager::processEvents()
 {

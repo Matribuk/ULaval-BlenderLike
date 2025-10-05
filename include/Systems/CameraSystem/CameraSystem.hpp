@@ -1,9 +1,13 @@
 #pragma once
 
-#include "ComponentRegistry.hpp"
-#include "EntityManager.hpp"
-#include "Camera.hpp"
-#include "Transform.hpp"
+// Components
+#include "Components/Camera.hpp"
+#include "Components/Transform.hpp"
+
+// Core
+#include "Core/ComponentRegistry/ComponentRegistry.hpp"
+#include "Core/EntityManager/EntityManager.hpp"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>

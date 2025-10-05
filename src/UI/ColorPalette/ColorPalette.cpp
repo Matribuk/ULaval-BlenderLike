@@ -1,4 +1,4 @@
-#include "ColorPalette.hpp"
+#include "UI/ColorPalette/ColorPalette.hpp"
 
 ColorPalette::ColorPalette(EntityID entityId, ComponentRegistry& componentRegistry)
     : _color(ofColor::white), _entityId(entityId), _componentRegistry(componentRegistry), _renderable(nullptr)

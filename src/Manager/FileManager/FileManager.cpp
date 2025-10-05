@@ -1,4 +1,4 @@
-#include "FileManager.hpp"
+#include "Manager/FileManager/FileManager.hpp"
 
 FileManager::FileManager(ComponentRegistry& componentRegistry, EntityManager& entityManager)
     : _componentRegistry(componentRegistry), _entityManager(entityManager) {}

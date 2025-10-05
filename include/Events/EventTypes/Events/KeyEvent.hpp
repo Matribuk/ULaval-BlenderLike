@@ -1,6 +1,7 @@
 #pragma once
 
-#include "EventTypes.hpp"
+// Events
+#include "../EventTypes.hpp"
 
 struct KeyEvent : public Event {
     int key;

@@ -1,4 +1,4 @@
-#include "EntityManager.hpp"
+#include "Core/EntityManager/EntityManager.hpp"
 
 EntityManager::EntityManager() : _nextId(1) {}
 

@@ -1,4 +1,4 @@
-#include "Viewport.hpp"
+#include "UI/Viewport/Viewport.hpp"
 
 Viewport::Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, ViewportID id)
     : _cameraManager(cameraManager), _renderSystem(renderSystem), _id(id)

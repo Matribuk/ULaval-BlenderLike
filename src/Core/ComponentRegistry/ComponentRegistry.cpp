@@ -1,4 +1,4 @@
-#include "ComponentRegistry.hpp"
+#include "Core/ComponentRegistry/ComponentRegistry.hpp"
 
 ComponentRegistry::~ComponentRegistry()
 {

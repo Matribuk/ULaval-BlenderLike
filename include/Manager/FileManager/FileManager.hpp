@@ -1,10 +1,15 @@
 #pragma once
 
-#include "EntityManager.hpp"
-#include "ComponentRegistry.hpp"
-#include "Transform.hpp"
-#include "Renderable.hpp"
+// Components
+#include "Components/Transform.hpp"
+#include "Components/Renderable.hpp"
+
+// Core
+#include "Core/ComponentRegistry/ComponentRegistry.hpp"
+#include "Core/EntityManager/EntityManager.hpp"
+
 #include "ofxAssimpModelLoader.h"
+
 #include <string>
 
 class FileManager {

@@ -1,4 +1,4 @@
-#include "EventBridge.hpp"
+#include "Events/EventBridge/EventBridge.hpp"
 
 EventBridge::EventBridge(EventManager& eventManager) : _eventManager(eventManager) {}
 

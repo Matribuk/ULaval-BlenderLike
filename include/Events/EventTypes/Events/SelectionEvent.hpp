@@ -1,7 +1,10 @@
 #pragma once
 
-#include "EventTypes.hpp"
-#include "Entity.hpp"
+// Events
+#include "../EventTypes.hpp"
+
+// Core
+#include "Core/Entity/Entity.hpp"
 
 struct SelectionEvent : public Event
 {

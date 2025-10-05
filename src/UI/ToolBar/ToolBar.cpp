@@ -1,4 +1,4 @@
-#include "ToolBar.hpp"
+#include "UI/ToolBar/ToolBar.hpp"
 
 Toolbar::Toolbar() : _selectedTool(-1), _buttonSpacing(5.0)
 {

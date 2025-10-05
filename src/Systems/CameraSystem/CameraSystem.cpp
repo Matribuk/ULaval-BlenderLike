@@ -1,4 +1,4 @@
-#include "CameraSystem.hpp"
+#include "Systems/CameraSystem/CameraSystem.hpp"
 
 CameraSystem::CameraSystem(ComponentRegistry &registry)
     : _componentRegistry(registry)

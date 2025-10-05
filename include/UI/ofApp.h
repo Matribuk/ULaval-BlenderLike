@@ -1,31 +1,42 @@
 #pragma once
 
-#include "ofMain.h"
+// Components
+#include "Components/Primitive/Box.hpp"
+#include "Components/Primitive/Plane.hpp"
+#include "Components/Primitive/Sphere.hpp"
+#include "Components/Camera.hpp"
+#include "Components/Renderable.hpp"
+#include "Components/Transform.hpp"
 
-#include "EventManager.hpp"
-#include "EventBridge.hpp"
-#include "MouseEvent.hpp"
-#include "KeyEvent.hpp"
-#include "CameraEvent.hpp"
-#include "SelectionEvent.hpp"
-#include "InputManager.hpp"
-#include "ViewportManager.hpp"
-#include "FileManager.hpp"
-#include "EntityManager.hpp"
-#include "ComponentRegistry.hpp"
-#include "TransformSystem.hpp"
-#include "CameraSystem.hpp"
-#include "RenderSystem.hpp"
-#include "PrimitiveSystem.hpp"
-#include "Transform.hpp"
-#include "Camera.hpp"
-#include "Renderable.hpp"
-#include "Box.hpp"
-#include "Sphere.hpp"
-#include "Plane.hpp"
-#include "ToolBar.hpp"
-#include "Viewport.hpp"
-#include "ColorPalette.hpp"
+// Core
+#include "Core/ComponentRegistry/ComponentRegistry.hpp"
+#include "Core/EntityManager/EntityManager.hpp"
+
+// Events
+#include "Events/EventBridge/EventBridge.hpp"
+#include "Events/EventManager/EventManager.hpp"
+#include "Events/EventTypes/Events/CameraEvent.hpp"
+#include "Events/EventTypes/Events/KeyEvent.hpp"
+#include "Events/EventTypes/Events/MouseEvent.hpp"
+#include "Events/EventTypes/Events/SelectionEvent.hpp"
+
+// Managers
+#include "Manager/FileManager/FileManager.hpp"
+#include "Manager/InputManager/InputManager.hpp"
+#include "Manager/ViewportManager/ViewportManager.hpp"
+
+// Systems
+#include "Systems/CameraSystem/CameraSystem.hpp"
+#include "Systems/PrimitiveSystem/PrimitiveSystem.hpp"
+#include "Systems/RenderSystem/RenderSystem.hpp"
+#include "Systems/TransformSystem/TransformSystem.hpp"
+
+// UI
+#include "UI/ColorPalette/ColorPalette.hpp"
+#include "UI/ToolBar/ToolBar.hpp"
+#include "UI/Viewport/Viewport.hpp"
+
+#include <ofMain.h>
 #include "ofxImGui.h"
 
 #include <sstream>

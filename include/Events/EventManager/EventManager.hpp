@@ -1,6 +1,7 @@
 #pragma once
 
-#include "EventTypes.hpp"
+#include "Events/EventTypes/EventTypes.hpp"
+
 #include <vector>
 #include <memory>
 #include <functional>

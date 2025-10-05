@@ -1,9 +1,13 @@
 #pragma once
 
-#include "EventManager.hpp"
-#include "MouseEvent.hpp"
-#include "KeyEvent.hpp"
-#include "InputManager.hpp"
+// Events
+#include "Events/EventManager/EventManager.hpp"
+#include "Events/EventTypes/Events/MouseEvent.hpp"
+#include "Events/EventTypes/Events/KeyEvent.hpp"
+
+// Manager
+#include "Manager/InputManager/InputManager.hpp"
+
 #include "ofEvents.h"
 
 class EventBridge {

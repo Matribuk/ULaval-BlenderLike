@@ -1,4 +1,4 @@
-#include "RenderSystem.hpp"
+#include "Systems/RenderSystem/RenderSystem.hpp"
 
 RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr, CameraManager &cameraManager)
     : _registry(registry), _entityManager(entityMgr), _cameraManager(cameraManager) {}

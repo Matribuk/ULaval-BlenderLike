@@ -1,9 +1,13 @@
 #pragma once
 
-#include "CameraSystem.hpp"
-#include "RenderSystem.hpp"
-#include "ViewportTypes.hpp"
-#include "ofMain.h"
+// Manager
+#include "Manager/ViewportTypes.hpp"
+
+// Systems
+#include "Systems/CameraSystem/CameraSystem.hpp"
+#include "Systems/RenderSystem/RenderSystem.hpp"
+
+#include <ofMain.h>
 #include "ofxImGui.h"
 
 class Viewport {
