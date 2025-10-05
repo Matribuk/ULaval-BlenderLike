@@ -17,7 +17,7 @@ void ofApp::setup()
     this->_setupSystems();
     this->_setupScene();
     this->_toolbar = std::make_unique<Toolbar>();
-    this->_fileManager = std::make_unique<FileManager>(_componentRegistry, _entityManager);
+    this->_fileManager = std::make_unique<FileManager>(this->_componentRegistry, this->_entityManager);
     this->_viewportManager = std::make_unique<ViewportManager>();
     this->_viewportManager->createViewport(*this->_cameraSystem, *this->_renderSystem);
     this->_viewportManager->createViewport(*this->_cameraSystem, *this->_renderSystem);
