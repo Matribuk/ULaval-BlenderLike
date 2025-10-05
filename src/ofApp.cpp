@@ -201,8 +201,8 @@ void ofApp::_setupShortcuts()
 
     input.registerShortcut({OF_KEY_LEFT},  [this](){ _cameraSystem->panKeyboard(1.0f, 0.0f); });
     input.registerShortcut({OF_KEY_RIGHT}, [this](){ _cameraSystem->panKeyboard(-1.0f, 0.0f); });
-    input.registerShortcut({OF_KEY_UP},    [this](){ _cameraSystem->panKeyboard(0.0f, -1.0f); });
-    input.registerShortcut({OF_KEY_DOWN},  [this](){ _cameraSystem->panKeyboard(0.0f, 1.0f); });
+    input.registerShortcut({OF_KEY_UP},    [this](){ _cameraSystem->panKeyboard(0.0f, 1.0f); });
+    input.registerShortcut({OF_KEY_DOWN},  [this](){ _cameraSystem->panKeyboard(0.0f, -1.0f); });
 
     input.registerShortcut({'a'}, [this](){ _cameraSystem->orbitKeyboard(1.0f, 0.0f); });
     input.registerShortcut({'d'}, [this](){ _cameraSystem->orbitKeyboard(-1.0f, 0.0f); });
