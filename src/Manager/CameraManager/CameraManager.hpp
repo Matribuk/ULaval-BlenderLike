@@ -10,7 +10,7 @@
 class CameraManager {
     public:
         CameraManager(ComponentRegistry &componentRegistry, EntityManager &entityManager, CameraSystem &cameraSystem);
-        ~CameraManager();
+        ~CameraManager() = default;
 
         void addCamera(glm::vec3 pos);
         void setActiveCamera(EntityID id);
