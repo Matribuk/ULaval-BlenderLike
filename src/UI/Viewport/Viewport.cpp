@@ -1,7 +1,7 @@
 #include "Viewport.hpp"
 
 Viewport::Viewport(CameraSystem& cameraSystem, RenderSystem& renderSystem, ViewportID id)
-    : _cameraSystem(cameraSystem), _renderSystem(renderSystem), _fboInitialized(false), _id(id)
+ : _cameraSystem(cameraSystem), _renderSystem(renderSystem), _fboInitialized(false), _id(id), _cameraId(INVALID_ENTITY)
 {
     this->_rect = ofRectangle((ofGetWindowWidth() - 1075) / 2 , (ofGetWindowHeight() - 605) / 2 , 1075, 605);
 }
@@ -42,10 +42,17 @@ void Viewport::renderScene()
     Camera* activeCam = nullptr;
     Transform* activeTf = nullptr;
 
-    for (EntityID id : this->_cameraSystem.getEntityManager().getAllEntities()) {
-        activeCam = this->_cameraSystem.getRegistry().getComponent<Camera>(id);
-        activeTf = this->_cameraSystem.getRegistry().getComponent<Transform>(id);
-        if (activeCam && activeTf) break;
+    if (this->_cameraId != INVALID_ENTITY) {
+        activeCam = this->_cameraSystem.getRegistry().getComponent<Camera>(this->_cameraId);
+        activeTf = this->_cameraSystem.getRegistry().getComponent<Transform>(this->_cameraId);
+    }
+
+    if (!activeCam || !activeTf) {
+        for (EntityID id : this->_cameraSystem.getEntityManager().getAllEntities()) {
+            activeCam = this->_cameraSystem.getRegistry().getComponent<Camera>(id);
+            activeTf = this->_cameraSystem.getRegistry().getComponent<Transform>(id);
+            if (activeCam && activeTf) break;
+        }
     }
 
     if (activeCam) {
@@ -131,3 +138,12 @@ ofTexture& Viewport::getTexture()
     return this->_fbo.getTexture();
 }
 
+void Viewport::setCamera(EntityID cameraId)
+{
+    this->_cameraId = cameraId;
+}
+
+EntityID Viewport::getCamera() const
+{
+    return this->_cameraId;
+}

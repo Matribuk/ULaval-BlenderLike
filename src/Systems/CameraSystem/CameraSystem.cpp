@@ -37,3 +37,4 @@ ComponentRegistry& CameraSystem::getRegistry()
 {
     return this->_registry;
 }
+
