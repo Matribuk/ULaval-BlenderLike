@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Systems/CameraSystem/CameraSystem.hpp"
+#include "../../Manager/CameraManager/CameraManager.hpp"
 #include "../../Systems/RenderSystem/RenderSystem.hpp"
 #include "../../Manager/ViewportTypes.hpp"
 #include "ofMain.h"
@@ -8,7 +8,7 @@
 
 class Viewport {
     public:
-        Viewport(CameraSystem& cameraSystem, RenderSystem& renderSystem, ViewportID id = INVALID_VIEWPORT);
+        Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, ViewportID id = INVALID_VIEWPORT);
         ~Viewport();
 
         void render();
@@ -26,15 +26,15 @@ class Viewport {
         EntityID getCamera() const;
 
     private:
-        ofRectangle _rect;
-        ViewportID _id;
-
-        CameraSystem& _cameraSystem;
+        CameraManager& _cameraManager;
         RenderSystem& _renderSystem;
         EntityID _cameraId = INVALID_ENTITY;
 
+        ViewportID _id;
+        ofRectangle _rect;
+
         ofFbo _fbo;
-        bool _fboInitialized;
+        bool _fboInitialized = false;
 
         void _initializeFbo(int width, int height);
 };
