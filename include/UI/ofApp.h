@@ -24,6 +24,7 @@
 #include "Manager/FileManager/FileManager.hpp"
 #include "Manager/InputManager/InputManager.hpp"
 #include "Manager/ViewportManager/ViewportManager.hpp"
+#include "Manager/HistoryManager/HistoryManager.hpp"
 
 // Systems
 #include "Systems/CameraSystem/CameraSystem.hpp"
