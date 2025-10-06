@@ -11,7 +11,6 @@
 #include "./Manager/ViewportManager/ViewportManager.hpp"
 #include "./Manager/FileManager/FileManager.hpp"
 #include "./Manager/HistoryManager/HistoryManager.hpp"
-#include "./Manager/HistoryManager/CreateEntityCommand/CreateEntityCommand.hpp"
 #include "./Core/EntityManager/EntityManager.hpp"
 #include "./Core/ComponentRegistry/ComponentRegistry.hpp"
 #include "./Systems/TransformSystem/TransformSystem.hpp"
