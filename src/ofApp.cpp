@@ -213,16 +213,16 @@ void ofApp::_setupShortcuts()
     });
 
     InputManager::get().registerShortcut({OF_KEY_LEFT_CONTROL, 'z'}, [this]() {
-        if (_historyManager && _historyManager->canUndo()) {
-            _historyManager->undo();
-            _addLog("Undo", ofColor::yellow);
+        if (this->_historyManager && this->_historyManager->canUndo()) {
+            this->_historyManager->undo();
+            this->_addLog("Undo", ofColor::yellow);
         }
     });
 
     InputManager::get().registerShortcut({OF_KEY_LEFT_CONTROL, 'y'}, [this]() {
-        if (_historyManager && _historyManager->canRedo()) {
-            _historyManager->redo();
-            _addLog("Redo", ofColor::yellow);
+        if (this->_historyManager && this->_historyManager->canRedo()) {
+            this->_historyManager->redo();
+            this->_addLog("Redo", ofColor::yellow);
         }
     });
 

@@ -15,9 +15,9 @@ void HistoryManager::executeCommand(std::unique_ptr<ICommand> command)
 
     command->execute();
 
-    _undoStack.push_back(std::move(command));
-    _trimHistory();
-    _clearRedoStack();
+    this->_undoStack.push_back(std::move(command));
+    this->_trimHistory();
+    this->_clearRedoStack();
 }
 
 bool HistoryManager::undo()
@@ -25,12 +25,12 @@ bool HistoryManager::undo()
     if (!canUndo())
         return false;
 
-    std::unique_ptr<ICommand> command = std::move(_undoStack.back());
-    _undoStack.pop_back();
+    std::unique_ptr<ICommand> command = std::move(this->_undoStack.back());
+    this->_undoStack.pop_back();
 
     command->undo();
 
-    _redoStack.push_back(std::move(command));
+    this->_redoStack.push_back(std::move(command));
 
     return true;
 }
@@ -40,51 +40,51 @@ bool HistoryManager::redo()
     if (!canRedo())
         return false;
 
-    std::unique_ptr<ICommand> command = std::move(_redoStack.back());
-    _redoStack.pop_back();
+    std::unique_ptr<ICommand> command = std::move(this->_redoStack.back());
+    this->_redoStack.pop_back();
 
     command->execute();
 
-    _undoStack.push_back(std::move(command));
+    this->_undoStack.push_back(std::move(command));
 
     return true;
 }
 
 bool HistoryManager::canUndo() const
 {
-    return !_undoStack.empty();
+    return !this->_undoStack.empty();
 }
 
 bool HistoryManager::canRedo() const
 {
-    return !_redoStack.empty();
+    return !this->_redoStack.empty();
 }
 
 void HistoryManager::clear()
 {
-    _undoStack.clear();
-    _redoStack.clear();
+    this->_undoStack.clear();
+    this->_redoStack.clear();
 }
 
 void HistoryManager::setMaxHistorySize(size_t size)
 {
-    _maxHistorySize = size;
-    _trimHistory();
+    this->_maxHistorySize = size;
+    this->_trimHistory();
 }
 
 size_t HistoryManager::getMaxHistorySize() const
 {
-    return _maxHistorySize;
+    return this->_maxHistorySize;
 }
 
 void HistoryManager::_trimHistory()
 {
-    while (_undoStack.size() > _maxHistorySize) {
-        _undoStack.erase(_undoStack.begin());
+    while (this->_undoStack.size() > this->_maxHistorySize) {
+        this->_undoStack.erase(this->_undoStack.begin());
     }
 }
 
 void HistoryManager::_clearRedoStack()
 {
-    _redoStack.clear();
+    this->_redoStack.clear();
 }
