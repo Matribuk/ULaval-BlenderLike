@@ -20,8 +20,8 @@ void ofApp::setup()
     this->_toolbar = std::make_unique<Toolbar>();
     this->_fileManager = std::make_unique<FileManager>(this->_componentRegistry, this->_entityManager);
     this->_viewportManager = std::make_unique<ViewportManager>();
-    this->_viewportManager->createViewport(*this->_cameraSystem, *this->_renderSystem);
-    this->_viewportManager->createViewport(*this->_cameraSystem, *this->_renderSystem);
+    this->_viewportManager->createViewport(*this->_cameraManager, *this->_renderSystem);
+    this->_viewportManager->createViewport(*this->_cameraManager, *this->_renderSystem);
 
     auto& viewports = this->_viewportManager->getViewports();
     if (viewports.size() >= 2) {
@@ -36,28 +36,22 @@ void ofApp::setup()
 void ofApp::_setupSystems()
 {
     this->_transformSystem = std::make_unique<TransformSystem>(this->_componentRegistry, this->_entityManager);
-    this->_cameraSystem = std::make_unique<CameraSystem>(this->_componentRegistry, this->_entityManager);
     this->_primitiveSystem = std::make_unique<PrimitiveSystem>(this->_componentRegistry, this->_entityManager);
-    this->_renderSystem = std::make_unique<RenderSystem>(this->_componentRegistry, this->_entityManager);
+    this->_cameraSystem = std::make_unique<CameraSystem>(this->_componentRegistry);
+    this->_cameraManager = std::make_unique<CameraManager>(this->_componentRegistry, this->_entityManager, *this->_cameraSystem);
+    this->_renderSystem = std::make_unique<RenderSystem>(this->_componentRegistry, this->_entityManager, *this->_cameraManager);
 
     this->_addLog("All systems initialized", ofColor::green);
 }
 
 void ofApp::_setupScene()
 {
-    Entity camEntity1 = this->_entityManager.createEntity();
-    this->_cameraEntity = camEntity1.getId();
-    this->_componentRegistry.registerComponent(this->_cameraEntity, Transform(glm::vec3(0, 5, 10)));
-    this->_componentRegistry.registerComponent(this->_cameraEntity, Camera());
-    this->_renderSystem->setActiveCamera(this->_cameraEntity);
-    this->_addLog("Camera 1 created (ID: " + ofToString(this->_cameraEntity) + ")", ofColor::cyan);
-
-    Entity camEntity2 = this->_entityManager.createEntity();
-    this->_cameraEntity2 = camEntity2.getId();
-    this->_componentRegistry.registerComponent(this->_cameraEntity2, Transform(glm::vec3(10, 5, 10)));
-    this->_componentRegistry.registerComponent(this->_cameraEntity2, Camera());
-    this->_addLog("Camera 2 created (ID: " + ofToString(this->_cameraEntity2) + ")", ofColor::cyan);
-
+    this->_cameraManager->addCamera(glm::vec3(0, 5, 10));
+    this->_addLog("Camera entity created (ID: 1)", ofColor::cyan);
+    this->_cameraManager->addCamera(glm::vec3(10, 0, 5));
+    this->_addLog("Camera entity created (ID: 2)", ofColor::cyan);
+    this->_cameraManager->addCamera(glm::vec3(5, 10, 0));
+    this->_addLog("Camera entity created (ID: 3)", ofColor::cyan);
 
     Entity boxEntity = this->_entityManager.createEntity();
     this->_componentRegistry.registerComponent(boxEntity.getId(), Transform(glm::vec3(-3, 0, 0)));
@@ -170,8 +164,8 @@ void ofApp::_setupEventSubscribers()
         this->_cameraPosition = e.position;
         this->_cameraTarget = e.target;
 
-        if (this->_cameraEntity != INVALID_ENTITY) {
-            Transform* t = this->_componentRegistry.getComponent<Transform>(this->_cameraEntity);
+        if (this->_cameraManager->getActiveCameraId() != INVALID_ENTITY) {
+            Transform* t = this->_componentRegistry.getComponent<Transform>(this->_cameraManager->getActiveCameraId());
             if (t) t->position = e.position;
         }
     });
@@ -181,45 +175,47 @@ void ofApp::_setupEventSubscribers()
 
 void ofApp::_setupShortcuts()
 {
-    InputManager::get().registerShortcut({OF_KEY_CONTROL, 's'}, [this]() {
+    InputManager& input = InputManager::get();
+
+    input.registerShortcut({OF_KEY_CONTROL, 's'}, [this]() {
         this->_addLog("Shortcut: Ctrl+S triggered!", ofColor::yellow);
     });
 
-    InputManager::get().registerShortcut({OF_KEY_CONTROL, 'o'}, [this]() {
+    input.registerShortcut({OF_KEY_CONTROL, 'o'}, [this]() {
         this->_addLog("Shortcut: Ctrl+O triggered!", ofColor::yellow);
         this->_cameraPosition.z += 1.0f;
         this->_eventManager.emit(CameraEvent(this->_cameraPosition, this->_cameraTarget));
     });
 
-    InputManager::get().registerShortcut({OF_KEY_CONTROL, 'p'}, [this]() {
+    input.registerShortcut({OF_KEY_CONTROL, 'p'}, [this]() {
         this->_addLog("Shortcut: Ctrl+P triggered!", ofColor::yellow);
         this->_cameraPosition.z -= 1.0f;
         this->_eventManager.emit(CameraEvent(this->_cameraPosition, this->_cameraTarget));
     });
 
-    InputManager::get().registerShortcut({OF_KEY_CONTROL, 'n', 'o'}, [this]() {
+    input.registerShortcut({OF_KEY_CONTROL, 'n', 'o'}, [this]() {
         this->_addLog("Shortcut: Ctrl+N+O triggered!", ofColor::yellow);
         this->_fileManager->importMesh("nier.obj");
     });
 
-    InputManager::get().registerShortcut({OF_KEY_CONTROL, 'n', 's'}, [this]() {
+    input.registerShortcut({OF_KEY_CONTROL, 'n', 's'}, [this]() {
         this->_addLog("Shortcut: Ctrl+N+S triggered!", ofColor::yellow);
         this->_fileManager->importMesh("nier.stl");
     });
 
-    InputManager::get().registerShortcut({OF_KEY_CONTROL, 'c'}, [this]() {
+    input.registerShortcut({OF_KEY_CONTROL, 'c'}, [this]() {
         this->_addLog("Shortcut: Ctrl+C triggered!", ofColor::yellow);
         this->_fileManager->importMesh("chair.ply");
     });
 
-    InputManager::get().registerShortcut({OF_KEY_LEFT_CONTROL, 'z'}, [this]() {
+    input.registerShortcut({OF_KEY_LEFT_CONTROL, 'z'}, [this]() {
         if (this->_historyManager && this->_historyManager->canUndo()) {
             this->_historyManager->undo();
             this->_addLog("Undo", ofColor::yellow);
         }
     });
 
-    InputManager::get().registerShortcut({OF_KEY_LEFT_CONTROL, 'y'}, [this]() {
+    input.registerShortcut({OF_KEY_LEFT_CONTROL, 'y'}, [this]() {
         if (this->_historyManager && this->_historyManager->canRedo()) {
             this->_historyManager->redo();
             this->_addLog("Redo", ofColor::yellow);
@@ -227,6 +223,34 @@ void ofApp::_setupShortcuts()
     });
 
     this->_addLog("Keyboard shortcuts registered (Ctrl+S, Ctrl+O, Ctrl+P)", ofColor::green);
+    input.registerShortcut({'k'}, [this]() {
+        this->_cameraManager->updateZoom(1.0f);
+        this->_addLog("Shortcut: k (zoom in) triggered!", ofColor::yellow);
+    });
+    input.registerShortcut({'l'}, [this]() {
+        this->_cameraManager->updateZoom(-1.0f);
+        this->_addLog("Shortcut: l (zoom out) triggered!", ofColor::yellow);
+    });
+    input.registerShortcut({'j'}, [this]() {
+        this->_cameraManager->switchCamera();
+        this->_addLog("Shortcut: j (switch camera) triggered!", ofColor::yellow);
+    });
+    input.registerShortcut({'f'}, [this]() {
+        this->_cameraManager->focusTarget(this->_cameraManager->getActiveCameraId());
+        this->_addLog("Shortcut: f (focus camera) triggered!", ofColor::yellow);
+    });
+
+    input.registerShortcut({OF_KEY_LEFT},  [this](){ this->_cameraManager->updatePan(1.0f, 0.0f); });
+    input.registerShortcut({OF_KEY_RIGHT}, [this](){ this->_cameraManager->updatePan(-1.0f, 0.0f); });
+    input.registerShortcut({OF_KEY_UP},    [this](){ this->_cameraManager->updatePan(0.0f, 1.0f); });
+    input.registerShortcut({OF_KEY_DOWN},  [this](){ this->_cameraManager->updatePan(0.0f, -1.0f); });
+
+    input.registerShortcut({'a'}, [this](){ this->_cameraManager->updateOrbit(1.0f, 0.0f); });
+    input.registerShortcut({'d'}, [this](){ this->_cameraManager->updateOrbit(-1.0f, 0.0f); });
+    input.registerShortcut({'w'}, [this](){ this->_cameraManager->updateOrbit(0.0f, -1.0f); });
+    input.registerShortcut({'s'}, [this](){ this->_cameraManager->updateOrbit(0.0f, 1.0f); });
+
+    this->_addLog("Keyboard shortcuts registered (Ctrl+S, Ctrl+O, Ctrl+P, k - zoom in, l - zoom out, n - switch camera, f - focus camera)", ofColor::green);
 }
 
 void ofApp::_testEntitySystem()
@@ -377,7 +401,7 @@ void ofApp::_drawEntityList()
     if (ImGui::Begin("Entities", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
         ImGui::Text("Total: %ld", this->_entityManager.getEntityCount());
         ImGui::Text("Selected: %d", this->_selectedEntity);
-        ImGui::Text("Camera: %d", this->_cameraEntity);
+        ImGui::Text("Camera: %d", this->_cameraManager->getActiveCameraId());
         ImGui::Separator();
 
         for (EntityID id : this->_entityManager.getAllEntities()) {

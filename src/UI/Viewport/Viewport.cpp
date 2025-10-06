@@ -1,7 +1,7 @@
 #include "Viewport.hpp"
 
-Viewport::Viewport(CameraSystem& cameraSystem, RenderSystem& renderSystem, ViewportID id)
- : _cameraSystem(cameraSystem), _renderSystem(renderSystem), _fboInitialized(false), _id(id), _cameraId(INVALID_ENTITY)
+Viewport::Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, ViewportID id)
+    : _cameraManager(cameraManager), _renderSystem(renderSystem), _id(id)
 {
     this->_rect = ofRectangle((ofGetWindowWidth() - 1075) / 2 , (ofGetWindowHeight() - 605) / 2 , 1075, 605);
 }
@@ -36,47 +36,8 @@ void Viewport::renderScene()
     this->_fbo.begin();
 
     ofClear(50, 50, 60, 255);
-
-    this->_cameraSystem.update(this->_rect.width, this->_rect.height);
-
-    Camera* activeCam = nullptr;
-    Transform* activeTf = nullptr;
-
-    if (this->_cameraId != INVALID_ENTITY) {
-        activeCam = this->_cameraSystem.getRegistry().getComponent<Camera>(this->_cameraId);
-        activeTf = this->_cameraSystem.getRegistry().getComponent<Transform>(this->_cameraId);
-    }
-
-    if (!activeCam || !activeTf) {
-        for (EntityID id : this->_cameraSystem.getEntityManager().getAllEntities()) {
-            activeCam = this->_cameraSystem.getRegistry().getComponent<Camera>(id);
-            activeTf = this->_cameraSystem.getRegistry().getComponent<Transform>(id);
-            if (activeCam && activeTf) break;
-        }
-    }
-
-    if (activeCam) {
-        ofEnableAlphaBlending();
-
-        ofSetMatrixMode(OF_MATRIX_PROJECTION);
-        ofLoadMatrix(activeCam->projMatrix);
-
-        ofSetMatrixMode(OF_MATRIX_MODELVIEW);
-        ofLoadMatrix(activeCam->viewMatrix);
-
-        ofSetColor(255);
-        ofDrawAxis(100);
-
-        ofPushStyle();
-        ofSetColor(100);
-        for (int i = -10; i <= 10; i++) {
-            ofDrawLine(-10, 0, i, 10, 0, i);
-            ofDrawLine(i, 0, -10, i, 0, 10);
-        }
-        ofPopStyle();
-
-        this->_renderSystem.render();
-    }
+    this->_cameraManager.update(this->_rect.width, this->_rect.height);
+    this->_renderSystem.render();
 
     this->_fbo.end();
 }
@@ -101,7 +62,6 @@ void Viewport::render()
 
         if (this->_fboInitialized) {
             GLuint texID = this->_fbo.getTexture().getTextureData().textureID;
-            GLenum target = this->_fbo.getTexture().getTextureData().textureTarget;
 
             ImGui::Image(texID, viewportSize, ImVec2(0, 1), ImVec2(1, 0));
         }

@@ -135,11 +135,11 @@
 
 ### Systems/CameraSystem.h
 
-- [ ] Subscribe aux événements caméra
-- [ ] Gestion multiple caméras
-- [ ] Méthodes de déplacement (orbit, pan, zoom)
-- [ ] Méthode `updateCamera(float deltaTime)`
-- [ ] Contraintes de mouvement
+- [x] Subscribe aux événements caméra
+- [x] Gestion multiple caméras
+- [x] Méthodes de déplacement (orbit, pan, zoom)
+- [x] Méthode `updateCamera(float deltaTime)`
+- [x] Contraintes de mouvement
 
 ## 📁 Phase 5: Managers globaux
 
@@ -155,12 +155,12 @@
 
 ### Manager/CameraManager.h
 
-- [ ] Liste des caméras disponibles
-- [ ] ID de la caméra active
-- [ ] Méthodes `createCamera(EntityID)`
-- [ ] Méthodes `setActiveCamera(EntityID)`
-- [ ] Méthodes `getActiveCamera()`
-- [ ] Mise à jour automatique aspect ratio
+- [x] Liste des caméras disponibles
+- [x] ID de la caméra active
+- [x] Méthodes `createCamera(EntityID)`
+- [x] Méthodes `setActiveCamera(EntityID)`
+- [x] Méthodes `getActiveCamera()`
+- [x] Mise à jour automatique aspect ratio
 
 ### Manager/HistoryManager.h
 

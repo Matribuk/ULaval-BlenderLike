@@ -2,7 +2,7 @@
 
 #include "../../UI/Viewport/Viewport.hpp"
 #include "../ViewportTypes.hpp"
-#include "../../Systems/CameraSystem/CameraSystem.hpp"
+#include "../../Manager/CameraManager/CameraManager.hpp"
 #include "../../Systems/RenderSystem/RenderSystem.hpp"
 #include "ofMain.h"
 #include "ofxImGui.h"
@@ -12,7 +12,7 @@ class ViewportManager {
         ViewportManager() = default;
         ~ViewportManager() = default;
 
-        ViewportID createViewport(CameraSystem& cameraSystem, RenderSystem& renderSystem);
+        ViewportID createViewport(CameraManager& cameraManager, RenderSystem& renderSystem);
 
         void removeViewport(ViewportID id);
         void renderAll();

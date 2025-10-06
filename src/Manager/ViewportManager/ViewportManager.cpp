@@ -1,9 +1,9 @@
 #include "ViewportManager.hpp"
 
-ViewportID ViewportManager::createViewport(CameraSystem& cameraSystem, RenderSystem& renderSystem)
+ViewportID ViewportManager::createViewport(CameraManager& cameraManager, RenderSystem& renderSystem)
 {
     ViewportID newId = this->_nextId++;
-    this->_viewports.push_back(std::make_unique<Viewport>(cameraSystem, renderSystem , newId));
+    this->_viewports.push_back(std::make_unique<Viewport>(cameraManager, renderSystem, newId));
 
     return newId;
 }
