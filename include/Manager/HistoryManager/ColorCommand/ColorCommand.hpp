@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../ICommand.hpp"
+#include "Manager/ICommand.hpp"
 
 class ColorCommand {
     public:

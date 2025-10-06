@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "../../ICommand.hpp"
+#include "Manager/ICommand.hpp"
 
 class TransformCommand : public ICommand {
     public:
