@@ -228,7 +228,7 @@ void ofApp::_setupShortcuts()
         this->_addLog("Shortcut: k (zoom in) triggered!", ofColor::yellow);
     });
     input.registerShortcut({'l'}, [this]() {
-        this->_cameraManager->updateZoom(-10.0f);
+        this->_cameraManager->updateZoom(-1.0f);
         this->_addLog("Shortcut: l (zoom out) triggered!", ofColor::yellow);
     });
     input.registerShortcut({'j'}, [this]() {
@@ -240,15 +240,15 @@ void ofApp::_setupShortcuts()
         this->_addLog("Shortcut: f (focus camera) triggered!", ofColor::yellow);
     });
 
-    input.registerShortcut({OF_KEY_LEFT},  [this](){ this->_cameraManager->updatePan(10.0f, 0.0f); });
-    input.registerShortcut({OF_KEY_RIGHT}, [this](){ this->_cameraManager->updatePan(-10.0f, 0.0f); });
-    input.registerShortcut({OF_KEY_UP},    [this](){ this->_cameraManager->updatePan(0.0f, 10.0f); });
-    input.registerShortcut({OF_KEY_DOWN},  [this](){ this->_cameraManager->updatePan(0.0f, -10.0f); });
+    input.registerShortcut({OF_KEY_LEFT},  [this](){ this->_cameraManager->updatePan(1.0f, 0.0f); });
+    input.registerShortcut({OF_KEY_RIGHT}, [this](){ this->_cameraManager->updatePan(-1.0f, 0.0f); });
+    input.registerShortcut({OF_KEY_UP},    [this](){ this->_cameraManager->updatePan(0.0f, 1.0f); });
+    input.registerShortcut({OF_KEY_DOWN},  [this](){ this->_cameraManager->updatePan(0.0f, -1.0f); });
 
-    input.registerShortcut({'a'}, [this](){ this->_cameraManager->updateOrbit(10.0f, 0.0f); });
-    input.registerShortcut({'d'}, [this](){ this->_cameraManager->updateOrbit(-10.0f, 0.0f); });
-    input.registerShortcut({'w'}, [this](){ this->_cameraManager->updateOrbit(0.0f, -10.0f); });
-    input.registerShortcut({'s'}, [this](){ this->_cameraManager->updateOrbit(0.0f, 10.0f); });
+    input.registerShortcut({'a'}, [this](){ this->_cameraManager->updateOrbit(1.0f, 0.0f); });
+    input.registerShortcut({'d'}, [this](){ this->_cameraManager->updateOrbit(-1.0f, 0.0f); });
+    input.registerShortcut({'w'}, [this](){ this->_cameraManager->updateOrbit(0.0f, -1.0f); });
+    input.registerShortcut({'s'}, [this](){ this->_cameraManager->updateOrbit(0.0f, 1.0f); });
 
     this->_addLog("Keyboard shortcuts registered (Ctrl+S, Ctrl+O, Ctrl+P, k - zoom in, l - zoom out, n - switch camera, f - focus camera)", ofColor::green);
 }

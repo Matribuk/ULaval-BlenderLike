@@ -125,7 +125,7 @@ glm::vec3 CameraSystem::_getCameraRight(EntityID id) const
 
 ComponentRegistry &CameraSystem::getRegistry() const
 {
-    return this->_registry;
+    return this->_componentRegistry;
 }
 
 void CameraSystem::updateZoomInput(float zoom)
