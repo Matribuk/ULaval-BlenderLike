@@ -1,13 +1,7 @@
-#include "CameraManager.hpp"
+#include "Manager/CameraManager/CameraManager.hpp"
 
 CameraManager::CameraManager(ComponentRegistry &componentRegistry, EntityManager &entityManager, CameraSystem &cameraSystem)
-    : _componentRegistry(componentRegistry), _entityManager(entityManager), _cameraSystem(cameraSystem)
-{
-}
-
-CameraManager::~CameraManager()
-{
-}
+    : _componentRegistry(componentRegistry), _entityManager(entityManager), _cameraSystem(cameraSystem) {}
 
 EntityID CameraManager::getCameraAtIndex(int index) const {
     if (index < 0 || index >= static_cast<int>(this->_cameraEntities.size()))

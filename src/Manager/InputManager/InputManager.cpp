@@ -1,4 +1,4 @@
-#include "InputManager.hpp"
+#include "Manager/InputManager/InputManager.hpp"
 
 
 InputManager& InputManager::get()

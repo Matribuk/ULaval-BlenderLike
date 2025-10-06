@@ -1,4 +1,4 @@
-#include "HistoryManager.hpp"
+#include "Manager/HistoryManager/HistoryManager.hpp"
 
 HistoryManager::HistoryManager(size_t maxHistorySize)
     : _maxHistorySize(maxHistorySize) {}

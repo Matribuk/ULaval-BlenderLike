@@ -1,4 +1,4 @@
-#include "Properties.hpp"
+#include "UI/Properties/Properties.hpp"
 
 Properties::Properties()
 {

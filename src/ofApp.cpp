@@ -1,4 +1,4 @@
-#include "ofApp.h"
+#include "UI/ofApp.h"
 
 void ofApp::setup()
 {

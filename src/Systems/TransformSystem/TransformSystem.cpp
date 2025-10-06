@@ -1,4 +1,4 @@
-#include "TransformSystem.hpp"
+#include "Systems/TransformSystem/TransformSystem.hpp"
 
 TransformSystem::TransformSystem(ComponentRegistry& registry, EntityManager& entityMgr)
     : _registry(registry), _entityManager(entityMgr) {}
