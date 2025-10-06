@@ -9,6 +9,7 @@ void ofApp::setup()
     this->_gui.setup();
 
     this->_eventBridge = std::make_unique<EventBridge>(this->_eventManager);
+    this->_historyManager = std::make_unique<HistoryManager>();
     this->_eventBridge->setup();
 
     this->_addLog("=== System Initialized ===", ofColor::green);
@@ -22,6 +23,11 @@ void ofApp::setup()
     this->_viewportManager->createViewport(*this->_cameraSystem, *this->_renderSystem);
     this->_viewportManager->createViewport(*this->_cameraSystem, *this->_renderSystem);
 
+    auto& viewports = this->_viewportManager->getViewports();
+    if (viewports.size() >= 2) {
+        viewports[0]->setCamera(this->_cameraEntity);   // Viewport 1 = caméra 1
+        viewports[1]->setCamera(this->_cameraEntity2);  // Viewport 2 = caméra 2
+    }
     this->_testEntitySystem();
 
     this->_addLog("System ready! Press keys and move mouse to test.", ofColor::cyan);
@@ -39,12 +45,19 @@ void ofApp::_setupSystems()
 
 void ofApp::_setupScene()
 {
-    Entity camEntity = this->_entityManager.createEntity();
-    this->_cameraEntity = camEntity.getId();
+    Entity camEntity1 = this->_entityManager.createEntity();
+    this->_cameraEntity = camEntity1.getId();
     this->_componentRegistry.registerComponent(this->_cameraEntity, Transform(glm::vec3(0, 5, 10)));
     this->_componentRegistry.registerComponent(this->_cameraEntity, Camera());
     this->_renderSystem->setActiveCamera(this->_cameraEntity);
-    this->_addLog("Camera entity created (ID: " + ofToString(this->_cameraEntity) + ")", ofColor::cyan);
+    this->_addLog("Camera 1 created (ID: " + ofToString(this->_cameraEntity) + ")", ofColor::cyan);
+
+    Entity camEntity2 = this->_entityManager.createEntity();
+    this->_cameraEntity2 = camEntity2.getId();
+    this->_componentRegistry.registerComponent(this->_cameraEntity2, Transform(glm::vec3(10, 5, 10)));
+    this->_componentRegistry.registerComponent(this->_cameraEntity2, Camera());
+    this->_addLog("Camera 2 created (ID: " + ofToString(this->_cameraEntity2) + ")", ofColor::cyan);
+
 
     Entity boxEntity = this->_entityManager.createEntity();
     this->_componentRegistry.registerComponent(boxEntity.getId(), Transform(glm::vec3(-3, 0, 0)));
@@ -194,9 +207,23 @@ void ofApp::_setupShortcuts()
         this->_fileManager->importMesh("nier.stl");
     });
 
-        InputManager::get().registerShortcut({OF_KEY_CONTROL, 'c'}, [this]() {
+    InputManager::get().registerShortcut({OF_KEY_CONTROL, 'c'}, [this]() {
         this->_addLog("Shortcut: Ctrl+C triggered!", ofColor::yellow);
         this->_fileManager->importMesh("chair.ply");
+    });
+
+    InputManager::get().registerShortcut({OF_KEY_LEFT_CONTROL, 'z'}, [this]() {
+        if (this->_historyManager && this->_historyManager->canUndo()) {
+            this->_historyManager->undo();
+            this->_addLog("Undo", ofColor::yellow);
+        }
+    });
+
+    InputManager::get().registerShortcut({OF_KEY_LEFT_CONTROL, 'y'}, [this]() {
+        if (this->_historyManager && this->_historyManager->canRedo()) {
+            this->_historyManager->redo();
+            this->_addLog("Redo", ofColor::yellow);
+        }
     });
 
     this->_addLog("Keyboard shortcuts registered (Ctrl+S, Ctrl+O, Ctrl+P)", ofColor::green);
@@ -269,8 +296,6 @@ void ofApp::_drawUI()
             float xPos = startX + (i * viewportWidth);
 
             vp->setRect(ofRectangle(xPos, startY, viewportWidth, totalHeight));
-            this->_cameraSystem->update(viewportWidth, totalHeight);
-
             vp->render();
         }
     }
@@ -331,7 +356,7 @@ void ofApp::_drawInstructions()
             "Move MOUSE to test MouseEvent\n"
             "Click MOUSE buttons to test\n"
             "Press 1-3 to select primitives\n"
-            "Press R to regenerate meshes\n"
+            "Press N to create sphere\n"
             "Press SPACE to clear log\n"
             "Press X to export selected entity\n"
             "ctrl+N+O to import B2 in obj"
@@ -408,10 +433,15 @@ void ofApp::keyPressed(int key)
 
     if (key == 'x' || key == 'X')
         this->_fileManager->exportMesh(_selectedEntity, "ExportedEntity");
-
-    if (key == 'r' || key == 'R') {
+    
+    if (key == 'n' || key == 'N') {
+        Entity boxEntity = this->_entityManager.createEntity();
+        this->_componentRegistry.registerComponent(boxEntity.getId(), Transform(glm::vec3(-3, 0, 0)));
+        this->_componentRegistry.registerComponent(boxEntity.getId(), Sphere(1.2f));
+        this->_componentRegistry.registerComponent(boxEntity.getId(), Renderable(ofMesh(), ofColor::red));
+        this->_testEntities.push_back(boxEntity.getId());
         this->_primitiveSystem->generateMeshes();
-        this->_addLog("Primitive meshes regenerated", ofColor::cyan);
+        this->_addLog("Box entity created (ID: " + ofToString(boxEntity.getId()) + ")", ofColor::orange);
     }
 }
 

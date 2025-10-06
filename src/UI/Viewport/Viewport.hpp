@@ -22,12 +22,16 @@ class Viewport {
         void setTexture(const ofTexture& texture);
         ofTexture& getTexture();
 
+        void setCamera(EntityID cameraId);
+        EntityID getCamera() const;
+
     private:
         ofRectangle _rect;
         ViewportID _id;
 
         CameraSystem& _cameraSystem;
         RenderSystem& _renderSystem;
+        EntityID _cameraId = INVALID_ENTITY;
 
         ofFbo _fbo;
         bool _fboInitialized;

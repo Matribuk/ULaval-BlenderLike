@@ -10,6 +10,7 @@
 #include "./Manager/InputManager/InputManager.hpp"
 #include "./Manager/ViewportManager/ViewportManager.hpp"
 #include "./Manager/FileManager/FileManager.hpp"
+#include "./Manager/HistoryManager/HistoryManager.hpp"
 #include "./Core/EntityManager/EntityManager.hpp"
 #include "./Core/ComponentRegistry/ComponentRegistry.hpp"
 #include "./Systems/TransformSystem/TransformSystem.hpp"
@@ -48,6 +49,7 @@ class ofApp : public ofBaseApp {
         EventManager _eventManager;
 
         std::unique_ptr<ColorPalette> _colorPalette;
+        std::unique_ptr<HistoryManager> _historyManager;
         std::unique_ptr<FileManager> _fileManager;
         std::unique_ptr<EventBridge> _eventBridge;
         std::unique_ptr<Toolbar> _toolbar;
@@ -73,6 +75,7 @@ class ofApp : public ofBaseApp {
         std::vector<EntityID> _testEntities;
         EntityID _selectedEntity = 0;
         EntityID _cameraEntity = INVALID_ENTITY;
+        EntityID _cameraEntity2 = INVALID_ENTITY;
 
         glm::vec3 _cameraPosition{0.0f, 5.0f, 10.0f};
         glm::vec3 _cameraTarget{0.0f, 0.0f, 0.0f};

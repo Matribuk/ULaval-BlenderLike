@@ -164,7 +164,7 @@
 
 ### Manager/HistoryManager.h
 
-- [ ] Stack des commandes (Command Pattern)
+- [x] Stack des commandes (Command Pattern)
 - [ ] Méthodes `executeCommand(Command*)`
 - [ ] Méthodes `undo()`
 - [ ] Méthodes `redo()`
