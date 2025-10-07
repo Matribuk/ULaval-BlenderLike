@@ -216,7 +216,6 @@
 - [ ] Champs éditables pour Material
 - [x] Méthodes `setSelectedEntity(EntityID)`
 - [x] Méthodes `render()`
-- [ ] Validation et application changements
 
 ### UI/Viewport.h
 
