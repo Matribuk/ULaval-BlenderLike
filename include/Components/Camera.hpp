@@ -29,8 +29,8 @@ struct Camera {
     float maxDistance{50.0f};
     float minPitch{-89.0f};
     float maxPitch{89.0f};
-    float orbitSensitivity{1.0f};
-    float panSensitivity{2.0f};
+    float rotateSensitivity{1.0f};
+    float panSensitivity{3.0f};
     float zoomSensitivity{20.0f};
 
     Camera() = default;
