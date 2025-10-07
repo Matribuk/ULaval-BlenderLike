@@ -211,11 +211,11 @@
 
 ### UI/Properties.h
 
-- [ ] Affichage propriétés entité sélectionnée
-- [ ] Champs éditables pour Transform
+- [x] Affichage propriétés entité sélectionnée
+- [x] Champs éditables pour Transform
 - [ ] Champs éditables pour Material
-- [ ] Méthodes `setSelectedEntity(EntityID)`
-- [ ] Méthodes `render()`
+- [x] Méthodes `setSelectedEntity(EntityID)`
+- [x] Méthodes `render()`
 - [ ] Validation et application changements
 
 ### UI/Viewport.h
