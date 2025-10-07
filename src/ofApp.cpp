@@ -483,55 +483,43 @@ void ofApp::keyPressed(int key)
 
             switch (key) {
                 case OF_KEY_LEFT:
-                    if (shiftPressed) {
+                    if (shiftPressed)
                         t->rotation.y -= rotSpeed;
-                        moved = true;
-                    } else if (ctrlPressed) {
+                    else if (ctrlPressed)
                         t->scale.x -= 0.1f;
-                        moved = true;
-                    } else {
+                    else
                         t->position.x -= speed;
-                        moved = true;
-                    }
+                    moved = true;
                     break;
 
                 case OF_KEY_RIGHT:
-                    if (shiftPressed) {
+                    if (shiftPressed)
                         t->rotation.y += rotSpeed;
-                        moved = true;
-                    } else if (ctrlPressed) {
+                    else if (ctrlPressed)
                         t->scale.x += 0.1f;
-                        moved = true;
-                    } else {
+                    else
                         t->position.x += speed;
-                        moved = true;
-                    }
+                    moved = true;
                     break;
 
                 case OF_KEY_UP:
-                    if (shiftPressed) {
+                    if (shiftPressed)
                         t->rotation.x -= rotSpeed;
-                        moved = true;
-                    } else if (ctrlPressed) {
+                    else if (ctrlPressed)
                         t->scale.y += 0.1f;
-                        moved = true;
-                    } else {
+                    else
                         t->position.z -= speed;
-                        moved = true;
-                    }
+                    moved = true;
                     break;
 
                 case OF_KEY_DOWN:
-                    if (shiftPressed) {
+                    if (shiftPressed)
                         t->rotation.x += rotSpeed;
-                        moved = true;
-                    } else if (ctrlPressed) {
+                    else if (ctrlPressed)
                         t->scale.y -= 0.1f;
-                        moved = true;
-                    } else {
+                    else
                         t->position.z += speed;
-                        moved = true;
-                    }
+                    moved = true;
                     break;
 
                 default:
