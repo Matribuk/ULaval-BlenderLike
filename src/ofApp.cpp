@@ -481,56 +481,61 @@ void ofApp::keyPressed(int key)
             bool shiftPressed = input.isKeyPressed(OF_KEY_SHIFT);
             bool ctrlPressed = input.isKeyPressed(OF_KEY_CONTROL);
 
-            if (key == OF_KEY_LEFT) {
-                if (shiftPressed) {
-                    t->rotation.y -= rotSpeed;
-                    moved = true;
-                } else if (ctrlPressed) {
-                    t->scale.x -= 0.1f;
-                    moved = true;
-                } else {
-                    t->position.x -= speed;
-                    moved = true;
-                }
-            }
+            switch (key) {
+                case OF_KEY_LEFT:
+                    if (shiftPressed) {
+                        t->rotation.y -= rotSpeed;
+                        moved = true;
+                    } else if (ctrlPressed) {
+                        t->scale.x -= 0.1f;
+                        moved = true;
+                    } else {
+                        t->position.x -= speed;
+                        moved = true;
+                    }
+                    break;
 
-            if (key == OF_KEY_RIGHT) {
-                if (shiftPressed) {
-                    t->rotation.y += rotSpeed;
-                    moved = true;
-                } else if (ctrlPressed) {
-                    t->scale.x += 0.1f;
-                    moved = true;
-                } else {
-                    t->position.x += speed;
-                    moved = true;
-                }
-            }
+                case OF_KEY_RIGHT:
+                    if (shiftPressed) {
+                        t->rotation.y += rotSpeed;
+                        moved = true;
+                    } else if (ctrlPressed) {
+                        t->scale.x += 0.1f;
+                        moved = true;
+                    } else {
+                        t->position.x += speed;
+                        moved = true;
+                    }
+                    break;
 
-            if (key == OF_KEY_UP) {
-                if (shiftPressed) {
-                    t->rotation.x -= rotSpeed;
-                    moved = true;
-                } else if (ctrlPressed) {
-                    t->scale.y += 0.1f;
-                    moved = true;
-                } else {
-                    t->position.z -= speed;
-                    moved = true;
-                }
-            }
+                case OF_KEY_UP:
+                    if (shiftPressed) {
+                        t->rotation.x -= rotSpeed;
+                        moved = true;
+                    } else if (ctrlPressed) {
+                        t->scale.y += 0.1f;
+                        moved = true;
+                    } else {
+                        t->position.z -= speed;
+                        moved = true;
+                    }
+                    break;
 
-            if (key == OF_KEY_DOWN) {
-                if (shiftPressed) {
-                    t->rotation.x += rotSpeed;
-                    moved = true;
-                } else if (ctrlPressed) {
-                    t->scale.y -= 0.1f;
-                    moved = true;
-                } else {
-                    t->position.z += speed;
-                    moved = true;
-                }
+                case OF_KEY_DOWN:
+                    if (shiftPressed) {
+                        t->rotation.x += rotSpeed;
+                        moved = true;
+                    } else if (ctrlPressed) {
+                        t->scale.y -= 0.1f;
+                        moved = true;
+                    } else {
+                        t->position.z += speed;
+                        moved = true;
+                    }
+                    break;
+
+                default:
+                    break;
             }
 
             if (moved) {
