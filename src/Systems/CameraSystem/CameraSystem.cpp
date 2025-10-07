@@ -8,6 +8,16 @@ CameraSystem::CameraSystem(ComponentRegistry &registry)
 void CameraSystem::_panKeyboard(EntityID camEntity, float horizontal, float vertical, float depth)
 {
     Camera *cam = this->_componentRegistry.getComponent<Camera>(camEntity);
+    if (!cam) return;
+
+    cam->focusMode = false;
+    this->_transformSystem.setPosition(camEntity, {horizontal * cam->panSensitivity, vertical * cam->panSensitivity, depth * cam->panSensitivity});
+}
+
+void CameraSystem::zoom(EntityID camEntity, float amount)
+{
+    float deltaTime = ofGetLastFrameTime();
+    Camera *cam = this->_componentRegistry.getComponent<Camera>(camEntity);
     Transform *transform = this->_componentRegistry.getComponent<Transform>(camEntity);
     if (!cam || !transform) {
         std::cerr << "Camera or Transform component is missing!" << std::endl;
@@ -35,8 +45,7 @@ void CameraSystem::_orbitKeyboard(EntityID camEntity, float horizontal, float ve
     glm::vec3 offset = transform->position - pivot;
     float radius = glm::length(offset);
 
-    float yaw   = atan2(offset.x, offset.z);
-    float pitch = asin(offset.y / radius);
+    this->_transformSystem.setRotation(camEntity, {horizontal * cam->rotateSensitivity, vertical * cam->rotateSensitivity}, &pivot);
 
     yaw   += horizontal * cam->orbitSensitivity;
     pitch += vertical * cam->orbitSensitivity;
