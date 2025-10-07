@@ -25,6 +25,7 @@
 #include "Manager/InputManager/InputManager.hpp"
 #include "Manager/ViewportManager/ViewportManager.hpp"
 #include "Manager/HistoryManager/HistoryManager.hpp"
+#include "Manager/ActionManager/ActionManager.hpp"
 
 // Systems
 #include "Systems/CameraSystem/CameraSystem.hpp"
@@ -62,6 +63,7 @@ class ofApp : public ofBaseApp {
         EventManager _eventManager;
 
         std::unique_ptr<Properties> _properties;
+        std::unique_ptr<ActionManager> _actionManager;
         std::unique_ptr<ColorPalette> _colorPalette;
         std::unique_ptr<HistoryManager> _historyManager;
         std::unique_ptr<FileManager> _fileManager;
@@ -105,7 +107,6 @@ class ofApp : public ofBaseApp {
 
         void _addLog(const std::string& message, const ofColor& color = ofColor::white);
         void _setupEventSubscribers();
-        void _setupShortcuts();
         void _setupSystems();
         void _setupScene();
         void _testEntitySystem();

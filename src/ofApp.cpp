@@ -13,25 +13,38 @@ void ofApp::setup()
     this->_eventBridge->setup();
 
     this->_addLog("=== System Initialized ===", ofColor::green);
-    this->_setupEventSubscribers();
-    this->_setupShortcuts();
+
+    InputManager::get().subscribeToEvents(this->_eventManager);
+
     this->_setupSystems();
     this->_setupScene();
+
     this->_toolbar = std::make_unique<Toolbar>();
     this->_properties = std::make_unique<Properties>(this->_componentRegistry);
     this->_fileManager = std::make_unique<FileManager>(this->_componentRegistry, this->_entityManager);
+
     this->_viewportManager = std::make_unique<ViewportManager>();
     this->_viewportManager->createViewport(*this->_cameraManager, *this->_renderSystem);
     this->_viewportManager->createViewport(*this->_cameraManager, *this->_renderSystem);
 
-    auto& viewports = this->_viewportManager->getViewports();
-    if (viewports.size() >= 2) {
-        viewports[0]->setCamera(this->_cameraEntity);   // Viewport 1 = caméra 1
-        viewports[1]->setCamera(this->_cameraEntity2);  // Viewport 2 = caméra 2
-    }
+    this->_actionManager = std::make_unique<ActionManager>(
+        this->_entityManager,
+        this->_componentRegistry,
+        *this->_primitiveSystem,
+        *this->_fileManager,
+        this->_eventManager,
+        this->_testEntities
+    );
+    this->_actionManager->registerAllActions();
+
+    this->_setupEventSubscribers();
+
+    this->_setupScene();
+    this->_toolbar = std::make_unique<Toolbar>();
+
     this->_testEntitySystem();
 
-    this->_addLog("System ready! Press keys and move mouse to test.", ofColor::cyan);
+    this->_addLog("System ready!", ofColor::cyan);
 }
 
 void ofApp::_setupSystems()
@@ -93,12 +106,6 @@ void ofApp::_setupEventSubscribers()
             this->_keyReleaseCount++;
             this->_addLog(ss.str(), ofColor::orange);
         }
-
-        if (e.type == KeyEventType::Pressed) {
-            InputManager::get().onKeyPressed(e.key);
-        } else {
-            InputManager::get().onKeyReleased(e.key);
-        }
     });
 
     this->_eventManager.subscribe<MouseEvent>([this](const MouseEvent& e) {
@@ -109,17 +116,14 @@ void ofApp::_setupEventSubscribers()
                 ss << "Mouse PRESSED at (" << e.x << ", " << e.y << ") btn:" << e.button;
                 this->_addLog(ss.str(), ofColor::lightBlue);
                 this->_mousePressCount++;
-                InputManager::get().onMousePressed(e.button);
                 break;
             case MouseEventType::Released:
                 ss << "Mouse RELEASED at (" << e.x << ", " << e.y << ") btn:" << e.button;
                 this->_addLog(ss.str(), ofColor::lightCyan);
                 this->_mouseReleaseCount++;
-                InputManager::get().onMouseReleased(e.button);
                 break;
             case MouseEventType::Moved:
                 this->_mouseMoveCount++;
-                InputManager::get().onMouseMoved(e.x, e.y);
                 if (this->_mouseMoveCount % 30 == 0) {
                     ss << "Mouse moved (" << e.x << ", " << e.y << ") [count:" << this->_mouseMoveCount << "]";
                     this->_addLog(ss.str(), ofColor(100, 100, 150));
@@ -128,7 +132,6 @@ void ofApp::_setupEventSubscribers()
             case MouseEventType::Dragged:
                 ss << "Mouse DRAGGED at (" << e.x << ", " << e.y << ") btn:" << e.button;
                 this->_addLog(ss.str(), ofColor::purple);
-                InputManager::get().onMouseMoved(e.x, e.y);
                 break;
             case MouseEventType::Scrolled:
                 ss << "Mouse SCROLLED at (" << e.x << ", " << e.y << ")";
@@ -183,86 +186,6 @@ void ofApp::_setupEventSubscribers()
     this->_addLog("Event subscribers registered", ofColor::green);
 }
 
-void ofApp::_setupShortcuts()
-{
-    InputManager& input = InputManager::get();
-
-    input.registerShortcut({OF_KEY_CONTROL, 's'}, [this]() {
-        this->_addLog("Shortcut: Ctrl+S triggered!", ofColor::yellow);
-    });
-
-    input.registerShortcut({OF_KEY_CONTROL, 'o'}, [this]() {
-        this->_addLog("Shortcut: Ctrl+O triggered!", ofColor::yellow);
-        this->_cameraPosition.z += 1.0f;
-        this->_eventManager.emit(CameraEvent(this->_cameraPosition, this->_cameraTarget));
-    });
-
-    input.registerShortcut({OF_KEY_CONTROL, 'p'}, [this]() {
-        this->_addLog("Shortcut: Ctrl+P triggered!", ofColor::yellow);
-        this->_cameraPosition.z -= 1.0f;
-        this->_eventManager.emit(CameraEvent(this->_cameraPosition, this->_cameraTarget));
-    });
-
-    input.registerShortcut({OF_KEY_CONTROL, 'n', 'o'}, [this]() {
-        this->_addLog("Shortcut: Ctrl+N+O triggered!", ofColor::yellow);
-        this->_fileManager->importMesh("nier.obj");
-    });
-
-    input.registerShortcut({OF_KEY_CONTROL, 'n', 's'}, [this]() {
-        this->_addLog("Shortcut: Ctrl+N+S triggered!", ofColor::yellow);
-        this->_fileManager->importMesh("nier.stl");
-    });
-
-    input.registerShortcut({OF_KEY_CONTROL, 'c'}, [this]() {
-        this->_addLog("Shortcut: Ctrl+C triggered!", ofColor::yellow);
-        this->_fileManager->importMesh("chair.ply");
-    });
-
-    input.registerShortcut({OF_KEY_LEFT_CONTROL, 'z'}, [this]() {
-        if (this->_historyManager && this->_historyManager->canUndo()) {
-            this->_historyManager->undo();
-            this->_addLog("Undo", ofColor::yellow);
-        }
-    });
-
-    input.registerShortcut({OF_KEY_LEFT_CONTROL, 'y'}, [this]() {
-        if (this->_historyManager && this->_historyManager->canRedo()) {
-            this->_historyManager->redo();
-            this->_addLog("Redo", ofColor::yellow);
-        }
-    });
-
-    this->_addLog("Keyboard shortcuts registered (Ctrl+S, Ctrl+O, Ctrl+P)", ofColor::green);
-    input.registerShortcut({'k'}, [this]() {
-        this->_cameraManager->updateZoom(1.0f);
-        this->_addLog("Shortcut: k (zoom in) triggered!", ofColor::yellow);
-    });
-    input.registerShortcut({'l'}, [this]() {
-        this->_cameraManager->updateZoom(-1.0f);
-        this->_addLog("Shortcut: l (zoom out) triggered!", ofColor::yellow);
-    });
-    input.registerShortcut({'j'}, [this]() {
-        this->_cameraManager->switchCamera();
-        this->_addLog("Shortcut: j (switch camera) triggered!", ofColor::yellow);
-    });
-    input.registerShortcut({'f'}, [this]() {
-        this->_cameraManager->focusTarget(this->_cameraManager->getActiveCameraId());
-        this->_addLog("Shortcut: f (focus camera) triggered!", ofColor::yellow);
-    });
-
-    input.registerShortcut({OF_KEY_LEFT},  [this](){ this->_cameraManager->updatePan(1.0f, 0.0f); });
-    input.registerShortcut({OF_KEY_RIGHT}, [this](){ this->_cameraManager->updatePan(-1.0f, 0.0f); });
-    input.registerShortcut({OF_KEY_UP},    [this](){ this->_cameraManager->updatePan(0.0f, 1.0f); });
-    input.registerShortcut({OF_KEY_DOWN},  [this](){ this->_cameraManager->updatePan(0.0f, -1.0f); });
-
-    input.registerShortcut({'a'}, [this](){ this->_cameraManager->updateOrbit(1.0f, 0.0f); });
-    input.registerShortcut({'d'}, [this](){ this->_cameraManager->updateOrbit(-1.0f, 0.0f); });
-    input.registerShortcut({'w'}, [this](){ this->_cameraManager->updateOrbit(0.0f, -1.0f); });
-    input.registerShortcut({'s'}, [this](){ this->_cameraManager->updateOrbit(0.0f, 1.0f); });
-
-    this->_addLog("Keyboard shortcuts registered (Ctrl+S, Ctrl+O, Ctrl+P, k - zoom in, l - zoom out, n - switch camera, f - focus camera)", ofColor::green);
-}
-
 void ofApp::_testEntitySystem()
 {
     std::stringstream ss;
@@ -277,20 +200,25 @@ void ofApp::update()
     for (EntityID id : this->_testEntities) {
         if (id == this->_selectedEntity) continue;
         Transform* t = this->_componentRegistry.getComponent<Transform>(id);
-        if (t) {
-            t->rotation.y += 0.01f;
-            t->rotation.x += 0.005f;
+        if (t)
             this->_transformSystem->markDirty(id);
-        }
     }
 
     this->_eventManager.processEvents();
 
+    input.processKeyActions();
+    input.processShortcuts();
+
+    this->_actionManager->updateCameraAction(_cameraManager);
+
+    this->_cameraManager->update(ofGetWidth(), ofGetHeight());
+
     this->_transformSystem->update();
 
-    input.processShortcuts();
     input.endFrame();
 }
+
+
 
 void ofApp::draw()
 {
@@ -395,7 +323,6 @@ void ofApp::_drawInstructions()
             "Click MOUSE buttons to test\n"
             "Press 1-3 to select primitives\n"
             "Press N to create sphere\n"
-            "Press SPACE to clear log\n"
             "Press X to export selected entity\n"
             "ctrl+N+O to import B2 in obj"
             "ctrl+N+S to import B2 in stl"
@@ -456,101 +383,13 @@ void ofApp::exit()
 
 void ofApp::keyPressed(int key)
 {
-    if (key == ' ') {
-        this->_eventLogs.clear();
-        this->_addLog("Event log cleared", ofColor::white);
-        return;
-    }
-
-    if (key >= '1' && key <= '6') {
-        int idx = key - '1';
-        if (idx < static_cast<int>(this->_testEntities.size())) {
-            this->_eventManager.emit(SelectionEvent(this->_testEntities[idx], true));
-        }
-    }
-
-    if (key == 'x' || key == 'X')
-        this->_fileManager->exportMesh(_selectedEntity, "ExportedEntity");
-    
-    if (key == 'n' || key == 'N') {
-        Entity boxEntity = this->_entityManager.createEntity();
-        this->_componentRegistry.registerComponent(boxEntity.getId(), Transform(glm::vec3(-3, 0, 0)));
-        this->_componentRegistry.registerComponent(boxEntity.getId(), Sphere(1.2f));
-        this->_componentRegistry.registerComponent(boxEntity.getId(), Renderable(ofMesh(), ofColor::red));
-        this->_testEntities.push_back(boxEntity.getId());
-        this->_primitiveSystem->generateMeshes();
-        this->_addLog("Box entity created (ID: " + ofToString(boxEntity.getId()) + ")", ofColor::orange);
-    }
-
-    if (this->_selectedEntity != INVALID_ENTITY) {
-        Transform* t = this->_componentRegistry.getComponent<Transform>(this->_selectedEntity);
-        if (t) {
-            float speed = 0.5f;
-            float rotSpeed = 0.1f;
-            bool moved = false;
-
-            auto& input = InputManager::get();
-            bool shiftPressed = input.isKeyPressed(OF_KEY_SHIFT);
-            bool ctrlPressed = input.isKeyPressed(OF_KEY_CONTROL);
-
-            switch (key) {
-                case OF_KEY_LEFT:
-                    if (shiftPressed)
-                        t->rotation.y -= rotSpeed;
-                    else if (ctrlPressed)
-                        t->scale.x -= 0.1f;
-                    else
-                        t->position.x -= speed;
-                    moved = true;
-                    break;
-
-                case OF_KEY_RIGHT:
-                    if (shiftPressed)
-                        t->rotation.y += rotSpeed;
-                    else if (ctrlPressed)
-                        t->scale.x += 0.1f;
-                    else
-                        t->position.x += speed;
-                    moved = true;
-                    break;
-
-                case OF_KEY_UP:
-                    if (shiftPressed)
-                        t->rotation.x -= rotSpeed;
-                    else if (ctrlPressed)
-                        t->scale.y += 0.1f;
-                    else
-                        t->position.z -= speed;
-                    moved = true;
-                    break;
-
-                case OF_KEY_DOWN:
-                    if (shiftPressed)
-                        t->rotation.x += rotSpeed;
-                    else if (ctrlPressed)
-                        t->scale.y -= 0.1f;
-                    else
-                        t->position.z += speed;
-                    moved = true;
-                    break;
-
-                default:
-                    break;
-            }
-
-            if (moved) {
-                this->_transformSystem->markDirty(this->_selectedEntity);
-                std::string logMessage =  "Entity #" + std::to_string(this->_selectedEntity);
-                if (shiftPressed) logMessage += " rotated";
-                else if (ctrlPressed) logMessage += " scaled";
-                else logMessage += " moved";
-                this->_addLog(logMessage, ofColor::cyan);
-            }
-        }
-    }
+    this->_eventManager.emit(KeyEvent(key, KeyEventType::Pressed));
 }
 
-void ofApp::keyReleased(int key) {}
+void ofApp::keyReleased(int key)
+{
+    this->_eventManager.emit(KeyEvent(key, KeyEventType::Released));
+}
 
 void ofApp::mouseMoved(int x, int y) {}
 
