@@ -30,7 +30,7 @@ void Properties::unsetSelectedEntity() {
 
 void Properties::render()
 {
-    if (_entityId == INVALID_ENTITY) return;
+    if (this->_entityId == INVALID_ENTITY) return;
     ImGui::SetNextWindowPos(ImVec2(1090, 80));
     ImGui::SetNextWindowSize(ImVec2(300, 220));
 
