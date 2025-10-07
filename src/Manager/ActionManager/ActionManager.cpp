@@ -10,29 +10,20 @@ void ActionManager::updateCameraAction(std::unique_ptr<CameraManager>& camera)
 {
     auto& input = InputManager::get();
 
-    float scroll = 0.0f;
-    if (input.isKeyPressed(OF_KEY_UP))
-        scroll += 1.0f;
-    if (input.isKeyPressed(OF_KEY_DOWN))
-        scroll -= 1.0f;
+    if (input.isKeyPressed('q')) camera->pan(1.0f, 0.0f, 0.0f);
+    if (input.isKeyPressed('d')) camera->pan(-1.0f, 0.0f, 0.0f);
+    if (input.isKeyPressed('z')) camera->pan(0.0f, 0.0f, 1.0f);
+    if (input.isKeyPressed('s')) camera->pan(0.0f, 0.0f, -1.0f);
+    if (input.isKeyPressed(OF_KEY_SPACE)) camera->pan(0.0f, 1.0f, 0.0f);
+    if (input.isKeyPressed(OF_KEY_LEFT_SHIFT)) camera->pan(0.0f, -1.0f, 0.0f);
 
-    camera->updateZoom(scroll);
+    if (input.isKeyPressed(OF_KEY_DOWN)) camera->rotate(0.0f, 1.0f);
+    if (input.isKeyPressed(OF_KEY_LEFT)) camera->rotate(-1.0f, 0.0f);
+    if (input.isKeyPressed(OF_KEY_UP)) camera->rotate(0.0f, -1.0f);
+    if (input.isKeyPressed(OF_KEY_RIGHT)) camera->rotate(1.0f, 0.0f);
 
-
-    if (input.isKeyPressed('q')) camera->updatePan(1.0f, 0.0f, 0.0f);
-    if (input.isKeyPressed('d')) camera->updatePan(-1.0f, 0.0f, 0.0f);
-    if (input.isKeyPressed('z')) camera->updatePan(0.0f, 0.0f, 1.0f);
-    if (input.isKeyPressed('s')) camera->updatePan(0.0f, 0.0f, -1.0f);
-    if (input.isKeyPressed(OF_KEY_SPACE)) camera->updatePan(0.0f, 1.0f, 0.0f);
-    if (input.isKeyPressed(OF_KEY_LEFT_SHIFT)) camera->updatePan(0.0f, -1.0f, 0.0f);
-
-    if (input.isKeyPressed(OF_KEY_DOWN)) camera->updateOrbit(0.0f, -1.0f);
-    if (input.isKeyPressed(OF_KEY_LEFT)) camera->updateOrbit(1.0f, 0.0f);
-    if (input.isKeyPressed(OF_KEY_UP)) camera->updateOrbit(0.0f, 1.0f);
-    if (input.isKeyPressed(OF_KEY_RIGHT)) camera->updateOrbit(-1.0f, 0.0f);
-
-    if (input.isKeyPressed('k')) camera->updateZoom(1.0f);
-    if (input.isKeyPressed('l')) camera->updateZoom(-1.0f);
+    if (input.isKeyPressed('k')) camera->zoom(1.0f);
+    if (input.isKeyPressed('l')) camera->zoom(-1.0f);
     if (input.isKeyPressed('j')) camera->switchCamera();
     if (input.isKeyPressed('f')) camera->focusTarget(camera->getActiveCameraId());
 }

@@ -51,7 +51,7 @@ void ofApp::_setupSystems()
 {
     this->_transformSystem = std::make_unique<TransformSystem>(this->_componentRegistry, this->_entityManager);
     this->_primitiveSystem = std::make_unique<PrimitiveSystem>(this->_componentRegistry, this->_entityManager);
-    this->_cameraSystem = std::make_unique<CameraSystem>(this->_componentRegistry);
+    this->_cameraSystem = std::make_unique<CameraSystem>(this->_componentRegistry, *this->_transformSystem);
     this->_cameraManager = std::make_unique<CameraManager>(this->_componentRegistry, this->_entityManager, *this->_cameraSystem);
     this->_renderSystem = std::make_unique<RenderSystem>(this->_componentRegistry, this->_entityManager, *this->_cameraManager);
 
