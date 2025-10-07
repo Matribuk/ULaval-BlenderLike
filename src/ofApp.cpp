@@ -265,10 +265,12 @@ void ofApp::update()
     auto& input = InputManager::get();
 
     for (EntityID id : this->_testEntities) {
+        if (id == this->_selectedEntity) continue;
         Transform* t = this->_componentRegistry.getComponent<Transform>(id);
         if (t) {
             t->rotation.y += 0.01f;
             t->rotation.x += 0.005f;
+            this->_transformSystem->markDirty(id);
         }
     }
 
@@ -466,6 +468,80 @@ void ofApp::keyPressed(int key)
         this->_testEntities.push_back(boxEntity.getId());
         this->_primitiveSystem->generateMeshes();
         this->_addLog("Box entity created (ID: " + ofToString(boxEntity.getId()) + ")", ofColor::orange);
+    }
+
+    if (this->_selectedEntity != INVALID_ENTITY) {
+        Transform* t = this->_componentRegistry.getComponent<Transform>(this->_selectedEntity);
+        if (t) {
+            float speed = 0.5f;
+            float rotSpeed = 0.1f;
+            bool moved = false;
+
+            auto& input = InputManager::get();
+            bool shiftPressed = input.isKeyPressed(OF_KEY_SHIFT);
+            bool ctrlPressed = input.isKeyPressed(OF_KEY_CONTROL);
+
+            if (key == OF_KEY_LEFT) {
+                if (shiftPressed) {
+                    t->rotation.y -= rotSpeed;
+                    moved = true;
+                } else if (ctrlPressed) {
+                    t->scale.x -= 0.1f;
+                    moved = true;
+                } else {
+                    t->position.x -= speed;
+                    moved = true;
+                }
+            }
+
+            if (key == OF_KEY_RIGHT) {
+                if (shiftPressed) {
+                    t->rotation.y += rotSpeed;
+                    moved = true;
+                } else if (ctrlPressed) {
+                    t->scale.x += 0.1f;
+                    moved = true;
+                } else {
+                    t->position.x += speed;
+                    moved = true;
+                }
+            }
+
+            if (key == OF_KEY_UP) {
+                if (shiftPressed) {
+                    t->rotation.x -= rotSpeed;
+                    moved = true;
+                } else if (ctrlPressed) {
+                    t->scale.y += 0.1f;
+                    moved = true;
+                } else {
+                    t->position.z -= speed;
+                    moved = true;
+                }
+            }
+
+            if (key == OF_KEY_DOWN) {
+                if (shiftPressed) {
+                    t->rotation.x += rotSpeed;
+                    moved = true;
+                } else if (ctrlPressed) {
+                    t->scale.y -= 0.1f;
+                    moved = true;
+                } else {
+                    t->position.z += speed;
+                    moved = true;
+                }
+            }
+
+            if (moved) {
+                this->_transformSystem->markDirty(this->_selectedEntity);
+                std::string logMessage =  "Entity #" + std::to_string(this->_selectedEntity);
+                if (shiftPressed) logMessage += " rotated";
+                else if (ctrlPressed) logMessage += " scaled";
+                else logMessage += " moved";
+                this->_addLog(logMessage, ofColor::cyan);
+            }
+        }
     }
 }
 
