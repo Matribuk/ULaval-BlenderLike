@@ -127,11 +127,11 @@
 
 ### Systems/TransformSystem.h
 
-- [ ] Mise à jour matrices de transformation
-- [ ] Gestion hiérarchies parent/enfant
-- [ ] Méthode `updateTransforms()`
-- [ ] Calcul matrices globales
-- [ ] Optimisations (dirty flags)
+- [x] Mise à jour matrices de transformation
+- [x] Gestion hiérarchies parent/enfant
+- [x] Méthode `updateTransforms()`
+- [x] Calcul matrices globales
+- [x] Optimisations (dirty flags)
 
 ### Systems/CameraSystem.h
 
