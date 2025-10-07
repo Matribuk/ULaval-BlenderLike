@@ -17,9 +17,9 @@ class CameraManager {
         void switchCamera();
         void focusTarget(EntityID camEntity);
 
-        void updateZoom(float dir);
-        void updatePan(float x, float y, float depth);
-        void updateOrbit(float x, float y);
+        void rotate(float x, float y);
+        void zoom(float dir);
+        void pan(float x, float y, float depth);
 
         void update(int viewportWidth, int viewportHeight);
 
