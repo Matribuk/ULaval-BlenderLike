@@ -47,11 +47,11 @@ void ActionManager::_registerKeyboardActions()
 {
     auto& input = InputManager::get();
 
-    input.registerKeyAction('x', [this]() { _exportSelectedEntity(); });
+    input.registerKeyAction('x', [this]() { this->_exportSelectedEntity(); });
 
     for (int i = 1; i <= 9; i++) {
         input.registerKeyAction('0' + i, [this, i]() {
-            _selectEntity(i - 1);
+            this->_selectEntity(i - 1);
         });
     }
 }

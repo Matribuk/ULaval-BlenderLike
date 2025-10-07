@@ -100,11 +100,11 @@ void CameraSystem::handleCameraMovement(EntityID camEntity)
     float deltaTime = ofGetLastFrameTime();
 
     if (this->_zoomInput != 0.0f)
-        _zoom(camEntity, this->_zoomInput * deltaTime);
+        this->_zoom(camEntity, this->_zoomInput * deltaTime);
     if (this->_panInput.x != 0.0f || this->_panInput.y != 0.0f || this->_panInput.z)
-        _panKeyboard(camEntity, this->_panInput.x * deltaTime, this->_panInput.y * deltaTime, this->_panInput.z * deltaTime);
+        this->_panKeyboard(camEntity, this->_panInput.x * deltaTime, this->_panInput.y * deltaTime, this->_panInput.z * deltaTime);
     if (this->_orbitInput.x != 0.0f || this->_orbitInput.y != 0.0f)
-        _orbitKeyboard(camEntity, this->_orbitInput.x * deltaTime, this->_orbitInput.y * deltaTime);
+        this->_orbitKeyboard(camEntity, this->_orbitInput.x * deltaTime, this->_orbitInput.y * deltaTime);
 
     this->_zoomInput = 0.0f;
     this->_panInput = glm::vec3(0.0f);
@@ -136,15 +136,15 @@ ComponentRegistry &CameraSystem::getRegistry() const
 
 void CameraSystem::updateZoomInput(float zoom)
 {
-    _zoomInput += zoom;
+    this->_zoomInput += zoom;
 }
 
 void CameraSystem::updatePanInput(float x, float y, float depth)
 {
-    _panInput += glm::vec3(x, y, depth);
+    this->_panInput += glm::vec3(x, y, depth);
 }
 
 void CameraSystem::updateOrbitInput(float x, float y)
 {
-    _orbitInput += glm::vec2(x, y);
+    this->_orbitInput += glm::vec2(x, y);
 }
