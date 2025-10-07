@@ -1,7 +1,5 @@
 #pragma once
 
-#include "ofMain.h"
-
 // Components
 #include "Components/Transform.hpp"
 
@@ -18,10 +16,6 @@ class TransformSystem {
     public:
         TransformSystem(ComponentRegistry& registry, EntityManager& entityMgr);
         ~TransformSystem() = default;
-
-        void setPosition(EntityID entityId, float horizontal, float vertical, float depth);
-        void setRotation(EntityID entityId, float horizontal, float vertical, const glm::vec3* pivot);
-        void setScale(EntityID entityId, const glm::vec3& scale);
 
         void update();
 

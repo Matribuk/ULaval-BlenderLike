@@ -81,20 +81,21 @@ ComponentRegistry &CameraManager::getComponentRegistry() const {
 
 void CameraManager::update(int viewportWidth, int viewportHeight)
 {
+    this->_cameraSystem.handleCameraMovement(this->_activeCamera);
     this->_cameraSystem.update(this->_cameraEntities, viewportWidth, viewportHeight);
 }
 
-void CameraManager::zoom(float dir)
+void CameraManager::updateZoom(float dir)
 {
-    this->_cameraSystem.zoom(this->_activeCamera, dir);
+    this->_cameraSystem.updateZoomInput(dir);
 }
 
-void CameraManager::pan(float x, float y, float depth)
+void CameraManager::updatePan(float x, float y, float depth)
 {
-    this->_cameraSystem.pan(this->_activeCamera, x, y, depth);
+    this->_cameraSystem.updatePanInput(x, y, depth);
 }
 
-void CameraManager::rotate(float x, float y)
+void CameraManager::updateOrbit(float x, float y)
 {
-    this->_cameraSystem.rotate(this->_activeCamera, x, y);
+    this->_cameraSystem.updateOrbitInput(x, y);
 }
