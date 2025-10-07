@@ -3,6 +3,57 @@
 TransformSystem::TransformSystem(ComponentRegistry& registry, EntityManager& entityMgr)
     : _registry(registry), _entityManager(entityMgr) {}
 
+void TransformSystem::setPosition(EntityID entityId, float horizontal, float vertical, float depth)
+{
+    float deltaTime = ofGetLastFrameTime();
+    Transform *transform = this->_registry.getComponent<Transform>(entityId);
+
+    glm::vec3 right = glm::vec3(1, 0, 0);
+    glm::vec3 up = glm::vec3(0, 1, 0);
+    glm::vec3 forward = glm::vec3(0, 0, -1);
+
+    transform->position += horizontal * deltaTime * right + vertical * deltaTime * up + depth * deltaTime * forward;
+    transform->isDirty = true;
+}
+
+void TransformSystem::setRotation(EntityID entityId, float horizontal, float vertical, const glm::vec3* pivot)
+{
+    float deltaTime = ofGetLastFrameTime();
+    Transform* transform = this->_registry.getComponent<Transform>(entityId);
+    glm::vec3 center = pivot ? *pivot : glm::vec3(0.0f);
+
+    glm::vec3 offset = transform->position - center;
+    float radius = glm::length(offset);
+    if (radius == 0.0f) return;
+
+    float yaw = atan2(offset.x, offset.z);
+    float pitch = asin(offset.y / radius);
+
+    yaw += horizontal * deltaTime;
+    pitch += vertical * deltaTime;
+
+    float limit = glm::radians(89.0f);
+    pitch = glm::clamp(pitch, -limit, limit);
+
+    float cosPitch = cos(pitch);
+    glm::vec3 newOffset;
+    newOffset.x = radius * cosPitch * sin(yaw);
+    newOffset.y = radius * sin(pitch);
+    newOffset.z = radius * cosPitch * cos(yaw);
+
+    transform->position = center + newOffset;
+    transform->isDirty = true;
+}
+
+void TransformSystem::setScale(EntityID entityId, const glm::vec3& scale)
+{
+    Transform* transform = this->_registry.getComponent<Transform>(entityId);
+    glm::vec3 clampedScale = glm::clamp(scale, glm::vec3(0.001f), glm::vec3(1000.0f));
+
+    transform->scale = clampedScale;
+    transform->isDirty = true;
+}
+
 void TransformSystem::update()
 {
     for (EntityID id : this->_entityManager.getAllEntities()) {
