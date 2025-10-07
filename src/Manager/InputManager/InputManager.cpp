@@ -57,6 +57,11 @@ void InputManager::registerShortcut(const std::vector<int>& keys, std::function<
     this->_shortcuts.emplace_back(keys, action);
 }
 
+void InputManager::registerKeyAction(int key, std::function<void()> action)
+{
+    this->_keyActions[key] = action;
+}
+
 void InputManager::processShortcuts()
 {
     for (auto& [keys, action] : this->_shortcuts) {
@@ -69,7 +74,16 @@ void InputManager::processShortcuts()
             }
         }
         if (allPressed)
+        action();
+    }
+}
+
+void InputManager::processKeyActions()
+{
+    for (auto& [key, action] : this->_keyActions) {
+        if (wasKeyJustPressed(key)) {
             action();
+        }
     }
 }
 
@@ -97,6 +111,33 @@ void InputManager::onMousePressed(int button)
 void InputManager::onMouseReleased(int button)
 {
     this->_mouseButtonStates[button] = false;
+}
+
+void InputManager::subscribeToEvents(EventManager& eventManager)
+{
+    eventManager.subscribe<KeyEvent>([this](const KeyEvent& e) {
+        if (e.type == KeyEventType::Pressed)
+            this->onKeyPressed(e.key);
+        else
+            this->onKeyReleased(e.key);
+    });
+
+    eventManager.subscribe<MouseEvent>([this](const MouseEvent& e) {
+        switch(e.type) {
+            case MouseEventType::Pressed:
+                this->onMousePressed(e.button);
+                break;
+            case MouseEventType::Released:
+                this->onMouseReleased(e.button);
+                break;
+            case MouseEventType::Moved:
+            case MouseEventType::Dragged:
+                this->onMouseMoved(e.x, e.y);
+                break;
+            default:
+                break;
+        }
+    });
 }
 
 void InputManager::endFrame()

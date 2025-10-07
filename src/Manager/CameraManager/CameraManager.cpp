@@ -90,9 +90,9 @@ void CameraManager::updateZoom(float dir)
     this->_cameraSystem.updateZoomInput(dir);
 }
 
-void CameraManager::updatePan(float x, float y)
+void CameraManager::updatePan(float x, float y, float depth)
 {
-    this->_cameraSystem.updatePanInput(x, y);
+    this->_cameraSystem.updatePanInput(x, y, depth);
 }
 
 void CameraManager::updateOrbit(float x, float y)

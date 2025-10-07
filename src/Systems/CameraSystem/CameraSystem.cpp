@@ -5,7 +5,7 @@ CameraSystem::CameraSystem(ComponentRegistry &registry)
 {
 }
 
-void CameraSystem::_panKeyboard(EntityID camEntity, float horizontal, float vertical)
+void CameraSystem::_panKeyboard(EntityID camEntity, float horizontal, float vertical, float depth)
 {
     Camera *cam = this->_componentRegistry.getComponent<Camera>(camEntity);
     Transform *transform = this->_componentRegistry.getComponent<Transform>(camEntity);
@@ -18,32 +18,38 @@ void CameraSystem::_panKeyboard(EntityID camEntity, float horizontal, float vert
 
     glm::vec3 right = this->_getCameraRight(camEntity);
     glm::vec3 up = cam->up;
+    glm::vec3 forward = glm::normalize(cam->forward);
+    transform->position += right * horizontal * cam->panSensitivity
+                     + up * vertical * cam->panSensitivity
+                     + forward * depth * cam->panSensitivity;
 
-    transform->position += right * horizontal * cam->panSensitivity + up * vertical * cam->panSensitivity;
 }
 
 void CameraSystem::_orbitKeyboard(EntityID camEntity, float horizontal, float vertical)
 {
-    Camera *cam = this->_componentRegistry.getComponent<Camera>(camEntity);
-    Transform *transform = this->_componentRegistry.getComponent<Transform>(camEntity);
+    Camera* cam = this->_componentRegistry.getComponent<Camera>(camEntity);
+    Transform* transform = this->_componentRegistry.getComponent<Transform>(camEntity);
     if (!cam || !transform) return;
 
-    float angleY = horizontal * cam->orbitSensitivity;
-    float angleX = vertical * cam->orbitSensitivity;
+    glm::vec3 pivot = cam->focusMode ? cam->target : (transform->position + cam->forward);
+    glm::vec3 offset = transform->position - pivot;
+    float radius = glm::length(offset);
 
-    glm::vec3 pivot = cam->focusMode ? cam->target : (transform->position + cam->forward * 5.0f);
-    glm::vec3 dir = transform->position - pivot;
-    glm::mat4 rotY = glm::rotate(glm::mat4(1.0f), angleY, glm::vec3(0, 1, 0));
-    dir = glm::vec3(rotY * glm::vec4(dir, 0.0f));
+    float yaw   = atan2(offset.x, offset.z);
+    float pitch = asin(offset.y / radius);
 
-    glm::vec3 forward = glm::normalize(-dir);
-    glm::vec3 right = glm::normalize(glm::cross(forward, glm::vec3(0, 1, 0)));
-    glm::mat4 rotX = glm::rotate(glm::mat4(1.0f), angleX, right);
-    dir = glm::vec3(rotX * glm::vec4(dir, 0.0f));
+    yaw   += horizontal * cam->orbitSensitivity;
+    pitch += vertical * cam->orbitSensitivity;
 
-    transform->position = pivot + dir;
+    float cosPitch = cos(pitch);
+    glm::vec3 newOffset;
+    newOffset.x = radius * cosPitch * sin(yaw);
+    newOffset.y = radius * sin(pitch);
+    newOffset.z = radius * cosPitch * cos(yaw);
+
+    transform->position = pivot + newOffset;
     cam->forward = glm::normalize(pivot - transform->position);
-    cam->up = glm::normalize(glm::cross(right, cam->forward));
+    cam->up = glm::vec3(0, 1, 0);
 }
 
 void CameraSystem::_zoom(EntityID camEntity, float amount)
@@ -95,13 +101,13 @@ void CameraSystem::handleCameraMovement(EntityID camEntity)
 
     if (this->_zoomInput != 0.0f)
         _zoom(camEntity, this->_zoomInput * deltaTime);
-    if (this->_panInput.x != 0.0f || this->_panInput.y != 0.0f)
-        _panKeyboard(camEntity, this->_panInput.x * deltaTime, this->_panInput.y * deltaTime);
+    if (this->_panInput.x != 0.0f || this->_panInput.y != 0.0f || this->_panInput.z)
+        _panKeyboard(camEntity, this->_panInput.x * deltaTime, this->_panInput.y * deltaTime, this->_panInput.z * deltaTime);
     if (this->_orbitInput.x != 0.0f || this->_orbitInput.y != 0.0f)
         _orbitKeyboard(camEntity, this->_orbitInput.x * deltaTime, this->_orbitInput.y * deltaTime);
 
     this->_zoomInput = 0.0f;
-    this->_panInput = glm::vec2(0.0f);
+    this->_panInput = glm::vec3(0.0f);
     this->_orbitInput = glm::vec2(0.0f);
 }
 
@@ -133,9 +139,9 @@ void CameraSystem::updateZoomInput(float zoom)
     _zoomInput += zoom;
 }
 
-void CameraSystem::updatePanInput(float x, float y)
+void CameraSystem::updatePanInput(float x, float y, float depth)
 {
-    _panInput += glm::vec2(x, y);
+    _panInput += glm::vec3(x, y, depth);
 }
 
 void CameraSystem::updateOrbitInput(float x, float y)
