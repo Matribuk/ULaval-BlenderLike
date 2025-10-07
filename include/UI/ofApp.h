@@ -36,6 +36,7 @@
 #include "UI/ColorPalette/ColorPalette.hpp"
 #include "UI/ToolBar/ToolBar.hpp"
 #include "UI/Viewport/Viewport.hpp"
+#include "UI/Properties/Properties.hpp"
 
 #include <ofMain.h>
 #include "ofxImGui.h"
@@ -60,6 +61,7 @@ class ofApp : public ofBaseApp {
     private:
         EventManager _eventManager;
 
+        std::unique_ptr<Properties> _properties;
         std::unique_ptr<ColorPalette> _colorPalette;
         std::unique_ptr<HistoryManager> _historyManager;
         std::unique_ptr<FileManager> _fileManager;

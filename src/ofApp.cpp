@@ -18,6 +18,7 @@ void ofApp::setup()
     this->_setupSystems();
     this->_setupScene();
     this->_toolbar = std::make_unique<Toolbar>();
+    this->_properties = std::make_unique<Properties>(this->_componentRegistry);
     this->_fileManager = std::make_unique<FileManager>(this->_componentRegistry, this->_entityManager);
     this->_viewportManager = std::make_unique<ViewportManager>();
     this->_viewportManager->createViewport(*this->_cameraManager, *this->_renderSystem);
@@ -150,8 +151,17 @@ void ofApp::_setupEventSubscribers()
                 this->_colorPalette = std::make_unique<ColorPalette>(this->_selectedEntity, this->_componentRegistry);
             else
                 this->_colorPalette->setEntity(this->_selectedEntity);
-        } else
+            if (!this->_properties)
+                this->_properties = std::make_unique<Properties>(this->_componentRegistry);
+            else
+                this->_properties->setSelectedEntity(this->_selectedEntity);
+        } else {
             this->_colorPalette.reset();
+            if (!this->_properties)
+                this->_properties = std::make_unique<Properties>(this->_componentRegistry);
+            else
+                this->_properties->unsetSelectedEntity();
+        }
 
     });
 
@@ -305,6 +315,8 @@ void ofApp::_drawUI()
     this->_drawEntityList();
 
     if (this->_toolbar) this->_toolbar->render();
+
+    if (this->_properties) this->_properties->render();
 
     auto& viewports = this->_viewportManager->getViewports();
     size_t viewportCount = viewports.size();
