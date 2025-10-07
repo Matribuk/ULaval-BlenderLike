@@ -383,12 +383,12 @@ void ofApp::exit()
 
 void ofApp::keyPressed(int key)
 {
-    _eventManager.emit(KeyEvent(key, KeyEventType::Pressed));
+    this->_eventManager.emit(KeyEvent(key, KeyEventType::Pressed));
 }
 
 void ofApp::keyReleased(int key)
 {
-    _eventManager.emit(KeyEvent(key, KeyEventType::Released));
+    this->_eventManager.emit(KeyEvent(key, KeyEventType::Released));
 }
 
 void ofApp::mouseMoved(int x, int y) {}

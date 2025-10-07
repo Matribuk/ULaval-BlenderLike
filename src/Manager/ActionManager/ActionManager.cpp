@@ -39,8 +39,8 @@ void ActionManager::updateCameraAction(std::unique_ptr<CameraManager>& camera)
 
 void ActionManager::registerAllActions()
 {
-    _registerKeyboardActions();
-    _registerShortcuts();
+    this->_registerKeyboardActions();
+    this->_registerShortcuts();
 }
 
 void ActionManager::_registerKeyboardActions()
@@ -61,40 +61,40 @@ void ActionManager::_registerShortcuts()
     auto& input = InputManager::get();
 
     input.registerShortcut({OF_KEY_CONTROL, 'p'}, [this]() {
-        _fileManager.importMesh("chair.ply");
+        this->_fileManager.importMesh("chair.ply");
     });
 
     input.registerShortcut({OF_KEY_CONTROL, 'o'}, [this]() {
-        _fileManager.importMesh("nier.obj");
+        this->_fileManager.importMesh("nier.obj");
     });
 
     input.registerShortcut({OF_KEY_CONTROL, 's'}, [this]() {
-        _fileManager.importMesh("nier.stl");
+        this->_fileManager.importMesh("nier.stl");
     });
 }
 
 void ActionManager::_exportSelectedEntity()
 {
     if (_selectedEntity != INVALID_ENTITY) {
-        _fileManager.exportMesh(_selectedEntity, "ExportedEntity");
+        this->_fileManager.exportMesh(this->_selectedEntity, "ExportedEntity");
     }
 }
 
 void ActionManager::_selectEntity(int index)
 {
-    if (index < 0 || index >= static_cast<int>(_testEntities.size())) return;
+    if (index < 0 || index >= static_cast<int>(this->_testEntities.size())) return;
 
-    EntityID entity = _testEntities[index];
-    _eventManager.emit(SelectionEvent(entity, true));
-    _selectedEntity = entity;
+    EntityID entity = this->_testEntities[index];
+    this->_eventManager.emit(SelectionEvent(entity, true));
+    this->_selectedEntity = entity;
 }
 
 void ActionManager::setSelectedEntity(EntityID entity)
 {
-    _selectedEntity = entity;
+    this->_selectedEntity = entity;
 }
 
 EntityID ActionManager::getSelectedEntity() const
 {
-    return _selectedEntity;
+    return this->_selectedEntity;
 }

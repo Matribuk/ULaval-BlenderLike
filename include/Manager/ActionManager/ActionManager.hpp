@@ -1,17 +1,22 @@
 #pragma once
 
-#include "../InputManager/InputManager.hpp"
-#include "../../Core/EntityManager/EntityManager.hpp"
-#include "../../Core/ComponentRegistry/ComponentRegistry.hpp"
-#include "../../Systems/PrimitiveSystem/PrimitiveSystem.hpp"
-#include "../../Systems/CameraSystem/CameraSystem.hpp"
-#include "../../Manager/FileManager/FileManager.hpp"
-#include "../../Manager/CameraManager/CameraManager.hpp"
-#include "../../Events/EventManager/EventManager.hpp"
-#include "../../Components/Transform.hpp"
-#include "../../Components/Renderable.hpp"
-#include "../../Components/Primitive/Sphere.hpp"
-#include "../../Events/EventTypes/Events/SelectionEvent.hpp"
+#include "Core/EntityManager/EntityManager.hpp"
+#include "Core/ComponentRegistry/ComponentRegistry.hpp"
+
+#include "Systems/PrimitiveSystem/PrimitiveSystem.hpp"
+#include "Systems/CameraSystem/CameraSystem.hpp"
+
+#include "Manager/InputManager/InputManager.hpp"
+#include "Manager/FileManager/FileManager.hpp"
+#include "Manager/CameraManager/CameraManager.hpp"
+
+#include "Components/Transform.hpp"
+#include "Components/Renderable.hpp"
+#include "Components/Primitive/Sphere.hpp"
+
+#include "Events/EventTypes/Events/SelectionEvent.hpp"
+#include "Events/EventManager/EventManager.hpp"
+
 #include <vector>
 #include <functional>
 
