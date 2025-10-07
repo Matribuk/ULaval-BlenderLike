@@ -61,13 +61,16 @@ void CameraSystem::_zoom(EntityID camEntity, float amount)
         return;
     }
 
-    glm::vec3 forward = glm::normalize(cam->forward);
+    float newFov = cam->fov - amount * cam->zoomSensitivity;
+    newFov = glm::clamp(newFov, cam->minFov, cam->maxFov);
+    cam->fov = newFov;
+
     if (cam->focusMode) {
-        float distance = glm::length(cam->target - transform->position);
-        distance = glm::clamp(distance - amount * cam->zoomSensitivity, cam->minDistance, cam->maxDistance);
-        transform->position = cam->target - forward * distance;
-    } else {
-        transform->position += forward * amount * cam->zoomSensitivity;
+        cam->viewMatrix = glm::lookAt(
+            transform->position,
+            cam->target,
+            cam->up
+        );
     }
 }
 

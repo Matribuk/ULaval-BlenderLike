@@ -11,6 +11,8 @@ struct Camera {
     glm::vec3 target{0.0f, 0.0f, 0.0f};
 
     float fov{60.0f};
+    float minFov{15.0f};
+    float maxFov{90.0f};
     float nearClip{0.1f};
     float farClip{1000.0f};
 
@@ -29,7 +31,7 @@ struct Camera {
     float maxPitch{89.0f};
     float orbitSensitivity{1.0f};
     float panSensitivity{2.0f};
-    float zoomSensitivity{3.0f};
+    float zoomSensitivity{20.0f};
 
     Camera() = default;
 };
