@@ -18,12 +18,10 @@ SelectionSystem::SelectionSystem(
       _cameraManager(cameraManager),
       _viewportManager(viewportManager)
 {
-    std::cout << "[SelectionSystem] Constructor" << std::endl;
 }
 
 void SelectionSystem::setup()
 {
-    std::cout << "[SelectionSystem] Setup" << std::endl;
     _eventManager.subscribe<MouseEvent>([this](const MouseEvent& e) {
         if (e.type == MouseEventType::Pressed && e.button == 0) {
             _handleMouseEvent(e);
