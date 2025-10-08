@@ -24,9 +24,15 @@ class Toolbar {
         void setSelectedTool(int tool);
         void addTool(ToolButton);
 
+        void setImportCallback(std::function<void()> callback) { _onImport = callback; }
+        void setExportCallback(std::function<void()> callback) { _onExport = callback; }
+
     private:
         void _applyCursor();
         void _renderToolButton(size_t index, const ImVec2& size);
+
+        std::function<void()> _onImport;
+        std::function<void()> _onExport;
 
         int _selectedTool;
         float _buttonSpacing;

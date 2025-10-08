@@ -26,6 +26,9 @@
 #include "Manager/ViewportManager/ViewportManager.hpp"
 #include "Manager/HistoryManager/HistoryManager.hpp"
 #include "Manager/ActionManager/ActionManager.hpp"
+#include "Manager/PropertiesManager/PropertiesManager.hpp"
+#include "Manager/SceneManager/SceneManager.hpp"
+#include "Manager/UIManager/UIManager.hpp"
 
 // Systems
 #include "Systems/CameraSystem/CameraSystem.hpp"
@@ -37,7 +40,8 @@
 #include "UI/ColorPalette/ColorPalette.hpp"
 #include "UI/ToolBar/ToolBar.hpp"
 #include "UI/Viewport/Viewport.hpp"
-#include "UI/Properties/Properties.hpp"
+#include "UI/TranformPanel/TranformPanel.hpp"
+#include "UI/MaterialPanel/MaterialPanel.hpp"
 
 #include <ofMain.h>
 #include "ofxImGui.h"
@@ -61,17 +65,22 @@ class ofApp : public ofBaseApp {
 
     private:
         EventManager _eventManager;
+        EntityManager _entityManager;
 
-        std::unique_ptr<Properties> _properties;
+        std::unique_ptr<UIManager> _uiManager;
+        std::unique_ptr<PropertiesManager> _propertiesManager;
         std::unique_ptr<ActionManager> _actionManager;
-        std::unique_ptr<ColorPalette> _colorPalette;
         std::unique_ptr<HistoryManager> _historyManager;
-        std::unique_ptr<FileManager> _fileManager;
-        std::unique_ptr<EventBridge> _eventBridge;
-        std::unique_ptr<Toolbar> _toolbar;
         std::unique_ptr<ViewportManager> _viewportManager;
         std::unique_ptr<CameraManager> _cameraManager;
-        EntityManager _entityManager;
+        std::unique_ptr<FileManager> _fileManager;
+        std::unique_ptr<SceneManager> _sceneManager;
+
+        std::unique_ptr<TranformPanel> _tranformPanel;
+        std::unique_ptr<MaterialPanel> _materialPanel;
+        std::unique_ptr<ColorPalette> _colorPalette;
+        std::unique_ptr<EventBridge> _eventBridge;
+        std::unique_ptr<Toolbar> _toolbar;
         ComponentRegistry _componentRegistry;
 
         std::unique_ptr<TransformSystem> _transformSystem;
@@ -106,13 +115,10 @@ class ofApp : public ofBaseApp {
         int _cameraEventCount = 0;
 
         void _addLog(const std::string& message, const ofColor& color = ofColor::white);
-        void _updateCameraPanWithMouse();
         void _setupEventSubscribers();
         void _setupSystems();
         void _setupScene();
-        void _testEntitySystem();
         void _drawUI();
         void _drawEventLog();
         void _drawInstructions();
-        void _drawEntityList();
 };

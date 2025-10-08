@@ -43,3 +43,7 @@
 IFT3100A25_TP1_E02
 /obj
 test_*
+*stl
+*.obj
+*mtl
+*.ply

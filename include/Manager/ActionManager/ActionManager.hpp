@@ -9,6 +9,8 @@
 #include "Manager/InputManager/InputManager.hpp"
 #include "Manager/FileManager/FileManager.hpp"
 #include "Manager/CameraManager/CameraManager.hpp"
+#include "Manager/SceneManager/SceneManager.hpp"
+#include "Manager/ViewportManager/ViewportManager.hpp"
 
 #include "Components/Transform.hpp"
 #include "Components/Renderable.hpp"
@@ -28,10 +30,11 @@ class ActionManager {
             PrimitiveSystem& primitiveSystem,
             FileManager& fileManager,
             EventManager& eventManager,
+            ViewportManager& viewportManager,
             std::vector<EntityID>& testEntities
         );
 
-        void updateCameraAction(std::unique_ptr<CameraManager>& camera);
+        void updateCameraAction(std::unique_ptr<CameraManager>& cameraManager);
 
         void registerAllActions();
 
@@ -49,6 +52,7 @@ class ActionManager {
         PrimitiveSystem& _primitiveSystem;
         FileManager& _fileManager;
         EventManager& _eventManager;
+        ViewportManager& _viewportManager;
         std::vector<EntityID>& _testEntities;
 
         EntityID _selectedEntity = INVALID_ENTITY;

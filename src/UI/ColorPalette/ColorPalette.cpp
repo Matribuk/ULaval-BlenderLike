@@ -15,7 +15,8 @@ ColorPalette::ColorPalette(EntityID entityId, ComponentRegistry& componentRegist
 
 void ColorPalette::render()
 {
-    if (!this->_renderable) return;
+    if (!this->_renderable)
+        return;
 
     ImVec4 color = ImVec4(
         this->_color.r / 255.0f,
@@ -24,27 +25,23 @@ void ColorPalette::render()
         this->_color.a / 255.0f
     );
 
-    ImGui::SetNextWindowPos(ImVec2(730, 80));
-    ImGui::SetNextWindowSize(ImVec2(300, 150));
+    bool edited = false;
+    ImGui::Text("Color");
+    edited |= ImGui::ColorEdit4("RGBA", (float*)&color);
 
-    if (ImGui::Begin("Color Palette", nullptr, ImGuiWindowFlags_NoResize)) {
-        bool edited = false;
+    ImGui::Spacing();
+    ImGui::Text("Picker");
+    edited |= ImGui::ColorPicker4("##picker", (float*)&color);
 
-        edited |= ImGui::ColorEdit4("Color", (float*)&color);
-        edited |= ImGui::ColorPicker4("Palette", (float*)&color);
-
-        if (edited) {
-            this->_color = ofColor(
-                static_cast<unsigned char>(color.x * 255.0f),
-                static_cast<unsigned char>(color.y * 255.0f),
-                static_cast<unsigned char>(color.z * 255.0f),
-                static_cast<unsigned char>(color.w * 255.0f)
-            );
-            setSelectedColor(this->_color);
-        }
+    if (edited) {
+        this->_color = ofColor(
+            static_cast<unsigned char>(color.x * 255.0f),
+            static_cast<unsigned char>(color.y * 255.0f),
+            static_cast<unsigned char>(color.z * 255.0f),
+            static_cast<unsigned char>(color.w * 255.0f)
+        );
+        setSelectedColor(this->_color);
     }
-
-    ImGui::End();
 }
 
 void ColorPalette::setSelectedColor(ofColor color)

@@ -18,7 +18,7 @@ class FileManager {
         ~FileManager() = default;
 
         void exportMesh(EntityID, const std::string& filename);
-        EntityID importMesh(const std::string& filename);
+        std::pair<EntityID, std::string> importMesh(const std::string& filename);
 
     private:
         ComponentRegistry& _componentRegistry;
