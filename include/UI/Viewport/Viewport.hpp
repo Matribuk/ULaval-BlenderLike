@@ -15,7 +15,7 @@ class Viewport {
         Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, ViewportID id = INVALID_VIEWPORT);
         ~Viewport();
 
-        void render();
+        bool render();
         void renderScene();
 
         ViewportID getId() const;
@@ -29,12 +29,16 @@ class Viewport {
         void setCamera(EntityID cameraId);
         EntityID getCamera() const;
 
+        void setActiveViewport(ViewportID id);
+        ViewportID getActiveViewport() const;
+
     private:
         CameraManager& _cameraManager;
         RenderSystem& _renderSystem;
         EntityID _cameraId = INVALID_ENTITY;
 
         ViewportID _id;
+        ViewportID _activeViewport = INVALID_VIEWPORT;
         ofRectangle _rect;
 
         ofFbo _fbo;

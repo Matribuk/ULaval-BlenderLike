@@ -2,16 +2,31 @@
 
 CameraSystem::CameraSystem(ComponentRegistry& registry, TransformSystem& transformSystem)
     : _componentRegistry(registry), _transformSystem(transformSystem)
-{
-}
+{}
 
-void CameraSystem::pan(EntityID camEntity, float horizontal, float vertical, float depth)
+void CameraSystem::pan(EntityID camEntity, glm::vec3 vect)
 {
-    Camera *cam = this->_componentRegistry.getComponent<Camera>(camEntity);
+    Camera* cam = _componentRegistry.getComponent<Camera>(camEntity);
     if (!cam) return;
 
     cam->focusMode = false;
-    this->_transformSystem.setPosition(camEntity, {horizontal * cam->panSensitivity, vertical * cam->panSensitivity, depth * cam->panSensitivity});
+    _transformSystem.setCameraPosition(camEntity, vect * cam->panSensitivity);
+
+    // Mettre à jour forward/up à partir de Transform
+    cam->forward = _transformSystem.getForward(camEntity);
+    cam->up      = _transformSystem.getUp(camEntity);
+}
+
+void CameraSystem::rotate(EntityID camEntity, glm::vec2 vect)
+{
+    Camera* cam = _componentRegistry.getComponent<Camera>(camEntity);
+    if (!cam) return;
+
+    _transformSystem.setCameraRotation(camEntity, vect * cam->rotateSensitivity);
+
+    // Mettre à jour forward/up à partir de Transform
+    cam->forward = _transformSystem.getForward(camEntity);
+    cam->up      = _transformSystem.getUp(camEntity);
 }
 
 void CameraSystem::zoom(EntityID camEntity, float amount)
@@ -31,21 +46,6 @@ void CameraSystem::zoom(EntityID camEntity, float amount)
             cam->up
         );
     }
-}
-
-void CameraSystem::rotate(EntityID camEntity, float horizontal, float vertical)
-{
-    Camera* cam = this->_componentRegistry.getComponent<Camera>(camEntity);
-    Transform* transform = this->_componentRegistry.getComponent<Transform>(camEntity);
-    if (!cam || !transform) return;
-
-    glm::vec3 pivot = cam->focusMode ? cam->target : (transform->position + cam->forward);
-
-    this->_transformSystem.setRotation(camEntity, {horizontal * cam->rotateSensitivity, vertical * cam->rotateSensitivity}, &pivot);
-
-    glm::vec3 newForward = glm::normalize(pivot - transform->position);
-    cam->forward = newForward;
-    cam->up = glm::vec3(0, 1, 0);
 }
 
 void CameraSystem::update(std::vector<EntityID> cameraEntities, int viewportWidth, int viewportHeight)

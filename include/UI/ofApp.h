@@ -106,12 +106,12 @@ class ofApp : public ofBaseApp {
         int _cameraEventCount = 0;
 
         void _addLog(const std::string& message, const ofColor& color = ofColor::white);
+        void _updateCameraPanWithMouse();
         void _setupEventSubscribers();
         void _setupSystems();
         void _setupScene();
         void _testEntitySystem();
         void _drawUI();
-        void _drawStats();
         void _drawEventLog();
         void _drawInstructions();
         void _drawEntityList();

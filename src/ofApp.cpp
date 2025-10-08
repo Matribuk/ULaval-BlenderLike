@@ -39,9 +39,6 @@ void ofApp::setup()
 
     this->_setupEventSubscribers();
 
-    this->_setupScene();
-    this->_toolbar = std::make_unique<Toolbar>();
-
     this->_testEntitySystem();
 
     this->_addLog("System ready!", ofColor::cyan);
@@ -210,15 +207,11 @@ void ofApp::update()
     input.processShortcuts();
 
     this->_actionManager->updateCameraAction(_cameraManager);
-
     this->_cameraManager->update(ofGetWidth(), ofGetHeight());
 
     this->_transformSystem->update();
-
     input.endFrame();
 }
-
-
 
 void ofApp::draw()
 {
@@ -237,14 +230,11 @@ void ofApp::_drawUI()
 {
     this->_gui.begin();
 
-    this->_drawStats();
     this->_drawEventLog();
     this->_drawInstructions();
     this->_drawEntityList();
 
     if (this->_toolbar) this->_toolbar->render();
-
-    if (this->_properties) this->_properties->render();
 
     auto& viewports = this->_viewportManager->getViewports();
     size_t viewportCount = viewports.size();
@@ -254,45 +244,24 @@ void ofApp::_drawUI()
         float totalHeight = 605;
         float startX = (ofGetWindowWidth() - totalWidth) / 2;
         float startY = (ofGetWindowHeight() - totalHeight) / 2;
-
         float viewportWidth = totalWidth / viewportCount;
 
-        for (size_t i = 0; i < viewportCount; ++i) {
+        for (size_t i = 0; i < viewports.size(); ++i) {
             auto& vp = viewports[i];
-            float xPos = startX + (i * viewportWidth);
-
+            float xPos = startX + i * viewportWidth;
             vp->setRect(ofRectangle(xPos, startY, viewportWidth, totalHeight));
-            vp->render();
         }
+
+        this->_viewportManager->renderAll();
     }
+
+    if (this->_properties)
+        this->_properties->render();
 
     if (this->_colorPalette)
         this->_colorPalette->render();
 
     this->_gui.end();
-}
-
-void ofApp::_drawStats()
-{
-    ImGui::SetNextWindowPos(ImVec2(10, 80));
-    ImGui::SetNextWindowSize(ImVec2(400, 150));
-    if (ImGui::Begin("Event & Input Stats", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-        auto& input = InputManager::get();
-        glm::vec2 mousePos = input.getMousePosition();
-        glm::vec2 mouseDelta = input.getMouseDelta();
-
-        ImGui::Text("Key Presses: %d", this->_keyPressCount);
-        ImGui::Text("Key Releases: %d", this->_keyReleaseCount);
-        ImGui::Text("Mouse Presses: %d", this->_mousePressCount);
-        ImGui::Text("Mouse Releases: %d", this->_mouseReleaseCount);
-        ImGui::Text("Mouse Moves: %d", this->_mouseMoveCount);
-        ImGui::Text("Selection Events: %d", this->_selectionEventCount);
-        ImGui::Text("Camera Events: %d", this->_cameraEventCount);
-        ImGui::Separator();
-        ImGui::Text("Mouse Position: (%.1f, %.1f)", mousePos.x, mousePos.y);
-        ImGui::Text("Mouse Delta: (%.1f, %.1f)", mouseDelta.x, mouseDelta.y);
-    }
-    ImGui::End();
 }
 
 void ofApp::_drawEventLog()

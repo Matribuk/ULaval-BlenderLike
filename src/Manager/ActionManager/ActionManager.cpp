@@ -10,17 +10,17 @@ void ActionManager::updateCameraAction(std::unique_ptr<CameraManager>& camera)
 {
     auto& input = InputManager::get();
 
-    if (input.isKeyPressed('q')) camera->pan(1.0f, 0.0f, 0.0f);
-    if (input.isKeyPressed('d')) camera->pan(-1.0f, 0.0f, 0.0f);
-    if (input.isKeyPressed('z')) camera->pan(0.0f, 0.0f, 1.0f);
-    if (input.isKeyPressed('s')) camera->pan(0.0f, 0.0f, -1.0f);
-    if (input.isKeyPressed(OF_KEY_SPACE)) camera->pan(0.0f, 1.0f, 0.0f);
-    if (input.isKeyPressed(OF_KEY_LEFT_SHIFT)) camera->pan(0.0f, -1.0f, 0.0f);
+    if (input.isKeyPressed('q')) camera->pan(glm::vec3(1.0f, 0.0f, 0.0f));
+    if (input.isKeyPressed('d')) camera->pan(glm::vec3(-1.0f, 0.0f, 0.0f));
+    if (input.isKeyPressed('z')) camera->pan(glm::vec3(0.0f, 0.0f, 1.0f));
+    if (input.isKeyPressed('s')) camera->pan(glm::vec3(0.0f, 0.0f, -1.0f));
+    if (input.isKeyPressed(OF_KEY_SPACE)) camera->pan(glm::vec3(0.0f, 1.0f, 0.0f));
+    if (input.isKeyPressed(OF_KEY_LEFT_SHIFT)) camera->pan(glm::vec3(0.0f, -1.0f, 0.0f));
 
-    if (input.isKeyPressed(OF_KEY_DOWN)) camera->rotate(0.0f, 1.0f);
-    if (input.isKeyPressed(OF_KEY_LEFT)) camera->rotate(-1.0f, 0.0f);
-    if (input.isKeyPressed(OF_KEY_UP)) camera->rotate(0.0f, -1.0f);
-    if (input.isKeyPressed(OF_KEY_RIGHT)) camera->rotate(1.0f, 0.0f);
+    if (input.isKeyPressed(OF_KEY_DOWN)) camera->rotate(glm::vec2(0.0f, 1.0f));
+    if (input.isKeyPressed(OF_KEY_LEFT)) camera->rotate(glm::vec2(-1.0f, 0.0f));
+    if (input.isKeyPressed(OF_KEY_UP)) camera->rotate(glm::vec2(0.0f, -1.0f));
+    if (input.isKeyPressed(OF_KEY_RIGHT)) camera->rotate(glm::vec2(1.0f, 0.0f));
 
     if (input.isKeyPressed('k')) camera->zoom(1.0f);
     if (input.isKeyPressed('l')) camera->zoom(-1.0f);

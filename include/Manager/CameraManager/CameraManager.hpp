@@ -17,9 +17,9 @@ class CameraManager {
         void switchCamera();
         void focusTarget(EntityID camEntity);
 
-        void rotate(float x, float y);
         void zoom(float dir);
-        void pan(float x, float y, float depth);
+        void rotate(const glm::vec2 vect);
+        void pan(const glm::vec3 vect);
 
         void update(int viewportWidth, int viewportHeight);
 

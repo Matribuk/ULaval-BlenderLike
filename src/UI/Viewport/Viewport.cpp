@@ -42,32 +42,39 @@ void Viewport::renderScene()
     this->_fbo.end();
 }
 
-void Viewport::render()
+bool Viewport::render()
 {
-    ImGui::SetNextWindowPos(ImVec2(this->_rect.x, this->_rect.y), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(this->_rect.width, this->_rect.height), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(_rect.x, _rect.y), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(_rect.width, _rect.height), ImGuiCond_FirstUseEver);
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar |
-                             ImGuiWindowFlags_NoCollapse;
+                             ImGuiWindowFlags_NoCollapse |
+                             ImGuiWindowFlags_NoMove |
+                             ImGuiWindowFlags_NoResize;
 
-    std::string windowName = "Viewport " + std::to_string(this->_id);
+    std::string windowName = "Viewport " + std::to_string(_id);
     if (ImGui::Begin(windowName.c_str(), nullptr, flags))
     {
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-
-        if (!this->_fboInitialized || this->_fbo.getWidth() != (int)viewportSize.x || this->_fbo.getHeight() != (int)viewportSize.y)
-            this->_initializeFbo((int)viewportSize.x, (int)viewportSize.y);
+        if (viewportSize.x > 0 && viewportSize.y > 0 &&
+            (!_fboInitialized || _fbo.getWidth() != (int)viewportSize.x || _fbo.getHeight() != (int)viewportSize.y)) 
+            _initializeFbo((int)viewportSize.x, (int)viewportSize.y);
 
         renderScene();
 
-        if (this->_fboInitialized) {
-            GLuint texID = this->_fbo.getTexture().getTextureData().textureID;
-
-            ImGui::Image(texID, viewportSize, ImVec2(0, 1), ImVec2(1, 0));
+        if (_fboInitialized && _fbo.isAllocated()) {
+            GLuint texID = _fbo.getTexture().getTextureData().textureID;
+            ImGui::Image((ImTextureID)(uintptr_t)texID, viewportSize, ImVec2(0,1), ImVec2(1,0));
         }
+
+        bool hovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+        ImGui::End();
+
+        return hovered;
     }
 
     ImGui::End();
+    return false;
 }
 
 ViewportID Viewport::getId() const
@@ -106,4 +113,14 @@ void Viewport::setCamera(EntityID cameraId)
 EntityID Viewport::getCamera() const
 {
     return this->_cameraId;
+}
+
+
+void Viewport::setActiveViewport(ViewportID id)
+{
+    this->_activeViewport = id;
+}
+ViewportID Viewport::getActiveViewport() const
+{
+    return this->_activeViewport;
 }

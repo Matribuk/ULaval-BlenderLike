@@ -19,9 +19,16 @@ class TransformSystem {
         TransformSystem(ComponentRegistry& registry, EntityManager& entityMgr);
         ~TransformSystem() = default;
 
-        void setPosition(EntityID entityId, const glm::vec3 position);
-        void setRotation(EntityID entityId, const glm::vec2 rotation, const glm::vec3* pivot);
-        void setScale(EntityID entityId, const glm::vec3& scale);
+        void setCameraPosition(EntityID entityId, const glm::vec3 position);
+        void setCameraRotation(EntityID entityId, const glm::vec2 rotation);
+
+        glm::vec3 getForward(EntityID entityId) const;
+        glm::vec3 getRight(EntityID entityId) const;
+        glm::vec3 getUp(EntityID entityId) const;
+
+        void setPosition(EntityID entityId, glm::vec3 pos);
+        void setRotation(EntityID entityId, glm::vec3 rot);
+        void setScale(EntityID entityId, glm::vec3 scale);
 
         void update();
 

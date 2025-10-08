@@ -20,22 +20,21 @@ void ViewportManager::removeViewport(ViewportID id)
 
 void ViewportManager::renderAll()
 {
-    for (std::unique_ptr<Viewport>& vp : this->_viewports) {
-        ImGui::Begin(("Viewport " + std::to_string(vp->getId())).c_str());
-
-        ImVec2 size = ImGui::GetContentRegionAvail();
-        ImVec2 pos = ImGui::GetWindowPos();
-
-        vp->setRect(ofRectangle(pos.x, pos.y, size.x, size.y));
-
-        if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
-            this->_activeViewport = vp->getId();
-
-        ImGui::Image((ImTextureID)(uintptr_t)vp->getTexture().getTextureData().textureID,
-                    size, ImVec2(0,1), ImVec2(1,0));
-
-        ImGui::End();
+    for (auto& vp : _viewports) {
+        bool hovered = vp->render();
+        if (hovered)
+            _activeViewport = vp->getId();
     }
+}
+
+
+Viewport* ViewportManager::getActiveViewport()
+{
+    for (std::unique_ptr<Viewport>& vp : this->_viewports) {
+        if (vp->getId() == this->_activeViewport)
+            return vp.get();
+    }
+    return nullptr;
 }
 
 std::vector<std::unique_ptr<Viewport>>& ViewportManager::getViewports()
