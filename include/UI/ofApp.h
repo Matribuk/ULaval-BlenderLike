@@ -38,7 +38,7 @@
 
 // UI
 #include "UI/ColorPalette/ColorPalette.hpp"
-#include "UI/ToolBar/ToolBar.hpp"
+#include "UI/Toolbar/Toolbar.hpp"
 #include "UI/Viewport/Viewport.hpp"
 #include "UI/TranformPanel/TranformPanel.hpp"
 #include "UI/MaterialPanel/MaterialPanel.hpp"

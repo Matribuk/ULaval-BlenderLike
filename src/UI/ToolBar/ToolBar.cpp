@@ -1,4 +1,4 @@
-#include "UI/ToolBar/ToolBar.hpp"
+#include "UI/Toolbar/Toolbar.hpp"
 
 Toolbar::Toolbar() : _selectedTool(-1), _buttonSpacing(5.0), _currentCursor(ImGuiMouseCursor_Arrow)
 {
@@ -25,24 +25,6 @@ Toolbar::Toolbar() : _selectedTool(-1), _buttonSpacing(5.0), _currentCursor(ImGu
             if (this->_onExport) this->_onExport();
         }
     }});
-}
-
-void Toolbar::_renderToolButton(size_t i, const ImVec2& size)
-{
-    ImGui::PushID(static_cast<int>(i));
-
-    bool clicked = ImGui::Button(this->_tools[i].name.c_str(), size);
-
-    if (clicked) {
-        this->_selectedTool = static_cast<int>(i);
-        if (const ToolButton* tool = getSelectedTool()) {
-            for (auto& callback : tool->action) {
-                callback(std::any{});
-            }
-        }
-    }
-
-    ImGui::PopID();
 }
 
 void Toolbar::render()
@@ -87,7 +69,47 @@ void Toolbar::addTool(ToolButton button)
     this->_tools.emplace_back(button);
 }
 
+void Toolbar::setImportCallback(std::function<void()> callback)
+{
+    this->_onImport = callback;
+}
+
+void Toolbar::setExportCallback(std::function<void()> callback)
+{
+    this->_onExport = callback;
+}
+
+ToolMode Toolbar::getActiveToolMode() const
+{
+    if (this->_selectedTool < 0 || this->_selectedTool >= static_cast<int>(this->_tools.size()))
+        return ToolMode::Select;
+
+    switch (this->_selectedTool) {
+        case 0: return ToolMode::Select;
+        case 1: return ToolMode::Move;
+        default: return ToolMode::Select;
+    }
+}
+
 void Toolbar::_applyCursor()
 {
     ImGui::SetMouseCursor(this->_currentCursor);
+}
+
+void Toolbar::_renderToolButton(size_t i, const ImVec2& size)
+{
+    ImGui::PushID(static_cast<int>(i));
+
+    bool clicked = ImGui::Button(this->_tools[i].name.c_str(), size);
+
+    if (clicked) {
+        this->_selectedTool = static_cast<int>(i);
+        if (const ToolButton* tool = getSelectedTool()) {
+            for (auto& callback : tool->action) {
+                callback(std::any{});
+            }
+        }
+    }
+
+    ImGui::PopID();
 }

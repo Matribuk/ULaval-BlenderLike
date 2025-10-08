@@ -32,6 +32,9 @@ class Viewport {
         void setActiveViewport(ViewportID id);
         ViewportID getActiveViewport() const;
 
+        bool isMouseDragging() const;
+        glm::vec2 getMouseDragDelta() const;
+
     private:
         CameraManager& _cameraManager;
         RenderSystem& _renderSystem;
@@ -42,7 +45,12 @@ class Viewport {
         ofRectangle _rect;
 
         ofFbo _fbo;
-        bool _fboInitialized = false;
+        bool _fboInitialized;
 
+        bool _isDragging;
+        glm::vec2 _lastMousePos;
+        glm::vec2 _dragDelta;
+
+        void _handleMouseDrag();
         void _initializeFbo(int width, int height);
 };

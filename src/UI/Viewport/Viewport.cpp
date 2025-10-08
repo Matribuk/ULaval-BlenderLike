@@ -4,29 +4,16 @@ Viewport::Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, Vie
     : _cameraManager(cameraManager), _renderSystem(renderSystem), _id(id)
 {
     this->_rect = ofRectangle((ofGetWindowWidth() - 1075) / 2 , (ofGetWindowHeight() - 605) / 2 , 1075, 605);
+    this->_fboInitialized = false;
+    this->_isDragging = false;
+    this->_lastMousePos = glm::vec2(0);
+    this->_dragDelta = glm::vec2(0);
 }
 
 Viewport::~Viewport()
 {
     if (this->_fboInitialized)
         this->_fbo.clear();
-}
-
-void Viewport::_initializeFbo(int width, int height)
-{
-    if (width <= 0 || height <= 0) return;
-
-    ofFboSettings settings;
-    settings.width = width;
-    settings.height = height;
-    settings.internalformat = GL_RGBA;
-    settings.numSamples = 4;
-    settings.useDepth = true;
-    settings.useStencil = false;
-    settings.textureTarget = GL_TEXTURE_2D;
-
-    this->_fbo.allocate(settings);
-    this->_fboInitialized = true;
 }
 
 void Viewport::renderScene()
@@ -69,6 +56,8 @@ bool Viewport::render()
             GLuint texID = this->_fbo.getTexture().getTextureData().textureID;
             ImGui::Image((ImTextureID)(uintptr_t)texID, viewportSize, ImVec2(0,1), ImVec2(1,0));
         }
+
+        this->_handleMouseDrag();
 
         bool hovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
         ImGui::End();
@@ -118,12 +107,69 @@ EntityID Viewport::getCamera() const
     return this->_cameraId;
 }
 
-
 void Viewport::setActiveViewport(ViewportID id)
 {
     this->_activeViewport = id;
 }
+
 ViewportID Viewport::getActiveViewport() const
 {
     return this->_activeViewport;
+}
+
+bool Viewport::isMouseDragging() const
+{
+    return this->_isDragging;
+}
+
+glm::vec2 Viewport::getMouseDragDelta() const
+{
+    return this->_dragDelta;
+}
+
+void Viewport::_initializeFbo(int width, int height)
+{
+    if (width <= 0 || height <= 0) return;
+
+    ofFboSettings settings;
+    settings.width = width;
+    settings.height = height;
+    settings.internalformat = GL_RGBA;
+    settings.numSamples = 4;
+    settings.useDepth = true;
+    settings.useStencil = false;
+    settings.textureTarget = GL_TEXTURE_2D;
+
+    this->_fbo.allocate(settings);
+    this->_fboInitialized = true;
+}
+
+void Viewport::_handleMouseDrag()
+{
+    if (ImGui::IsItemHovered()) {
+        ImVec2 mousePos = ImGui::GetMousePos();
+
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
+            ImGui::IsMouseClicked(ImGuiMouseButton_Middle) ||
+            ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+            this->_isDragging = true;
+            this->_lastMousePos = glm::vec2(mousePos.x, mousePos.y);
+            this->_dragDelta = glm::vec2(0, 0);
+        }
+    }
+
+    if (_isDragging) {
+        if (ImGui::IsMouseDown(ImGuiMouseButton_Left) ||
+            ImGui::IsMouseDown(ImGuiMouseButton_Middle) ||
+            ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+            ImVec2 mousePos = ImGui::GetMousePos();
+            glm::vec2 currentPos = glm::vec2(mousePos.x, mousePos.y);
+
+            this->_dragDelta = currentPos - this->_lastMousePos;
+            this->_lastMousePos = currentPos;
+        } else {
+            this->_isDragging = false;
+            this->_dragDelta = glm::vec2(0, 0);
+        }
+    }
 }
