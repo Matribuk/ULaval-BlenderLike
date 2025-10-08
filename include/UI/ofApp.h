@@ -35,6 +35,7 @@
 #include "Systems/PrimitiveSystem/PrimitiveSystem.hpp"
 #include "Systems/RenderSystem/RenderSystem.hpp"
 #include "Systems/TransformSystem/TransformSystem.hpp"
+#include "Systems/SelectionSystem/SelectionSystem.hpp"
 
 // UI
 #include "UI/ColorPalette/ColorPalette.hpp"
@@ -87,6 +88,7 @@ class ofApp : public ofBaseApp {
         std::unique_ptr<CameraSystem> _cameraSystem;
         std::unique_ptr<RenderSystem> _renderSystem;
         std::unique_ptr<PrimitiveSystem> _primitiveSystem;
+        std::unique_ptr<SelectionSystem> _selectionSystem;
 
         struct EventLog {
             std::string message;
@@ -99,7 +101,6 @@ class ofApp : public ofBaseApp {
 
         ofxImGui::Gui _gui;
         std::vector<EntityID> _testEntities;
-        EntityID _selectedEntity = 0;
         EntityID _cameraEntity = INVALID_ENTITY;
         EntityID _cameraEntity2 = INVALID_ENTITY;
 

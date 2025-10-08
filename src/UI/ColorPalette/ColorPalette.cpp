@@ -1,12 +1,12 @@
 #include "UI/ColorPalette/ColorPalette.hpp"
 
-ColorPalette::ColorPalette(EntityID entityId, ComponentRegistry& componentRegistry)
-    : _color(ofColor::white), _entityId(entityId), _componentRegistry(componentRegistry), _renderable(nullptr)
+ColorPalette::ColorPalette(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem)
+    : _color(ofColor::white), _componentRegistry(componentRegistry), _selectionSystem(selectionSystem)
 {
-    if (this->_componentRegistry.hasComponent<Renderable>(this->_entityId)) {
-        this->_renderable = this->_componentRegistry.getComponent<Renderable>(this->_entityId);
-        if (this->_renderable)
-            this->_color = this->_renderable->color;
+    if (this->_componentRegistry.hasComponent<Renderable>(selectionSystem.getSelectedEntity())) {
+        Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(selectionSystem.getSelectedEntity());
+        if (renderable)
+            this->_color = renderable->color;
         else
             this->_color = ofColor::white;
     } else
@@ -15,8 +15,8 @@ ColorPalette::ColorPalette(EntityID entityId, ComponentRegistry& componentRegist
 
 void ColorPalette::render()
 {
-    if (!this->_renderable)
-        return;
+    Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(this->_selectionSystem.getSelectedEntity());
+    if (!renderable) return;
 
     ImVec4 color = ImVec4(
         this->_color.r / 255.0f,
@@ -32,6 +32,8 @@ void ColorPalette::render()
     ImGui::Spacing();
     ImGui::Text("Picker");
     edited |= ImGui::ColorPicker4("##picker", (float*)&color);
+    edited |= ImGui::ColorEdit4("Color", (float*)&color);
+    edited |= ImGui::ColorPicker4("Palette", (float*)&color);
 
     if (edited) {
         this->_color = ofColor(
@@ -40,15 +42,14 @@ void ColorPalette::render()
             static_cast<unsigned char>(color.z * 255.0f),
             static_cast<unsigned char>(color.w * 255.0f)
         );
-        setSelectedColor(this->_color);
+        setSelectedColor(this->_color, renderable);
     }
 }
 
-void ColorPalette::setSelectedColor(ofColor color)
+void ColorPalette::setSelectedColor(ofColor color, Renderable* renderable)
 {
     this->_color = color;
-
-    if (this->_renderable) this->_renderable->color = this->_color;
+    renderable->color = color;
 }
 
 const ofColor& ColorPalette::getSelectedColor() const
@@ -56,14 +57,3 @@ const ofColor& ColorPalette::getSelectedColor() const
     return this->_color;
 }
 
-void ColorPalette::setEntity(EntityID entityId)
-{
-    this->_entityId = entityId;
-    if (this->_componentRegistry.hasComponent<Renderable>(this->_entityId)) {
-        this->_renderable = this->_componentRegistry.getComponent<Renderable>(this->_entityId);
-        this->_color = this->_renderable->color;
-    } else {
-        this->_renderable = nullptr;
-        this->_color = ofColor::white;
-    }
-}

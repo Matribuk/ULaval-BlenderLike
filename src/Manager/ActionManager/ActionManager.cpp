@@ -3,10 +3,9 @@
 ActionManager::ActionManager(
     EntityManager& entityManager, ComponentRegistry& componentRegistry, PrimitiveSystem& primitiveSystem,
     FileManager& fileManager, EventManager& eventManager, ViewportManager& viewportManager, CameraManager& cameraManager,
-    std::vector<EntityID>& testEntities
-) : _entityManager(entityManager), _componentRegistry(componentRegistry), _primitiveSystem(primitiveSystem),
-    _fileManager(fileManager), _eventManager(eventManager), _viewportManager(viewportManager), _cameraManager(cameraManager),
-    _testEntities(testEntities) {}
+    SelectionSystem& selectionSystem, std::vector<EntityID>& testEntities
+) : _entityManager(entityManager), _componentRegistry(componentRegistry), _primitiveSystem(primitiveSystem), _selectionSystem(selectionSystem),
+    _fileManager(fileManager), _eventManager(eventManager), _viewportManager(viewportManager), _testEntities(testEntities) {}
 
 void ActionManager::toggleIsolateSelection()
 {
@@ -149,8 +148,9 @@ void ActionManager::_registerShortcuts()
 
 void ActionManager::_exportSelectedEntity()
 {
-    if (this->_selectedEntity != INVALID_ENTITY)
-        this->_fileManager.exportMesh(this->_selectedEntity, "ExportedEntity");
+    if (this->_selectionSystem.getSelectedEntity() != INVALID_ENTITY) {
+        this->_fileManager.exportMesh(this->_selectionSystem.getSelectedEntity(), "ExportedEntity");
+    }
 }
 
 void ActionManager::_selectEntity(int index)
@@ -159,7 +159,7 @@ void ActionManager::_selectEntity(int index)
 
     EntityID entity = this->_testEntities[index];
     this->_eventManager.emit(SelectionEvent(entity, true));
-    this->_selectedEntity = entity;
+    this->_selectionSystem.setSelectedEntity(entity);
 }
 
 void ActionManager::_isolateEntity(EntityID entity)

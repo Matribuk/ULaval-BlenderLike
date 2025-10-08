@@ -5,6 +5,7 @@
 
 #include "Systems/PrimitiveSystem/PrimitiveSystem.hpp"
 #include "Systems/CameraSystem/CameraSystem.hpp"
+#include "Systems/SelectionSystem/SelectionSystem.hpp"
 
 #include "Manager/InputManager/InputManager.hpp"
 #include "Manager/FileManager/FileManager.hpp"
@@ -30,6 +31,7 @@ class ActionManager {
             EntityManager& entityManager,
             ComponentRegistry& componentRegistry,
             PrimitiveSystem& primitiveSystem,
+            SelectionSystem& selectionSystem,
             FileManager& fileManager,
             EventManager& eventManager,
             ViewportManager& viewportManager,
@@ -41,9 +43,6 @@ class ActionManager {
         void updateCameraAction(Toolbar* toolbar = nullptr);
 
         void registerAllActions();
-
-        void setSelectedEntity(EntityID entity);
-        EntityID getSelectedEntity() const;
 
     private:
         bool _isIsolated = false;
@@ -59,6 +58,7 @@ class ActionManager {
         EntityManager& _entityManager;
         ComponentRegistry& _componentRegistry;
         PrimitiveSystem& _primitiveSystem;
+        SelectionSystem& _selectionSystem;
         FileManager& _fileManager;
         EventManager& _eventManager;
         ViewportManager& _viewportManager;
