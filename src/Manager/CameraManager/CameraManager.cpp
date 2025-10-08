@@ -3,25 +3,29 @@
 CameraManager::CameraManager(ComponentRegistry &componentRegistry, EntityManager &entityManager, CameraSystem &cameraSystem)
     : _componentRegistry(componentRegistry), _entityManager(entityManager), _cameraSystem(cameraSystem) {}
 
-EntityID CameraManager::getCameraAtIndex(int index) const {
+EntityID CameraManager::getCameraAtIndex(int index) const
+{
     if (index < 0 || index >= static_cast<int>(this->_cameraEntities.size()))
         return INVALID_ENTITY;
     return this->_cameraEntities[index];
 }
 
-Camera *CameraManager::getActiveCamera() const {
+Camera *CameraManager::getActiveCamera() const
+{
     if (this->_cameraEntities.empty())
         return nullptr;
     return this->_componentRegistry.getComponent<Camera>(this->_cameraEntities[this->_activeCameraIndex]);
 }
 
-EntityID CameraManager::getActiveCameraId() const {
+EntityID CameraManager::getActiveCameraId() const
+{
     if (this->_cameraEntities.empty())
         return 0;
     return this->_cameraEntities[this->_activeCameraIndex];
 }
 
-void CameraManager::addCamera(glm::vec3 pos) {
+EntityID CameraManager::addCamera(glm::vec3 pos)
+{
     EntityID cameraID = this->_entityManager.createEntity().getId();
     Transform transform(pos);
     if (std::find(this->_cameraEntities.begin(), this->_cameraEntities.end(), cameraID) == this->_cameraEntities.end())
@@ -32,13 +36,25 @@ void CameraManager::addCamera(glm::vec3 pos) {
         if (this->_activeCamera == INVALID_ENTITY)
             setActiveCamera(cameraID);
     }
+
+    return cameraID;
 }
 
-void CameraManager::setActiveCamera(EntityID id) {
-    for (size_t i = 0; i < this->_cameraEntities.size(); ++i)
-    {
-        if (this->_cameraEntities[i] == id)
-        {
+void CameraManager::removeCamera(EntityID cameraId)
+{
+    auto it = std::find(this->_cameraEntities.begin(), this->_cameraEntities.end(), cameraId);
+    if (it != this->_cameraEntities.end()) {
+        this->_componentRegistry.removeComponent<Transform>(cameraId);
+        this->_componentRegistry.removeComponent<Camera>(cameraId);
+
+        this->_cameraEntities.erase(it);
+    }
+}
+
+void CameraManager::setActiveCamera(EntityID id)
+{
+    for (size_t i = 0; i < this->_cameraEntities.size(); ++i) {
+        if (this->_cameraEntities[i] == id) {
             this->_activeCameraIndex = static_cast<int>(i);
             this->_activeCamera = id;
             return;
@@ -46,7 +62,8 @@ void CameraManager::setActiveCamera(EntityID id) {
     }
 }
 
-void CameraManager::switchCamera() {
+void CameraManager::switchCamera()
+{
     if (this->_cameraEntities.empty() || this->_activeCamera == INVALID_ENTITY)
         return;
     this->_activeCameraIndex = (this->_activeCameraIndex + 1) % static_cast<int>(this->_cameraEntities.size());
@@ -64,18 +81,18 @@ void CameraManager::focusTarget(EntityID camEntity)
     float distance = glm::length(transform->position - cam->target);
 
     if (distance < cam->minDistance || distance > cam->maxDistance)
-    {
         distance = glm::clamp(distance, cam->minDistance, cam->maxDistance);
-    }
 
     transform->position = cam->target - cam->forward * distance;
 }
 
-EntityManager &CameraManager::getEntityManager() const {
+EntityManager &CameraManager::getEntityManager() const
+{
     return this->_entityManager;
 }
 
-ComponentRegistry &CameraManager::getComponentRegistry() const {
+ComponentRegistry &CameraManager::getComponentRegistry() const
+{
     return this->_componentRegistry;
 }
 

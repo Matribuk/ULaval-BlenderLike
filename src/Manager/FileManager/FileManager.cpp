@@ -1,5 +1,4 @@
 #include "Manager/FileManager/FileManager.hpp"
-
 FileManager::FileManager(ComponentRegistry& componentRegistry, EntityManager& entityManager)
     : _componentRegistry(componentRegistry), _entityManager(entityManager) {}
 
@@ -26,13 +25,13 @@ void FileManager::exportMesh(EntityID entity, const std::string& filename)
 }
 
 
-EntityID FileManager::importMesh(const std::string& filename)
+std::pair<EntityID, std::string> FileManager::importMesh(const std::string& filename)
 {
     this->_model = std::make_unique<ofxAssimpModelLoader>();
 
     if (!this->_model->load(filename)) {
         ofLogError("FileManager") << "Failed to load model: " << filename;
-        return INVALID_ENTITY;
+        return {INVALID_ENTITY, ""};
     }
 
     int numMeshes = this->_model->getMeshCount();
@@ -44,6 +43,9 @@ EntityID FileManager::importMesh(const std::string& filename)
 
     float targetSize = 5.0f;
     float scaleFactor = (maxDim != 0.f) ? targetSize / maxDim : 1.0f;
+
+    std::filesystem::path path(filename);
+    std::string fileName = path.stem().string();
 
     Entity entity = this->_entityManager.createEntity();
     if (numMeshes > 0) {
@@ -57,6 +59,6 @@ EntityID FileManager::importMesh(const std::string& filename)
         this->_componentRegistry.registerComponent(entity.getId(), Renderable(mesh, ofColor::white));
     }
 
-    return entity.getId();
+    return {entity.getId(), fileName};
 }
 

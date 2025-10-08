@@ -1,21 +1,37 @@
 #include "Manager/ViewportManager/ViewportManager.hpp"
 
-ViewportID ViewportManager::createViewport(CameraManager& cameraManager, RenderSystem& renderSystem)
+ViewportManager::ViewportManager(SceneManager& sceneManager) : _sceneManager(sceneManager) {}
+
+
+ViewportID ViewportManager::createViewport(CameraManager& cameraManager, RenderSystem& renderSystem, glm::vec3 pos)
 {
     ViewportID newId = this->_nextId++;
-    this->_viewports.push_back(std::make_unique<Viewport>(cameraManager, renderSystem, newId));
+
+    EntityID cameraId = cameraManager.addCamera(pos);
+    this->_sceneManager.registerEntity(cameraId, "Camera " + to_string(cameraId));
+    auto viewport = std::make_unique<Viewport>(cameraManager, renderSystem, newId);
+
+    viewport->setCamera(cameraId);
+
+    this->_viewports.push_back(std::move(viewport));
 
     return newId;
 }
 
-void ViewportManager::removeViewport(ViewportID id)
+void ViewportManager::removeViewport(CameraManager& cameraManager, ViewportID id)
 {
-    this->_viewports.erase(
-        std::remove_if(this->_viewports.begin(), this->_viewports.end(),
-            [id](const std::unique_ptr<Viewport>& vp){
-                return vp->getId() == id;
-            }),
-        this->_viewports.end());
+    auto it = std::find_if(this->_viewports.begin(), this->_viewports.end(),
+        [id](const std::unique_ptr<Viewport>& vp){
+            return vp->getId() == id;
+        });
+
+    if (it != this->_viewports.end()) {
+        EntityID cameraId = (*it)->getCamera();
+        if (cameraId != INVALID_ENTITY)
+            cameraManager.removeCamera(cameraId);
+
+        this->_viewports.erase(it);
+    }
 }
 
 void ViewportManager::renderAll()

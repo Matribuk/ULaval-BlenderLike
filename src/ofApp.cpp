@@ -7,6 +7,8 @@ void ofApp::setup()
     ofBackground(20);
 
     this->_gui.setup();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     this->_eventBridge = std::make_unique<EventBridge>(this->_eventManager);
     this->_historyManager = std::make_unique<HistoryManager>();
@@ -17,15 +19,45 @@ void ofApp::setup()
     InputManager::get().subscribeToEvents(this->_eventManager);
 
     this->_setupSystems();
+
+    this->_sceneManager = std::make_unique<SceneManager>(this->_entityManager, this->_componentRegistry, this->_eventManager);
     this->_setupScene();
 
     this->_toolbar = std::make_unique<Toolbar>();
-    this->_properties = std::make_unique<Properties>(this->_componentRegistry);
+    this->_toolbar->setImportCallback([this]() {
+        ofFileDialogResult result = ofSystemLoadDialog("Choisir un modèle à importer", false);
+
+        if (result.bSuccess) {
+            std::string filePath = result.getPath();
+            ofLogNotice("Import") << "Fichier sélectionné : " << filePath;
+
+            auto import = this->_fileManager->importMesh(filePath);
+
+            if (import.first != INVALID_ENTITY) {
+                std::filesystem::path path(filePath);
+                std::string name = path.stem().string();
+
+                this->_sceneManager->registerEntity(import.first, name);
+            }
+        }
+    });
+
+    this->_toolbar->setExportCallback([this]() {
+        if (this->_selectedEntity != INVALID_ENTITY) {
+            this->_fileManager->exportMesh(this->_selectedEntity, "export.obj");
+        }
+    });
+
+    this->_materialPanel = std::make_unique<MaterialPanel>(this->_componentRegistry);
+    this->_tranformPanel = std::make_unique<TranformPanel>(this->_componentRegistry);
+    this->_colorPalette = std::make_unique<ColorPalette>(this->_selectedEntity, this->_componentRegistry);
+
     this->_fileManager = std::make_unique<FileManager>(this->_componentRegistry, this->_entityManager);
 
-    this->_viewportManager = std::make_unique<ViewportManager>();
-    this->_viewportManager->createViewport(*this->_cameraManager, *this->_renderSystem);
-    this->_viewportManager->createViewport(*this->_cameraManager, *this->_renderSystem);
+    this->_viewportManager = std::make_unique<ViewportManager>(*this->_sceneManager);
+    this->_viewportManager->createViewport(*this->_cameraManager, *this->_renderSystem, glm::vec3{0, 5, 10});
+
+    this->_propertiesManager = std::make_unique<PropertiesManager>(*this->_tranformPanel, *this->_materialPanel, *this->_colorPalette, *this->_sceneManager);
 
     this->_actionManager = std::make_unique<ActionManager>(
         this->_entityManager,
@@ -33,13 +65,20 @@ void ofApp::setup()
         *this->_primitiveSystem,
         *this->_fileManager,
         this->_eventManager,
+        *this->_viewportManager,
         this->_testEntities
     );
     this->_actionManager->registerAllActions();
 
-    this->_setupEventSubscribers();
+    this->_uiManager = std::make_unique<UIManager>(
+        *this->_toolbar,
+        *this->_viewportManager,
+        *this->_propertiesManager,
+        *this->_cameraManager,
+        *this->_renderSystem
+    );
 
-    this->_testEntitySystem();
+    this->_setupEventSubscribers();
 
     this->_addLog("System ready!", ofColor::cyan);
 }
@@ -57,17 +96,11 @@ void ofApp::_setupSystems()
 
 void ofApp::_setupScene()
 {
-    this->_cameraManager->addCamera(glm::vec3(0, 5, 10));
-    this->_addLog("Camera entity created (ID: 1)", ofColor::cyan);
-    this->_cameraManager->addCamera(glm::vec3(10, 0, 5));
-    this->_addLog("Camera entity created (ID: 2)", ofColor::cyan);
-    this->_cameraManager->addCamera(glm::vec3(5, 10, 0));
-    this->_addLog("Camera entity created (ID: 3)", ofColor::cyan);
-
     Entity boxEntity = this->_entityManager.createEntity();
     this->_componentRegistry.registerComponent(boxEntity.getId(), Transform(glm::vec3(-3, 0, 0)));
     this->_componentRegistry.registerComponent(boxEntity.getId(), Box(glm::vec3(1.5f, 1.5f, 1.5f)));
     this->_componentRegistry.registerComponent(boxEntity.getId(), Renderable(ofMesh(), ofColor::red));
+    this->_sceneManager->registerEntity(boxEntity.getId(), "Box");
     this->_testEntities.push_back(boxEntity.getId());
     this->_addLog("Box entity created (ID: " + ofToString(boxEntity.getId()) + ")", ofColor::magenta);
 
@@ -75,19 +108,22 @@ void ofApp::_setupScene()
     this->_componentRegistry.registerComponent(sphereEntity.getId(), Transform(glm::vec3(0, 0, 0)));
     this->_componentRegistry.registerComponent(sphereEntity.getId(), Sphere(1.2f));
     this->_componentRegistry.registerComponent(sphereEntity.getId(), Renderable(ofMesh(), ofColor::green));
+    this->_sceneManager->registerEntity(sphereEntity.getId(), "Sphere");
     this->_testEntities.push_back(sphereEntity.getId());
     this->_addLog("Sphere entity created (ID: " + ofToString(sphereEntity.getId()) + ")", ofColor::magenta);
 
     Entity planeEntity = this->_entityManager.createEntity();
-    this->_componentRegistry.registerComponent(planeEntity.getId(), Transform(glm::vec3(3, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
+    this->_componentRegistry.registerComponent(planeEntity.getId(), Transform(glm::vec3(3, 0, 0)));
     this->_componentRegistry.registerComponent(planeEntity.getId(), Plane(glm::vec2(2.0f, 2.0f)));
     this->_componentRegistry.registerComponent(planeEntity.getId(), Renderable(ofMesh(), ofColor::blue));
+    this->_sceneManager->registerEntity(planeEntity.getId(), "Plane");
     this->_testEntities.push_back(planeEntity.getId());
     this->_addLog("Plane entity created (ID: " + ofToString(planeEntity.getId()) + ")", ofColor::magenta);
 
     this->_primitiveSystem->generateMeshes();
     this->_addLog("All primitive meshes generated", ofColor::green);
 }
+
 
 void ofApp::_setupEventSubscribers()
 {
@@ -147,20 +183,13 @@ void ofApp::_setupEventSubscribers()
         this->_selectedEntity = e.selected ? e.entityID : 0;
 
         if (this->_selectedEntity != INVALID_ENTITY) {
-            if (!this->_colorPalette)
-                this->_colorPalette = std::make_unique<ColorPalette>(this->_selectedEntity, this->_componentRegistry);
-            else
-                this->_colorPalette->setEntity(this->_selectedEntity);
-            if (!this->_properties)
-                this->_properties = std::make_unique<Properties>(this->_componentRegistry);
-            else
-                this->_properties->setSelectedEntity(this->_selectedEntity);
+            this->_colorPalette->setEntity(this->_selectedEntity);
+            this->_tranformPanel->setSelectedEntity(this->_selectedEntity);
+            this->_materialPanel->setSelectedEntity(this->_selectedEntity);
         } else {
             this->_colorPalette.reset();
-            if (!this->_properties)
-                this->_properties = std::make_unique<Properties>(this->_componentRegistry);
-            else
-                this->_properties->unsetSelectedEntity();
+            this->_tranformPanel->unsetSelectedEntity();
+            this->_materialPanel->unsetSelectedEntity();
         }
 
     });
@@ -181,13 +210,6 @@ void ofApp::_setupEventSubscribers()
     });
 
     this->_addLog("Event subscribers registered", ofColor::green);
-}
-
-void ofApp::_testEntitySystem()
-{
-    std::stringstream ss;
-    ss << "Total entities in scene: " << this->_entityManager.getEntityCount();
-    this->_addLog(ss.str(), ofColor::green);
 }
 
 void ofApp::update()
@@ -230,45 +252,17 @@ void ofApp::_drawUI()
 {
     this->_gui.begin();
 
-    this->_drawEventLog();
-    this->_drawInstructions();
-    this->_drawEntityList();
+    this->_uiManager->render();
 
-    if (this->_toolbar) this->_toolbar->render();
-
-    auto& viewports = this->_viewportManager->getViewports();
-    size_t viewportCount = viewports.size();
-
-    if (viewportCount > 0) {
-        float totalWidth = 1075;
-        float totalHeight = 605;
-        float startX = (ofGetWindowWidth() - totalWidth) / 2;
-        float startY = (ofGetWindowHeight() - totalHeight) / 2;
-        float viewportWidth = totalWidth / viewportCount;
-
-        for (size_t i = 0; i < viewports.size(); ++i) {
-            auto& vp = viewports[i];
-            float xPos = startX + i * viewportWidth;
-            vp->setRect(ofRectangle(xPos, startY, viewportWidth, totalHeight));
-        }
-
-        this->_viewportManager->renderAll();
-    }
-
-    if (this->_properties)
-        this->_properties->render();
-
-    if (this->_colorPalette)
-        this->_colorPalette->render();
+    _drawEventLog();
+    _drawInstructions();
 
     this->_gui.end();
 }
 
 void ofApp::_drawEventLog()
 {
-    ImGui::SetNextWindowPos(ImVec2(10, 240));
-    ImGui::SetNextWindowSize(ImVec2(400, 400));
-    if (ImGui::Begin("Event Log", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+    if (ImGui::Begin("Event Log", nullptr, ImGuiWindowFlags_NoCollapse)) {
         auto now = std::chrono::steady_clock::now();
         for (auto it = this->_eventLogs.rbegin(); it != this->_eventLogs.rend(); ++it) {
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - it->timestamp).count();
@@ -283,50 +277,15 @@ void ofApp::_drawEventLog()
 
 void ofApp::_drawInstructions()
 {
-    ImGui::SetNextWindowPos(ImVec2(10, 650));
-    ImGui::SetNextWindowSize(ImVec2(400, 250));
-    if (ImGui::Begin("Instructions", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+
+    if (ImGui::Begin("Instructions", nullptr, ImGuiWindowFlags_NoCollapse)) {
         ImGui::TextWrapped(
             "Press any KEY to test KeyEvent\n"
             "Move MOUSE to test MouseEvent\n"
             "Click MOUSE buttons to test\n"
-            "Press 1-3 to select primitives\n"
-            "Press N to create sphere\n"
-            "Press X to export selected entity\n"
-            "ctrl+N+O to import B2 in obj"
-            "ctrl+N+S to import B2 in stl"
-            "ctrl+C if your back hurt"
-            "Ctrl+S: Do nothing\n"
-            "Ctrl+O: Move forward\n"
-            "Ctrl+P: Move backward"
+            "CTRL+Z do nothing for now\n"
+            "CTRL+Y do nothing for now\n"
         );
-    }
-    ImGui::End();
-}
-
-void ofApp::_drawEntityList()
-{
-    ImGui::SetNextWindowPos(ImVec2(420, 80));
-    ImGui::SetNextWindowSize(ImVec2(300, 150));
-    if (ImGui::Begin("Entities", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-        ImGui::Text("Total: %ld", this->_entityManager.getEntityCount());
-        ImGui::Text("Selected: %d", this->_selectedEntity);
-        ImGui::Text("Camera: %d", this->_cameraManager->getActiveCameraId());
-        ImGui::Separator();
-
-        for (EntityID id : this->_entityManager.getAllEntities()) {
-            std::string type = "";
-            if (this->_componentRegistry.hasComponent<Box>(id)) type = "[BOX]";
-            else if (this->_componentRegistry.hasComponent<Sphere>(id)) type = "[SPHERE]";
-            else if (this->_componentRegistry.hasComponent<Plane>(id)) type = "[PLANE]";
-            else if (this->_componentRegistry.hasComponent<Camera>(id)) type = "[CAMERA]";
-
-            if (id == this->_selectedEntity) {
-                ImGui::TextColored(ImVec4(0, 1, 0, 1), "> Entity #%d %s", id, type.c_str());
-            } else {
-                ImGui::Text("  Entity #%d %s", id, type.c_str());
-            }
-        }
     }
     ImGui::End();
 }

@@ -8,10 +8,10 @@
 
 #include "ofxImGui.h"
 
-class Properties {
+class MaterialPanel {
     public:
-        Properties(ComponentRegistry& _componentRegistry, EntityID _entityId = INVALID_ENTITY);
-        ~Properties() = default;
+        MaterialPanel(ComponentRegistry& _componentRegistry, EntityID _entityId = INVALID_ENTITY);
+        ~MaterialPanel() = default;
 
         void render();
         void setSelectedEntity(EntityID id);
@@ -21,6 +21,5 @@ class Properties {
     private:
         EntityID _entityId;
         ComponentRegistry& _componentRegistry;
-        Transform* _transform = nullptr;
         Renderable* _renderable = nullptr;
 };

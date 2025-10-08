@@ -34,23 +34,26 @@ void Viewport::renderScene()
     if (!this->_fboInitialized) return;
 
     this->_fbo.begin();
-
     ofClear(50, 50, 60, 255);
+
+    EntityID previousCamera = this->_cameraManager.getActiveCameraId();
+
+    if (this->_cameraId != INVALID_ENTITY)
+        this->_cameraManager.setActiveCamera(this->_cameraId);
+
     this->_cameraManager.update(this->_rect.width, this->_rect.height);
     this->_renderSystem.render();
+
+    if (previousCamera != INVALID_ENTITY)
+        this->_cameraManager.setActiveCamera(previousCamera);
 
     this->_fbo.end();
 }
 
 bool Viewport::render()
 {
-    ImGui::SetNextWindowPos(ImVec2(this->_rect.x, this->_rect.y), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(this->_rect.width, this->_rect.height), ImGuiCond_FirstUseEver);
-
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar |
-                             ImGuiWindowFlags_NoCollapse |
-                             ImGuiWindowFlags_NoMove |
-                             ImGuiWindowFlags_NoResize;
+                             ImGuiWindowFlags_NoCollapse;
 
     std::string windowName = "Viewport " + std::to_string(_id);
     if (ImGui::Begin(windowName.c_str(), nullptr, flags))
@@ -58,7 +61,7 @@ bool Viewport::render()
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
         if (viewportSize.x > 0 && viewportSize.y > 0 &&
             (!this->_fboInitialized || this->_fbo.getWidth() != (int)viewportSize.x || this->_fbo.getHeight() != (int)viewportSize.y))
-            _initializeFbo((int)viewportSize.x, (int)viewportSize.y);
+            this->_initializeFbo((int)viewportSize.x, (int)viewportSize.y);
 
         renderScene();
 

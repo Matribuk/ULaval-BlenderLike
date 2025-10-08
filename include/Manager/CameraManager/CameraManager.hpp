@@ -12,7 +12,9 @@ class CameraManager {
         CameraManager(ComponentRegistry &componentRegistry, EntityManager &entityManager, CameraSystem &cameraSystem);
         ~CameraManager() = default;
 
-        void addCamera(glm::vec3 pos);
+        EntityID addCamera(glm::vec3 pos);
+        void removeCamera(EntityID cameraId);
+
         void setActiveCamera(EntityID id);
         void switchCamera();
         void focusTarget(EntityID camEntity);

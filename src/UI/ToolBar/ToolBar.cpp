@@ -13,6 +13,18 @@ Toolbar::Toolbar() : _selectedTool(-1), _buttonSpacing(5.0), _currentCursor(ImGu
             this->_currentCursor = ImGuiMouseCursor_Hand;
         }
     }});
+
+    this->_tools.emplace_back(ToolButton{"Import", {
+        [this](std::any){
+            if (this->_onImport) this->_onImport();
+        }
+    }});
+
+    this->_tools.emplace_back(ToolButton{"Export", {
+        [this](std::any){
+            if (this->_onExport) this->_onExport();
+        }
+    }});
 }
 
 void Toolbar::_renderToolButton(size_t i, const ImVec2& size)
@@ -35,27 +47,17 @@ void Toolbar::_renderToolButton(size_t i, const ImVec2& size)
 
 void Toolbar::render()
 {
-    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(ofGetWindowWidth(), 20), ImGuiCond_Always);
-
-    ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar |
-                            ImGuiWindowFlags_NoResize |
-                            ImGuiWindowFlags_NoMove |
-                            ImGuiWindowFlags_NoScrollbar |
-                            ImGuiWindowFlags_NoCollapse |
-                            ImGuiWindowFlags_NoSavedSettings;
-
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0);
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar
+                           | ImGuiWindowFlags_NoScrollbar
+                           | ImGuiWindowFlags_NoCollapse
+                           | ImGuiWindowFlags_NoMove
+                           | ImGuiWindowFlags_NoResize;
 
     if (ImGui::Begin("Toolbar", nullptr, flags))
     {
-        ImVec2 availableSize = ImGui::GetContentRegionAvail();
+        ImGui::SameLine();
 
-        float totalSpacing = this->_buttonSpacing * (this->_tools.size() - 1);
-        float buttonWidth = (ofGetWindowWidth() - totalSpacing) / static_cast<float>(this->_tools.size()) * 0.1;
-        float buttonHeight = availableSize.y;
-        ImVec2 buttonSize(buttonWidth, buttonHeight);
-
+        ImVec2 buttonSize(80, 20);
         for (size_t i = 0; i < this->_tools.size(); ++i) {
             if (i > 0) ImGui::SameLine();
             this->_renderToolButton(i, buttonSize);
@@ -63,8 +65,6 @@ void Toolbar::render()
     }
 
     ImGui::End();
-
-    ImGui::PopStyleVar(1);
 
     this->_applyCursor();
 }

@@ -2,30 +2,45 @@
 
 ActionManager::ActionManager(
     EntityManager& entityManager, ComponentRegistry& componentRegistry, PrimitiveSystem& primitiveSystem,
-    FileManager& fileManager, EventManager& eventManager, std::vector<EntityID>& testEntities
+    FileManager& fileManager, EventManager& eventManager, ViewportManager& viewportManager, std::vector<EntityID>& testEntities
 ) : _entityManager(entityManager), _componentRegistry(componentRegistry), _primitiveSystem(primitiveSystem),
-    _fileManager(fileManager), _eventManager(eventManager), _testEntities(testEntities) {}
+    _fileManager(fileManager), _eventManager(eventManager), _viewportManager(viewportManager), _testEntities(testEntities) {}
 
-void ActionManager::updateCameraAction(std::unique_ptr<CameraManager>& camera)
+void ActionManager::updateCameraAction(std::unique_ptr<CameraManager>& cameraManager)
 {
     auto& input = InputManager::get();
 
-    if (input.isKeyPressed('q')) camera->pan(glm::vec3(1.0f, 0.0f, 0.0f));
-    if (input.isKeyPressed('d')) camera->pan(glm::vec3(-1.0f, 0.0f, 0.0f));
-    if (input.isKeyPressed('z')) camera->pan(glm::vec3(0.0f, 0.0f, 1.0f));
-    if (input.isKeyPressed('s')) camera->pan(glm::vec3(0.0f, 0.0f, -1.0f));
-    if (input.isKeyPressed(OF_KEY_SPACE)) camera->pan(glm::vec3(0.0f, 1.0f, 0.0f));
-    if (input.isKeyPressed(OF_KEY_LEFT_SHIFT)) camera->pan(glm::vec3(0.0f, -1.0f, 0.0f));
+    EntityID cameraToControl = cameraManager->getActiveCameraId();
 
-    if (input.isKeyPressed(OF_KEY_DOWN)) camera->rotate(glm::vec2(0.0f, 1.0f));
-    if (input.isKeyPressed(OF_KEY_LEFT)) camera->rotate(glm::vec2(-1.0f, 0.0f));
-    if (input.isKeyPressed(OF_KEY_UP)) camera->rotate(glm::vec2(0.0f, -1.0f));
-    if (input.isKeyPressed(OF_KEY_RIGHT)) camera->rotate(glm::vec2(1.0f, 0.0f));
+    Viewport* activeViewport = this->_viewportManager.getActiveViewport();
+    if (activeViewport && activeViewport->getCamera() != INVALID_ENTITY)
+        cameraToControl = activeViewport->getCamera();
 
-    if (input.isKeyPressed('k')) camera->zoom(1.0f);
-    if (input.isKeyPressed('l')) camera->zoom(-1.0f);
-    if (input.isKeyPressed('j')) camera->switchCamera();
-    if (input.isKeyPressed('f')) camera->focusTarget(camera->getActiveCameraId());
+    if (cameraToControl != INVALID_ENTITY) {
+        EntityID previousActive = cameraManager->getActiveCameraId();
+
+        cameraManager->setActiveCamera(cameraToControl);
+
+        if (input.isKeyPressed('q')) cameraManager->pan(glm::vec3(1.0f, 0.0f, 0.0f));
+        if (input.isKeyPressed('d')) cameraManager->pan(glm::vec3(-1.0f, 0.0f, 0.0f));
+        if (input.isKeyPressed('z')) cameraManager->pan(glm::vec3(0.0f, 0.0f, 1.0f));
+        if (input.isKeyPressed('s')) cameraManager->pan(glm::vec3(0.0f, 0.0f, -1.0f));
+        if (input.isKeyPressed(OF_KEY_SPACE)) cameraManager->pan(glm::vec3(0.0f, 1.0f, 0.0f));
+        if (input.isKeyPressed(OF_KEY_LEFT_SHIFT)) cameraManager->pan(glm::vec3(0.0f, -1.0f, 0.0f));
+
+        if (input.isKeyPressed(OF_KEY_DOWN)) cameraManager->rotate(glm::vec2(0.0f, 1.0f));
+        if (input.isKeyPressed(OF_KEY_LEFT)) cameraManager->rotate(glm::vec2(-1.0f, 0.0f));
+        if (input.isKeyPressed(OF_KEY_UP)) cameraManager->rotate(glm::vec2(0.0f, -1.0f));
+        if (input.isKeyPressed(OF_KEY_RIGHT)) cameraManager->rotate(glm::vec2(1.0f, 0.0f));
+
+        if (input.isKeyPressed('k')) cameraManager->zoom(1.0f);
+        if (input.isKeyPressed('l')) cameraManager->zoom(-1.0f);
+        if (input.isKeyPressed('f')) cameraManager->focusTarget(cameraToControl);
+    }
+    if (input.isKeyPressed('j')) {
+        cameraManager->switchCamera();
+        this->_viewportManager.getActiveViewport()->setCamera(cameraManager->getActiveCameraId());
+    }
 }
 
 void ActionManager::registerAllActions()
@@ -38,37 +53,28 @@ void ActionManager::_registerKeyboardActions()
 {
     auto& input = InputManager::get();
 
-    input.registerKeyAction('x', [this]() { this->_exportSelectedEntity(); });
-
-    for (int i = 1; i <= 9; i++) {
-        input.registerKeyAction('0' + i, [this, i]() {
-            this->_selectEntity(i - 1);
-        });
-    }
+    input.registerKeyAction('n', [this]() {
+        //just an example
+    });
 }
 
 void ActionManager::_registerShortcuts()
 {
     auto& input = InputManager::get();
 
-    input.registerShortcut({OF_KEY_CONTROL, 'p'}, [this]() {
-        this->_fileManager.importMesh("chair.ply");
+    input.registerShortcut({OF_KEY_CONTROL, 'z'}, [this]() {
+        //one day
     });
 
-    input.registerShortcut({OF_KEY_CONTROL, 'o'}, [this]() {
-        this->_fileManager.importMesh("nier.obj");
-    });
-
-    input.registerShortcut({OF_KEY_CONTROL, 's'}, [this]() {
-        this->_fileManager.importMesh("nier.stl");
+    input.registerShortcut({OF_KEY_CONTROL, 'y'}, [this]() {
+        //one day
     });
 }
 
 void ActionManager::_exportSelectedEntity()
 {
-    if (_selectedEntity != INVALID_ENTITY) {
+    if (this->_selectedEntity != INVALID_ENTITY)
         this->_fileManager.exportMesh(this->_selectedEntity, "ExportedEntity");
-    }
 }
 
 void ActionManager::_selectEntity(int index)
