@@ -18,12 +18,7 @@ void ColorPalette::render()
     Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(this->_selectionSystem.getSelectedEntity());
     if (!renderable) return;
 
-    ImVec4 color = ImVec4(
-        this->_color.r / 255.0f,
-        this->_color.g / 255.0f,
-        this->_color.b / 255.0f,
-        this->_color.a / 255.0f
-    );
+    ImVec4 color = renderable->color;
 
     bool edited = false;
     ImGui::Text("Color");
