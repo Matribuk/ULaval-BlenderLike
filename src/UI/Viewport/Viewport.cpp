@@ -44,8 +44,8 @@ void Viewport::renderScene()
 
 bool Viewport::render()
 {
-    ImGui::SetNextWindowPos(ImVec2(_rect.x, _rect.y), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(_rect.width, _rect.height), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(this->_rect.x, this->_rect.y), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(this->_rect.width, this->_rect.height), ImGuiCond_FirstUseEver);
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar |
                              ImGuiWindowFlags_NoCollapse |
@@ -57,13 +57,13 @@ bool Viewport::render()
     {
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
         if (viewportSize.x > 0 && viewportSize.y > 0 &&
-            (!_fboInitialized || _fbo.getWidth() != (int)viewportSize.x || _fbo.getHeight() != (int)viewportSize.y)) 
+            (!this->_fboInitialized || this->_fbo.getWidth() != (int)viewportSize.x || this->_fbo.getHeight() != (int)viewportSize.y))
             _initializeFbo((int)viewportSize.x, (int)viewportSize.y);
 
         renderScene();
 
-        if (_fboInitialized && _fbo.isAllocated()) {
-            GLuint texID = _fbo.getTexture().getTextureData().textureID;
+        if (this->_fboInitialized && this->_fbo.isAllocated()) {
+            GLuint texID = this->_fbo.getTexture().getTextureData().textureID;
             ImGui::Image((ImTextureID)(uintptr_t)texID, viewportSize, ImVec2(0,1), ImVec2(1,0));
         }
 

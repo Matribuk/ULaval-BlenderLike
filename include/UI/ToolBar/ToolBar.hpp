@@ -24,9 +24,9 @@ class Toolbar {
         void setSelectedTool(int tool);
         void addTool(ToolButton);
 
-        private:
+    private:
         void _applyCursor();
-        void renderToolButton(size_t index, const ImVec2& size);
+        void _renderToolButton(size_t index, const ImVec2& size);
 
         int _selectedTool;
         float _buttonSpacing;

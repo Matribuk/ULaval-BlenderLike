@@ -20,10 +20,10 @@ void ViewportManager::removeViewport(ViewportID id)
 
 void ViewportManager::renderAll()
 {
-    for (auto& vp : _viewports) {
+    for (auto& vp : this->_viewports) {
         bool hovered = vp->render();
         if (hovered)
-            _activeViewport = vp->getId();
+            this->_activeViewport = vp->getId();
     }
 }
 

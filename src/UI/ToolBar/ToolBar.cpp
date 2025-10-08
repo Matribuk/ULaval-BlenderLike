@@ -15,7 +15,7 @@ Toolbar::Toolbar() : _selectedTool(-1), _buttonSpacing(5.0), _currentCursor(ImGu
     }});
 }
 
-void Toolbar::renderToolButton(size_t i, const ImVec2& size)
+void Toolbar::_renderToolButton(size_t i, const ImVec2& size)
 {
     ImGui::PushID(static_cast<int>(i));
 
@@ -58,7 +58,7 @@ void Toolbar::render()
 
         for (size_t i = 0; i < this->_tools.size(); ++i) {
             if (i > 0) ImGui::SameLine();
-            renderToolButton(i, buttonSize);
+            this->_renderToolButton(i, buttonSize);
         }
     }
 

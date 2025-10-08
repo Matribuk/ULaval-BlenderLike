@@ -10,10 +10,10 @@ void CameraSystem::pan(EntityID camEntity, glm::vec3 vect)
     if (!cam) return;
 
     cam->focusMode = false;
-    _transformSystem.setCameraPosition(camEntity, vect * cam->panSensitivity);
+    this->_transformSystem.setCameraPosition(camEntity, vect * cam->panSensitivity);
 
-    cam->forward = _transformSystem.getForward(camEntity);
-    cam->up      = _transformSystem.getUp(camEntity);
+    cam->forward = this->_transformSystem.getForward(camEntity);
+    cam->up      = this->_transformSystem.getUp(camEntity);
 }
 
 void CameraSystem::rotate(EntityID camEntity, glm::vec2 vect)
@@ -21,10 +21,10 @@ void CameraSystem::rotate(EntityID camEntity, glm::vec2 vect)
     Camera* cam = _componentRegistry.getComponent<Camera>(camEntity);
     if (!cam) return;
 
-    _transformSystem.setCameraRotation(camEntity, vect * cam->rotateSensitivity);
+    this->_transformSystem.setCameraRotation(camEntity, vect * cam->rotateSensitivity);
 
-    cam->forward = _transformSystem.getForward(camEntity);
-    cam->up      = _transformSystem.getUp(camEntity);
+    cam->forward = this->_transformSystem.getForward(camEntity);
+    cam->up      = this->_transformSystem.getUp(camEntity);
 }
 
 void CameraSystem::zoom(EntityID camEntity, float amount)
