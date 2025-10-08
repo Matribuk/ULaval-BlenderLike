@@ -6,7 +6,7 @@ CameraSystem::CameraSystem(ComponentRegistry& registry, TransformSystem& transfo
 
 void CameraSystem::pan(EntityID camEntity, glm::vec3 vect)
 {
-    Camera* cam = _componentRegistry.getComponent<Camera>(camEntity);
+    Camera* cam = this->_componentRegistry.getComponent<Camera>(camEntity);
     if (!cam) return;
 
     cam->focusMode = false;
@@ -18,7 +18,7 @@ void CameraSystem::pan(EntityID camEntity, glm::vec3 vect)
 
 void CameraSystem::rotate(EntityID camEntity, glm::vec2 vect)
 {
-    Camera* cam = _componentRegistry.getComponent<Camera>(camEntity);
+    Camera* cam = this->_componentRegistry.getComponent<Camera>(camEntity);
     if (!cam) return;
 
     this->_transformSystem.setCameraRotation(camEntity, vect * cam->rotateSensitivity);
