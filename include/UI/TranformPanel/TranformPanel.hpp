@@ -7,6 +7,7 @@
 #include "Core/Entity/Entity.hpp"
 
 #include "ofxImGui.h"
+#include <glm/gtc/constants.hpp>
 
 class TranformPanel {
     public:
