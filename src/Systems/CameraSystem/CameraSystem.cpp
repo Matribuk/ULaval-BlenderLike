@@ -12,7 +12,6 @@ void CameraSystem::pan(EntityID camEntity, glm::vec3 vect)
     cam->focusMode = false;
     _transformSystem.setCameraPosition(camEntity, vect * cam->panSensitivity);
 
-    // Mettre à jour forward/up à partir de Transform
     cam->forward = _transformSystem.getForward(camEntity);
     cam->up      = _transformSystem.getUp(camEntity);
 }
@@ -24,7 +23,6 @@ void CameraSystem::rotate(EntityID camEntity, glm::vec2 vect)
 
     _transformSystem.setCameraRotation(camEntity, vect * cam->rotateSensitivity);
 
-    // Mettre à jour forward/up à partir de Transform
     cam->forward = _transformSystem.getForward(camEntity);
     cam->up      = _transformSystem.getUp(camEntity);
 }
