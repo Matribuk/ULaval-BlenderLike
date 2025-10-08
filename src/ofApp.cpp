@@ -286,6 +286,9 @@ void ofApp::_drawInstructions()
             "Click MOUSE buttons to test\n"
             "CTRL+Z do nothing for now\n"
             "CTRL+Y do nothing for now\n"
+            "In MOVE mode left click to move\n"
+            "In MOVE mode middle click to rotate\n"
+            "In MOVE mode right click to go forward/backward\n"
         );
     }
     ImGui::End();

@@ -77,7 +77,7 @@
 
 ### 5.1 Caméra interactive
 - [x] Mouvement intuitif (orbit, pan, zoom)
-- [ ] Contrôle fluide via clavier/souris
+- [x] Contrôle fluide via clavier/souris
 
 ### 5.2 Caméras multiples
 - [x] Support de plusieurs caméras distinctes
