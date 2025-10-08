@@ -17,8 +17,7 @@ void ActionManager::updateCameraAction(std::unique_ptr<CameraManager>& cameraMan
         cameraToControl = activeViewport->getCamera();
 
     if (cameraToControl != INVALID_ENTITY) {
-        EntityID previousActive = cameraManager->getActiveCameraId();
-
+        cameraManager->getActiveCameraId();
         cameraManager->setActiveCamera(cameraToControl);
 
         if (input.isKeyPressed('q')) cameraManager->pan(glm::vec3(1.0f, 0.0f, 0.0f));

@@ -124,7 +124,7 @@ void UIManager::renderViewportControls()
 
                 if (ImGui::BeginCombo("##camera", cameraLabels[currentCameraIndex].c_str())) {
                     for (size_t c = 0; c < cameras.size(); ++c) {
-                        bool isSelected = (c == currentCameraIndex);
+                        bool isSelected = (static_cast<int>(c) == currentCameraIndex);
                         if (ImGui::Selectable(cameraLabels[c].c_str(), isSelected))
                             vp->setCamera(cameras[c]);
                         if (isSelected)
