@@ -3,56 +3,60 @@
 TransformSystem::TransformSystem(ComponentRegistry& registry, EntityManager& entityMgr)
     : _registry(registry), _entityManager(entityMgr) {}
 
-void TransformSystem::setPosition(EntityID entityId, const glm::vec3 position)
+void TransformSystem::setPosition(EntityID entityId, glm::vec3 pos)
 {
-    float deltaTime = ofGetLastFrameTime();
-    Transform *transform = this->_registry.getComponent<Transform>(entityId);
-
-    glm::vec3 right = glm::vec3(1, 0, 0);
-    glm::vec3 up = glm::vec3(0, 1, 0);
-    glm::vec3 forward = glm::vec3(0, 0, -1);
-
-    transform->position += position.x * deltaTime * right + position.y * deltaTime * up + position.z * deltaTime * forward;
-    transform->isDirty = true;
+    Transform* t = this->_registry.getComponent<Transform>(entityId);
+    if (!t) return;
+    t->position = pos;
+    markDirty(entityId, true);
 }
 
-void TransformSystem::setRotation(EntityID entityId, const glm::vec2 rotation, const glm::vec3* pivot)
+void TransformSystem::setRotation(EntityID entityId, glm::vec3 rot)
+{
+    Transform* t = this->_registry.getComponent<Transform>(entityId);
+    if (!t) return;
+    t->rotation = rot;
+    markDirty(entityId, true);
+}
+
+void TransformSystem::setScale(EntityID entityId, glm::vec3 scale)
+{
+    Transform* t = this->_registry.getComponent<Transform>(entityId);
+    if (!t) return;
+    t->scale = scale;
+    markDirty(entityId, true);
+}
+
+void TransformSystem::setCameraPosition(EntityID entityId, const glm::vec3 movement)
 {
     float deltaTime = ofGetLastFrameTime();
     Transform* transform = this->_registry.getComponent<Transform>(entityId);
-    glm::vec3 center = pivot ? *pivot : glm::vec3(0.0f);
+    if (!transform) return;
 
-    glm::vec3 offset = transform->position - center;
-    float radius = glm::length(offset);
-    if (radius == 0.0f) return;
+    glm::vec3 right   = getRight(entityId);
+    glm::vec3 up      = getUp(entityId);
+    glm::vec3 forward = getForward(entityId);
 
-    float yaw = atan2(offset.x, offset.z);
-    float pitch = asin(offset.y / radius);
+    transform->position += movement.x * deltaTime * right
+                         + movement.y * deltaTime * up
+                         + movement.z * deltaTime * forward;
 
-    yaw += rotation.x * deltaTime;
-    pitch += rotation.y * deltaTime;
-
-    float limit = glm::radians(89.0f);
-    pitch = glm::clamp(pitch, -limit, limit);
-
-    float cosPitch = cos(pitch);
-    glm::vec3 newOffset;
-    newOffset.x = radius * cosPitch * sin(yaw);
-    newOffset.y = radius * sin(pitch);
-    newOffset.z = radius * cosPitch * cos(yaw);
-
-    transform->position = center + newOffset;
     transform->isDirty = true;
 }
 
-void TransformSystem::setScale(EntityID entityId, const glm::vec3& scale)
+void TransformSystem::setCameraRotation(EntityID entityId, const glm::vec2 rotationDelta)
 {
+    float deltaTime = ofGetLastFrameTime();
     Transform* transform = this->_registry.getComponent<Transform>(entityId);
-    glm::vec3 clampedScale = glm::clamp(scale, glm::vec3(0.001f), glm::vec3(1000.0f));
+    if (!transform) return;
 
-    transform->scale = clampedScale;
+    transform->rotation.x += rotationDelta.x * deltaTime;
+    transform->rotation.y += rotationDelta.y * deltaTime;
+    transform->rotation.y = glm::clamp(transform->rotation.y, glm::radians(-89.0f), glm::radians(89.0f));
+
     transform->isDirty = true;
 }
+
 
 void TransformSystem::update()
 {
@@ -65,6 +69,35 @@ void TransformSystem::update()
         }
     }
 }
+
+glm::vec3 TransformSystem::getForward(EntityID entityId) const
+{
+    Transform* t = this->_registry.getComponent<Transform>(entityId);
+    if (!t) return glm::vec3(0,0,-1);
+
+    float yaw   = t->rotation.x;
+    float pitch = t->rotation.y;
+
+    glm::vec3 forward;
+    forward.x = cos(pitch) * sin(yaw);
+    forward.y = sin(pitch);
+    forward.z = cos(pitch) * cos(yaw);
+    return glm::normalize(forward);
+}
+
+glm::vec3 TransformSystem::getRight(EntityID entityId) const
+{
+    glm::vec3 forward = getForward(entityId);
+    return glm::normalize(glm::cross(forward, glm::vec3(0,1,0)));
+}
+
+glm::vec3 TransformSystem::getUp(EntityID entityId) const
+{
+    glm::vec3 forward = getForward(entityId);
+    glm::vec3 right = glm::normalize(glm::cross(forward, glm::vec3(0,1,0)));
+    return glm::cross(right, forward);
+}
+
 
 void TransformSystem::updateTransformHierarchy(EntityID entity, const glm::mat4& parentGlobalMatrix)
 {

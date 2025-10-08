@@ -4,6 +4,7 @@
 #include "ofxImGui.h"
 #include <vector>
 #include <string>
+#include "ofGraphics.h"
 
 struct ToolButton {
     std::string name;
@@ -24,9 +25,12 @@ class Toolbar {
         void addTool(ToolButton);
 
     private:
-        void renderToolButton(size_t index, const ImVec2& size);
+        void _applyCursor();
+        void _renderToolButton(size_t index, const ImVec2& size);
 
         int _selectedTool;
         float _buttonSpacing;
+
         std::vector<ToolButton> _tools;
+        ImGuiMouseCursor _currentCursor;
 };

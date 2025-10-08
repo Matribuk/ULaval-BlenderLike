@@ -21,8 +21,8 @@ class CameraSystem
 
         void update(std::vector<EntityID> cameraEntities, int viewportWidth, int viewportHeight);
 
-        void pan(EntityID camEntity, float horizontal, float vertical, float depth);
-        void rotate(EntityID camEntity, float horizontal, float vertical);
+        void pan(EntityID camEntity, const glm::vec3 vect);
+        void rotate(EntityID camEntity, const glm::vec2 vect);
         void zoom(EntityID camEntity, float amount);
 
         ComponentRegistry& getRegistry() const;

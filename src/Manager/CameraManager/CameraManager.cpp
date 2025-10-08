@@ -89,12 +89,12 @@ void CameraManager::zoom(float dir)
     this->_cameraSystem.zoom(this->_activeCamera, dir);
 }
 
-void CameraManager::pan(float x, float y, float depth)
+void CameraManager::pan(const glm::vec3 vect)
 {
-    this->_cameraSystem.pan(this->_activeCamera, x, y, depth);
+    this->_cameraSystem.pan(this->_activeCamera, vect);
 }
 
-void CameraManager::rotate(float x, float y)
+void CameraManager::rotate(const glm::vec2 vect)
 {
-    this->_cameraSystem.rotate(this->_activeCamera, x, y);
+    this->_cameraSystem.rotate(this->_activeCamera, vect);
 }

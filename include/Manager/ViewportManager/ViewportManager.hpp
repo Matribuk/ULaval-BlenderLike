@@ -24,6 +24,8 @@ class ViewportManager {
         void removeViewport(ViewportID id);
         void renderAll();
 
+        Viewport* getActiveViewport();
+
         std::vector<std::unique_ptr<Viewport>>& getViewports();
 
     private:
