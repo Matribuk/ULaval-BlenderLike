@@ -70,9 +70,8 @@ void ofApp::setup()
         }
     });
 
-
-    this->_materialPanel = std::make_unique<MaterialPanel>(this->_componentRegistry);
-    this->_tranformPanel = std::make_unique<TranformPanel>(this->_componentRegistry);
+    this->_materialPanel = std::make_unique<MaterialPanel>(this->_componentRegistry, *this->_selectionSystem);
+    this->_tranformPanel = std::make_unique<TranformPanel>(this->_componentRegistry, *this->_selectionSystem);
     this->_colorPalette = std::make_unique<ColorPalette>(this->_componentRegistry, *this->_selectionSystem);
 
     this->_fileManager = std::make_unique<FileManager>(this->_componentRegistry, this->_entityManager);
