@@ -28,16 +28,24 @@ void TranformPanel::render()
     if (this->_entityId == INVALID_ENTITY)
         return;
 
-
     if (this->_transform) {
         bool edited = false;
+
+        glm::vec3 rotationDegrees = glm::degrees(this->_transform->rotation);
+        glm::vec3 scalePercent = this->_transform->scale * 100.0f;
+
         ImGui::Separator();
         ImGui::Text("Transform");
         ImGui::Text("( x )\t\t\t\t( y )\t\t\t\t( z )");
+
         edited |= ImGui::InputFloat3("Position", &this->_transform->position[0]);
-        edited |= ImGui::InputFloat3("Rotation", &this->_transform->rotation[0]);
-        edited |= ImGui::InputFloat3("Scale", &this->_transform->scale[0]);
-        if (edited)
+        edited |= ImGui::InputFloat3("Rotation (°)", &rotationDegrees[0]);
+        edited |= ImGui::InputFloat3("Scale (%)", &scalePercent[0]);
+
+        if (edited) {
+            this->_transform->rotation = glm::radians(rotationDegrees);
+            this->_transform->scale = scalePercent / 100.0f;
             this->_transform->isDirty = true;
+        }
     }
 }
