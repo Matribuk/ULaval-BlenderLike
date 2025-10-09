@@ -6,9 +6,9 @@ void ofApp::setup()
     ofEnableLighting();
     ofEnableSeparateSpecularLight();
 
-    _light.setup();
-    _light.setPosition(0, 10, 0);
-    _light.enable();
+    this->_light.setup();
+    this->_light.setPosition(0, 10, 0);
+    this->_light.enable();
 
     ofSetWindowTitle("Event System & Primitive Rendering Test");
     ofSetFrameRate(60);
