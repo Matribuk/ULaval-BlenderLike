@@ -3,27 +3,6 @@
 CameraManager::CameraManager(ComponentRegistry &componentRegistry, EntityManager &entityManager, CameraSystem &cameraSystem)
     : _componentRegistry(componentRegistry), _entityManager(entityManager), _cameraSystem(cameraSystem) {}
 
-EntityID CameraManager::getCameraAtIndex(int index) const
-{
-    if (index < 0 || index >= static_cast<int>(this->_cameraEntities.size()))
-        return INVALID_ENTITY;
-    return this->_cameraEntities[index];
-}
-
-Camera *CameraManager::getActiveCamera() const
-{
-    if (this->_cameraEntities.empty())
-        return nullptr;
-    return this->_componentRegistry.getComponent<Camera>(this->_cameraEntities[this->_activeCameraIndex]);
-}
-
-EntityID CameraManager::getActiveCameraId() const
-{
-    if (this->_cameraEntities.empty())
-        return 0;
-    return this->_cameraEntities[this->_activeCameraIndex];
-}
-
 EntityID CameraManager::addCamera(glm::vec3 pos)
 {
     EntityID cameraID = this->_entityManager.createEntity().getId();
@@ -86,6 +65,26 @@ void CameraManager::focusTarget(EntityID camEntity)
     transform->position = cam->target - cam->forward * distance;
 }
 
+void CameraManager::zoom(float dir)
+{
+    this->_cameraSystem.zoom(this->_activeCamera, dir);
+}
+
+void CameraManager::rotate(const glm::vec2 vect)
+{
+    this->_cameraSystem.rotate(this->_activeCamera, vect);
+}
+
+void CameraManager::pan(const glm::vec3 vect)
+{
+    this->_cameraSystem.pan(this->_activeCamera, vect);
+}
+
+void CameraManager::update(int viewportWidth, int viewportHeight)
+{
+    this->_cameraSystem.update(this->_cameraEntities, viewportWidth, viewportHeight);
+}
+
 EntityManager &CameraManager::getEntityManager() const
 {
     return this->_entityManager;
@@ -96,22 +95,39 @@ ComponentRegistry &CameraManager::getComponentRegistry() const
     return this->_componentRegistry;
 }
 
-void CameraManager::update(int viewportWidth, int viewportHeight)
+Camera *CameraManager::getActiveCamera() const
 {
-    this->_cameraSystem.update(this->_cameraEntities, viewportWidth, viewportHeight);
+    if (this->_cameraEntities.empty())
+    return nullptr;
+    return this->_componentRegistry.getComponent<Camera>(this->_cameraEntities[this->_activeCameraIndex]);
 }
 
-void CameraManager::zoom(float dir)
+EntityID CameraManager::getActiveCameraId() const
 {
-    this->_cameraSystem.zoom(this->_activeCamera, dir);
+    if (this->_cameraEntities.empty())
+    return 0;
+    return this->_cameraEntities[this->_activeCameraIndex];
 }
 
-void CameraManager::pan(const glm::vec3 vect)
+EntityID CameraManager::getCameraAtIndex(int index) const
 {
-    this->_cameraSystem.pan(this->_activeCamera, vect);
+    if (index < 0 || index >= static_cast<int>(this->_cameraEntities.size()))
+        return INVALID_ENTITY;
+    return this->_cameraEntities[index];
 }
 
-void CameraManager::rotate(const glm::vec2 vect)
+void CameraManager::toggleProjection(EntityID cameraId)
 {
-    this->_cameraSystem.rotate(this->_activeCamera, vect);
+    Camera* cam = this->_componentRegistry.getComponent<Camera>(cameraId);
+    if (!cam) return;
+
+    cam->isOrtho = !cam->isOrtho;
+}
+
+void CameraManager::setProjection(EntityID cameraId, bool isOrtho)
+{
+    Camera* cam = this->_componentRegistry.getComponent<Camera>(cameraId);
+    if (!cam) return;
+
+    cam->isOrtho = isOrtho;
 }

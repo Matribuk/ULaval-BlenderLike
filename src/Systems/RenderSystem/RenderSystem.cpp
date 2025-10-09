@@ -15,11 +15,13 @@ void RenderSystem::render()
         return;
     }
 
-    ofCamera cam = buildCameraFromComponents(*activeCamera, *camTransform);
-
     setupRenderState();
 
-    cam.begin();
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(glm::value_ptr(activeCamera->projMatrix));
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(glm::value_ptr(activeCamera->viewMatrix));
 
     ofSetColor(255);
     ofDrawAxis(100);
@@ -33,8 +35,6 @@ void RenderSystem::render()
     ofPopStyle();
 
     renderEntities();
-
-    cam.end();
 }
 
 void RenderSystem::setupRenderState()
@@ -59,10 +59,33 @@ ofCamera RenderSystem::buildCameraFromComponents(Camera& camera, const Transform
     ofCamera cam;
     cam.setPosition(camPos);
     cam.lookAt(lookTarget, up);
-    cam.setFov(camera.fov);
     cam.setNearClip(camera.nearClip);
     cam.setFarClip(camera.farClip);
     cam.setAspectRatio(camera.aspectRatio);
+
+    if (camera.isOrtho) {
+        float halfWidth = camera.orthoScale * camera.aspectRatio;
+        float halfHeight = camera.orthoScale;
+        camera.projMatrix = glm::ortho(
+            -halfWidth, halfWidth,
+            -halfHeight, halfHeight,
+            camera.nearClip,
+            camera.farClip
+        );
+
+        cam.enableOrtho();
+        cam.setupPerspective(false);
+    } else {
+        camera.projMatrix = glm::perspective(
+            glm::radians(camera.fov),
+            camera.aspectRatio,
+            camera.nearClip,
+            camera.farClip
+        );
+
+        cam.disableOrtho();
+        cam.setFov(camera.fov);
+    }
 
     return cam;
 }
@@ -102,8 +125,8 @@ void RenderSystem::drawMesh(const ofMesh& mesh, const glm::mat4& transform, cons
         mesh.draw();
 
         material->shader->end();
-    } else {
+    } else
         mesh.draw();
-    }
+
     ofPopMatrix();
 }

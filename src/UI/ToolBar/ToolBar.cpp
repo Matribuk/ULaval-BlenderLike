@@ -14,6 +14,13 @@ Toolbar::Toolbar() : _selectedTool(-1), _buttonSpacing(5.0), _currentCursor(ImGu
         }
     }});
 
+    this->_tools.emplace_back(ToolButton{"Ortho/Persp", {
+        [this](std::any){
+            if (this->_onToggleProjection)
+                this->_onToggleProjection();
+        }
+    }});
+
     this->_tools.emplace_back(ToolButton{"Import", {
         [this](std::any){
             if (this->_onImport) this->_onImport();
@@ -67,6 +74,11 @@ void Toolbar::setSelectedTool(int tool)
 void Toolbar::addTool(ToolButton button)
 {
     this->_tools.emplace_back(button);
+}
+
+void Toolbar::setToggleProjectionCallback(std::function<void()> callback)
+{
+    this->_onToggleProjection = callback;
 }
 
 void Toolbar::setImportCallback(std::function<void()> callback)

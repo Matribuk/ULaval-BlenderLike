@@ -14,6 +14,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
+
 class CameraSystem
 {
     public:
@@ -33,5 +34,4 @@ class CameraSystem
 
         glm::vec3 _getCameraForward(EntityID id) const;
         glm::vec3 _getCameraRight(EntityID id) const;
-
 };
