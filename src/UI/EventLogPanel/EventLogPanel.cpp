@@ -2,9 +2,9 @@
 
 void EventLogPanel::addLog(const std::string& message, const ofColor& color)
 {
-    if (_logs.size() >= _maxLogs) _logs.erase(_logs.begin());
+    if (this->_logs.size() >= _maxLogs) this->_logs.erase(this->_logs.begin());
 
-    _logs.push_back({message, color, std::chrono::steady_clock::now()});
+    this->_logs.push_back({message, color, std::chrono::steady_clock::now()});
 }
 
 void EventLogPanel::render()
@@ -12,7 +12,7 @@ void EventLogPanel::render()
     if (ImGui::Begin("Event Log", nullptr, ImGuiWindowFlags_NoCollapse)) {
         auto now = std::chrono::steady_clock::now();
 
-        for (auto it = _logs.rbegin(); it != _logs.rend(); ++it) {
+        for (auto it = this->_logs.rbegin(); it != this->_logs.rend(); ++it) {
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - it->timestamp).count();
 
             ImGui::TextColored(
@@ -28,5 +28,5 @@ void EventLogPanel::render()
 
 void EventLogPanel::clear()
 {
-    _logs.clear();
+    this->_logs.clear();
 }

@@ -3,7 +3,7 @@
 RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr, CameraManager &cameraManager)
     : _registry(registry), _entityManager(entityMgr), _cameraManager(cameraManager)
 {
-    _initSkybox();
+    this->_initSkybox();
 }
 
 void RenderSystem::render()
@@ -20,7 +20,6 @@ void RenderSystem::render()
 
     this->_setupRenderState();
     this->_renderSkybox();
-    
 
     glMatrixMode(GL_PROJECTION);
     glLoadMatrixf(glm::value_ptr(activeCamera->projMatrix));
@@ -142,10 +141,10 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
 
 void RenderSystem::_initSkybox()
 {
-    bool loaded = _skyShader.load("shaders/sky");
+    bool loaded = this->_skyShader.load("shaders/sky");
 
     if (!loaded)
-        loaded = _skyShader.load(ofToDataPath("shaders/sky"));
+        loaded = this->_skyShader.load(ofToDataPath("shaders/sky"));
 
     if (loaded)
         std::cout << "Sky shader loaded successfully" << std::endl;
@@ -154,14 +153,14 @@ void RenderSystem::_initSkybox()
         return;
     }
 
-    _skyQuad.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
+    this->_skyQuad.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
 
-    _skyQuad.addVertex(glm::vec3(-1, -1, 0.999));
-    _skyQuad.addVertex(glm::vec3( 1, -1, 0.999));
-    _skyQuad.addVertex(glm::vec3(-1,  1, 0.999));
-    _skyQuad.addVertex(glm::vec3( 1,  1, 0.999));
+    this->_skyQuad.addVertex(glm::vec3(-1, -1, 0.999));
+    this->_skyQuad.addVertex(glm::vec3( 1, -1, 0.999));
+    this->_skyQuad.addVertex(glm::vec3(-1,  1, 0.999));
+    this->_skyQuad.addVertex(glm::vec3( 1,  1, 0.999));
 
-    _skyInitialized = true;
+    this->_skyInitialized = true;
 }
 
 void RenderSystem::_renderSkybox()
@@ -169,19 +168,19 @@ void RenderSystem::_renderSkybox()
     if (!_skyInitialized)
         return;
 
-    glClearColor(_skyBottomColor.r, _skyBottomColor.g, _skyBottomColor.b, 1.0f);
+    glClearColor(this->_skyBottomColor.r, this->_skyBottomColor.g, this->_skyBottomColor.b, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
 
-    _skyShader.begin();
+    this->_skyShader.begin();
 
-    _skyShader.setUniform3f("topColor", _skyTopColor);
-    _skyShader.setUniform3f("bottomColor", _skyBottomColor);
+    this->_skyShader.setUniform3f("topColor", this->_skyTopColor);
+    this->_skyShader.setUniform3f("bottomColor", this->_skyBottomColor);
 
-    _skyQuad.draw();
-    _skyShader.end();
+    this->_skyQuad.draw();
+    this->_skyShader.end();
 
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
