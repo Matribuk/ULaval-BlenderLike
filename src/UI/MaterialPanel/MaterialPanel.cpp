@@ -8,7 +8,7 @@ MaterialPanel::MaterialPanel(ComponentRegistry& componentRegistry, SelectionSyst
 void MaterialPanel::render()
 {
     EntityID selectedEntity = this->_selectionSystem.getSelectedEntity();
-    Renderable* renderable = _componentRegistry.getComponent<Renderable>(selectedEntity);
+    Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(selectedEntity);
     if (this->_selectionSystem.getSelectedEntity() == INVALID_ENTITY)
         return;
 

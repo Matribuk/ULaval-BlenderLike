@@ -23,27 +23,27 @@ SelectionSystem::SelectionSystem(
 
 void SelectionSystem::setup()
 {
-    _eventManager.subscribe<MouseEvent>([this](const MouseEvent& e) {
+    this->_eventManager.subscribe<MouseEvent>([this](const MouseEvent& e) {
         if (e.type == MouseEventType::Pressed && e.button == 0) {
-            _handleMouseEvent(e);
+            this->_handleMouseEvent(e);
         }
     });
 }
 
 EntityID SelectionSystem::getSelectedEntity()
 {
-    return _selectedEntity;
+    return this->_selectedEntity;
 }
 
 void SelectionSystem::setSelectedEntity(EntityID selectedEntity)
 {
-    _selectedEntity = selectedEntity;
+    this->_selectedEntity = selectedEntity;
 }
 
 void SelectionSystem::_handleMouseEvent(const MouseEvent& e)
 {
     glm::vec2 mousePos(static_cast<float>(e.x), static_cast<float>(e.y));
-    _performRaycastInActiveViewport(mousePos);
+    this->_performRaycastInActiveViewport(mousePos);
 }
 
 glm::mat4 SelectionSystem::_getOrComputeTransformMatrix(Transform* t) const
@@ -89,7 +89,7 @@ void SelectionSystem::_transformAABB(const glm::vec3& localMin, const glm::vec3&
 EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouseGlobalPos)
 {
     Viewport* vp = nullptr;
-    try { vp = _viewportManager.getActiveViewport(); } catch(...) { vp = nullptr; }
+    try { vp = this->_viewportManager.getActiveViewport(); } catch(...) { vp = nullptr; }
     if (!vp) return INVALID_ENTITY;
 
     ofRectangle rect;
@@ -113,11 +113,11 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
     if (vpWidth <= 0 || vpHeight <= 0) return INVALID_ENTITY;
 
     EntityID camEntityId = vp->getCamera();
-    if (camEntityId == INVALID_ENTITY) camEntityId = _cameraManager.getActiveCameraId();
+    if (camEntityId == INVALID_ENTITY) camEntityId = this->_cameraManager.getActiveCameraId();
     if (camEntityId == INVALID_ENTITY) return INVALID_ENTITY;
 
-    Camera* cam = _componentRegistry.getComponent<Camera>(camEntityId);
-    Transform* camTransform = _componentRegistry.getComponent<Transform>(camEntityId);
+    Camera* cam = this->_componentRegistry.getComponent<Camera>(camEntityId);
+    Transform* camTransform = this->_componentRegistry.getComponent<Transform>(camEntityId);
     if (!cam || !camTransform) return INVALID_ENTITY;
 
     glm::mat4 proj;
@@ -161,25 +161,25 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
     EntityID closest = INVALID_ENTITY;
     float closestT = std::numeric_limits<float>::max();
 
-    for (EntityID id : _entityManager.getAllEntities()) {
-        if (id == INVALID_ENTITY || _componentRegistry.hasComponent<Camera>(id)) continue;
+    for (EntityID id : this->_entityManager.getAllEntities()) {
+        if (id == INVALID_ENTITY || this->_componentRegistry.hasComponent<Camera>(id)) continue;
 
-        Transform* t = _componentRegistry.getComponent<Transform>(id);
-        Selectable* s = _componentRegistry.getComponent<Selectable>(id);
+        Transform* t = this->_componentRegistry.getComponent<Transform>(id);
+        Selectable* s = this->_componentRegistry.getComponent<Selectable>(id);
         if (!t || !s) continue;
 
         glm::mat4 transformMatrix = _getOrComputeTransformMatrix(t);
         glm::vec3 localMin, localMax;
 
-        if (Box* box = _componentRegistry.getComponent<Box>(id)) {
+        if (Box* box = this->_componentRegistry.getComponent<Box>(id)) {
             glm::vec3 half = box->dimensions * 0.5f;
             localMin = -half;
             localMax = half;
-        } else if (Sphere* sphere = _componentRegistry.getComponent<Sphere>(id)) {
+        } else if (Sphere* sphere = this->_componentRegistry.getComponent<Sphere>(id)) {
             glm::vec3 half(sphere->radius);
             localMin = -half;
             localMax = half;
-        } else if (Plane* plane = _componentRegistry.getComponent<Plane>(id)) {
+        } else if (Plane* plane = this->_componentRegistry.getComponent<Plane>(id)) {
             glm::vec3 half(plane->size.x*0.5f, 0.5f, plane->size.y*0.5f);
             localMin = -half;
             localMax = half;
@@ -190,7 +190,7 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         }
 
         glm::vec3 worldMin, worldMax;
-        _transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
+        this->_transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
 
         std::cout << "Testing entity " << id
                 << " AABB: min=" << worldMin.x << "," << worldMin.y << "," << worldMin.z 
@@ -199,7 +199,7 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         float tHit = 0.0f;
         bool hit = false;
         try {
-            hit = _intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
+            hit = this->_intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
             if (hit) {
                 glm::vec3 hitPoint = rayOrigin + rayDir * tHit;
                 std::cout << "  -> HIT at t=" << tHit << " worldPos=(" << hitPoint.x << "," << hitPoint.y << "," << hitPoint.z << ")\n";
@@ -228,14 +228,14 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
 
 void SelectionSystem::_updateSelection(EntityID selected)
 {
-    if (selected != INVALID_ENTITY && !_entityManager.isEntityValid(selected)) {
+    if (selected != INVALID_ENTITY && !this->_entityManager.isEntityValid(selected)) {
         selected = INVALID_ENTITY;
     }
 
     std::vector<EntityID> changes;
 
-    for (EntityID id : _entityManager.getAllEntities()) {
-        Selectable* s = _componentRegistry.getComponent<Selectable>(id);
+    for (EntityID id : this->_entityManager.getAllEntities()) {
+        Selectable* s = this->_componentRegistry.getComponent<Selectable>(id);
         if (!s) continue;
 
         bool nowSelected = (id == selected);
@@ -247,16 +247,16 @@ void SelectionSystem::_updateSelection(EntityID selected)
 
     for (EntityID id : changes) {
         try {
-            if (_componentRegistry.getComponent<Selectable>(id)->isSelected) {
-                _eventManager.emit(SelectionEvent(id, true));
+            if (this->_componentRegistry.getComponent<Selectable>(id)->isSelected) {
+                this->_eventManager.emit(SelectionEvent(id, true));
             } else {
-                _eventManager.emit(SelectionEvent(id, false));
+                this->_eventManager.emit(SelectionEvent(id, false));
             }
         } catch (...) {}
     }
 
     if (changes.empty() && selected == INVALID_ENTITY) {
-        _eventManager.emit(SelectionEvent(INVALID_ENTITY, false));
+        this->_eventManager.emit(SelectionEvent(INVALID_ENTITY, false));
     }
 }
 
