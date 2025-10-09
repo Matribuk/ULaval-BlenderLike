@@ -222,7 +222,7 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         std::cout << "[SelectionSystem] No primitive touched\n";
     }
 
-    _updateSelection(closest);
+    this->_updateSelection(closest);
     return closest;
 }
 
