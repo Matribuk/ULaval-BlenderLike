@@ -30,6 +30,8 @@
 
 class ViewportManager;
 
+class ViewportManager;
+
 class SelectionSystem {
     public:
         SelectionSystem(
