@@ -124,9 +124,15 @@
 - [x] Ray casting pour sélection 3D
 - [x] Mise à jour composants Selectable
 - [x] Émission SelectionEvents
+<<<<<<< HEAD
 - [x] S'active seulement en select mode
 - [x] Bounding boxes
 - [x] Gère tout type de mesh
+=======
+- [ ] S'active seulement en select mode
+- [x] Bounding boxes
+- [ ] Gère tout type de mesh
+>>>>>>> 12041cd ([FIX] update readme tasks)
 - [ ] Select seulement des objets visibles
 
 ### Systems/TransformSystem.h
