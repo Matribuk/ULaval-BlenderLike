@@ -97,16 +97,6 @@ void ActionManager::registerAllActions()
     this->_registerShortcuts();
 }
 
-void ActionManager::setSelectedEntity(EntityID entity)
-{
-    this->_selectedEntity = entity;
-}
-
-EntityID ActionManager::getSelectedEntity() const
-{
-    return this->_selectedEntity;
-}
-
 void ActionManager::_registerKeyboardActions()
 {
     auto& input = InputManager::get();
