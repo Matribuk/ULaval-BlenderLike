@@ -3,6 +3,7 @@
 // Components
 #include "Components/Transform.hpp"
 #include "Components/Renderable.hpp"
+#include "Components/Selectable.hpp"
 
 // Core
 #include "Core/ComponentRegistry/ComponentRegistry.hpp"

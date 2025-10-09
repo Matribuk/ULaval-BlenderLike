@@ -7,22 +7,22 @@
 #include "Core/Entity/Entity.hpp"
 #include "Core/ComponentRegistry/ComponentRegistry.hpp"
 
+// System
+#include "Systems/SelectionSystem/SelectionSystem.hpp"
+
 #include "ofxImGui.h"
 
 class ColorPalette {
     public:
-        ColorPalette(EntityID entityId, ComponentRegistry& _componentRegistry);
+        ColorPalette(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem);
 
         void render();
 
-        void setSelectedColor(ofColor color);
+        void setSelectedColor(ofColor color, Renderable* renderable);
         const ofColor& getSelectedColor() const ;
-
-        void setEntity(EntityID entityId);
 
     private:
         ofColor _color;
-        EntityID _entityId;
         ComponentRegistry& _componentRegistry;
-        Renderable* _renderable;
+        SelectionSystem& _selectionSystem;
 };

@@ -53,6 +53,13 @@ bool Viewport::render()
         renderScene();
 
         if (this->_fboInitialized && this->_fbo.isAllocated()) {
+            ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+
+            this->_rect.x = cursorPos.x;
+            this->_rect.y = cursorPos.y;
+            this->_rect.width = viewportSize.x;
+            this->_rect.height = viewportSize.y;
+
             GLuint texID = this->_fbo.getTexture().getTextureData().textureID;
             ImGui::Image((ImTextureID)(uintptr_t)texID, viewportSize, ImVec2(0,1), ImVec2(1,0));
         }

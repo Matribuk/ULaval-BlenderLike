@@ -7,7 +7,6 @@
 #include "Systems/CameraSystem/CameraSystem.hpp"
 #include "Systems/RenderSystem/RenderSystem.hpp"
 
-#include <ofMain.h>
 #include "ofxImGui.h"
 
 class Viewport {

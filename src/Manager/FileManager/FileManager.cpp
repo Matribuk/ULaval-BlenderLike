@@ -57,6 +57,7 @@ std::pair<EntityID, std::string> FileManager::importMesh(const std::string& file
         ));
 
         this->_componentRegistry.registerComponent(entity.getId(), Renderable(mesh, ofColor::white));
+        this->_componentRegistry.registerComponent(entity.getId(), Selectable());
     }
 
     return {entity.getId(), fileName};

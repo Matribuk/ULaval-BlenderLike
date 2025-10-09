@@ -5,6 +5,7 @@
 
 #include "Systems/PrimitiveSystem/PrimitiveSystem.hpp"
 #include "Systems/CameraSystem/CameraSystem.hpp"
+#include "Systems/SelectionSystem/SelectionSystem.hpp"
 
 #include "Manager/InputManager/InputManager.hpp"
 #include "Manager/FileManager/FileManager.hpp"
@@ -34,6 +35,7 @@ class ActionManager {
             EventManager& eventManager,
             ViewportManager& viewportManager,
             CameraManager& cameraManager,
+            SelectionSystem& selectionSystem,
             std::vector<EntityID>& testEntities
         );
 
@@ -41,9 +43,6 @@ class ActionManager {
         void updateCameraAction(Toolbar* toolbar = nullptr);
 
         void registerAllActions();
-
-        void setSelectedEntity(EntityID entity);
-        EntityID getSelectedEntity() const;
 
     private:
         bool _isIsolated = false;
@@ -63,6 +62,7 @@ class ActionManager {
         EventManager& _eventManager;
         ViewportManager& _viewportManager;
         CameraManager& _cameraManager;
+        SelectionSystem& _selectionSystem;
         std::vector<EntityID>& _testEntities;
 
         EntityID _selectedEntity = INVALID_ENTITY;

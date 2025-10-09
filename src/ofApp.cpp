@@ -53,19 +53,29 @@ void ofApp::setup()
         }
     });
 
+    this->_viewportManager = std::make_unique<ViewportManager>(*this->_sceneManager);
+
+    this->_selectionSystem = std::make_unique<SelectionSystem>(
+        this->_componentRegistry,
+        this->_entityManager,
+        this->_eventManager,
+        *this->_cameraManager,
+        *this->_viewportManager
+    );
+    this->_selectionSystem->setup();
+
     this->_toolbar->setExportCallback([this]() {
-        if (this->_selectedEntity != INVALID_ENTITY) {
-            this->_fileManager->exportMesh(this->_selectedEntity, "export.obj");
+        if (this->_selectionSystem->getSelectedEntity() != INVALID_ENTITY) {
+            this->_fileManager->exportMesh(this->_selectionSystem->getSelectedEntity(), "export.obj");
         }
     });
 
-    this->_materialPanel = std::make_unique<MaterialPanel>(this->_componentRegistry);
-    this->_tranformPanel = std::make_unique<TranformPanel>(this->_componentRegistry);
-    this->_colorPalette = std::make_unique<ColorPalette>(this->_selectedEntity, this->_componentRegistry);
+    this->_materialPanel = std::make_unique<MaterialPanel>(this->_componentRegistry, *this->_selectionSystem);
+    this->_tranformPanel = std::make_unique<TranformPanel>(this->_componentRegistry, *this->_selectionSystem);
+    this->_colorPalette = std::make_unique<ColorPalette>(this->_componentRegistry, *this->_selectionSystem);
 
     this->_fileManager = std::make_unique<FileManager>(this->_componentRegistry, this->_entityManager);
 
-    this->_viewportManager = std::make_unique<ViewportManager>(*this->_sceneManager);
     this->_viewportManager->createViewport(*this->_cameraManager, *this->_renderSystem, glm::vec3{0, 5, 10});
 
     this->_propertiesManager = std::make_unique<PropertiesManager>(*this->_tranformPanel, *this->_materialPanel, *this->_colorPalette, *this->_sceneManager);
@@ -78,6 +88,7 @@ void ofApp::setup()
         this->_eventManager,
         *this->_viewportManager,
         *this->_cameraManager,
+        *this->_selectionSystem,
         this->_testEntities
     );
     this->_actionManager->registerAllActions();
@@ -102,7 +113,6 @@ void ofApp::_setupSystems()
     this->_cameraSystem = std::make_unique<CameraSystem>(this->_componentRegistry, *this->_transformSystem);
     this->_cameraManager = std::make_unique<CameraManager>(this->_componentRegistry, this->_entityManager, *this->_cameraSystem);
     this->_renderSystem = std::make_unique<RenderSystem>(this->_componentRegistry, this->_entityManager, *this->_cameraManager);
-
     this->_addLog("All systems initialized", ofColor::green);
 }
 
@@ -113,6 +123,7 @@ void ofApp::_setupScene()
     this->_componentRegistry.registerComponent(boxEntity.getId(), Box(glm::vec3(1.5f, 1.5f, 1.5f)));
     this->_componentRegistry.registerComponent(boxEntity.getId(), Renderable(ofMesh(), ofColor::red));
     this->_sceneManager->registerEntity(boxEntity.getId(), "Box");
+    this->_componentRegistry.registerComponent(boxEntity.getId(), Selectable());
     this->_testEntities.push_back(boxEntity.getId());
     this->_addLog("Box entity created (ID: " + ofToString(boxEntity.getId()) + ")", ofColor::magenta);
 
@@ -121,6 +132,7 @@ void ofApp::_setupScene()
     this->_componentRegistry.registerComponent(sphereEntity.getId(), Sphere(1.2f));
     this->_componentRegistry.registerComponent(sphereEntity.getId(), Renderable(ofMesh(), ofColor::green));
     this->_sceneManager->registerEntity(sphereEntity.getId(), "Sphere");
+    this->_componentRegistry.registerComponent(sphereEntity.getId(), Selectable());
     this->_testEntities.push_back(sphereEntity.getId());
     this->_addLog("Sphere entity created (ID: " + ofToString(sphereEntity.getId()) + ")", ofColor::magenta);
 
@@ -129,6 +141,7 @@ void ofApp::_setupScene()
     this->_componentRegistry.registerComponent(planeEntity.getId(), Plane(glm::vec2(2.0f, 2.0f)));
     this->_componentRegistry.registerComponent(planeEntity.getId(), Renderable(ofMesh(), ofColor::blue));
     this->_sceneManager->registerEntity(planeEntity.getId(), "Plane");
+    this->_componentRegistry.registerComponent(planeEntity.getId(), Selectable());
     this->_testEntities.push_back(planeEntity.getId());
     this->_addLog("Plane entity created (ID: " + ofToString(planeEntity.getId()) + ")", ofColor::magenta);
 
@@ -192,19 +205,8 @@ void ofApp::_setupEventSubscribers()
         this->_addLog(ss.str(), ofColor::lime);
         this->_selectionEventCount++;
 
-        this->_selectedEntity = e.selected ? e.entityID : 0;
 
-        this->_actionManager->setSelectedEntity(this->_selectedEntity);
-
-        if (this->_selectedEntity != INVALID_ENTITY) {
-            this->_colorPalette->setEntity(this->_selectedEntity);
-            this->_tranformPanel->setSelectedEntity(this->_selectedEntity);
-            this->_materialPanel->setSelectedEntity(this->_selectedEntity);
-        } else {
-            this->_colorPalette.reset();
-            this->_tranformPanel->unsetSelectedEntity();
-            this->_materialPanel->unsetSelectedEntity();
-        }
+        if (e.selected) this->_selectionSystem->setSelectedEntity(e.entityID);
     });
 
     this->_eventManager.subscribe<CameraEvent>([this](const CameraEvent& e) {
@@ -230,7 +232,7 @@ void ofApp::update()
     auto& input = InputManager::get();
 
     for (EntityID id : this->_testEntities) {
-        if (id == this->_selectedEntity) continue;
+        if (id == this->_selectionSystem->getSelectedEntity()) continue;
         Transform* t = this->_componentRegistry.getComponent<Transform>(id);
         if (t)
             this->_transformSystem->markDirty(id);

@@ -118,12 +118,15 @@
 
 ### Systems/SelectionSystem.h
 
-- [ ] Référence vers ComponentRegistry et EventManager
-- [ ] Subscribe aux MouseEvents
-- [ ] Méthode `handleMouseClick(MouseEvent)`
-- [ ] Ray casting pour sélection 3D
-- [ ] Mise à jour composants Selectable
-- [ ] Émission SelectionEvents
+- [x] Référence vers ComponentRegistry et EventManager
+- [x] Subscribe aux MouseEvents
+- [x] Méthode `handleMouseClick(MouseEvent)`
+- [x] Ray casting pour sélection 3D
+- [x] Mise à jour composants Selectable
+- [x] Émission SelectionEvents
+- [ ] S'active seuelement en select mode
+- [ ] Bounding boxes
+- [ ] Gère tout type de mesh
 
 ### Systems/TransformSystem.h
 
