@@ -1,0 +1,89 @@
+# 🧩 TODO List – Fonctionnalités à implémenter
+
+## 🎨 1. Import / Export & Couleur
+
+### 1.1 Importation d’images
+- [ ] En cours d’exécution, possibilité d’importer des fichiers images de manière interactive
+- [ ] Affichage de ces images dans la scène sous une forme visuelle (sprite, texture, plan, etc.)
+
+### 1.2 Exportation d’images
+- [ ] En cours d’exécution, export interactif de séquences d’images correspondant au rendu de la scène
+- [ ] Définir un intervalle de temps pour la séquence
+- [ ] Sauvegarde automatique dans un dossier défini par l’utilisateur
+
+### 1.4 Palette de couleur
+- [ ] Création d’une palette personnalisée d’au moins 4 couleurs
+- [ ] Possibilité de réutiliser ces couleurs pour colorer des éléments visuels
+- [ ] Interface de sélection et modification des couleurs
+
+---
+
+## 🖱️ 2. Outils et Interaction
+
+### 2.1 Curseur dynamique
+- [ ] Minimum 5 représentations visuelles du curseur
+- [ ] Changement du curseur selon l’état de l’application (dessin, sélection, transformation, etc.)
+
+### 2.2 Outils de dessin
+- [ ] Modification interactive :
+  - [ ] Épaisseur des contours
+  - [ ] Couleur des contours
+  - [ ] Couleur de remplissage
+  - [ ] Couleur d’arrière-plan
+- [ ] Support des modes RGB et HSB
+
+### 2.3 Primitives vectorielles
+- [ ] Création interactive d’au moins **6 types de primitives** parmi :
+  - point, ligne, carré, rectangle, triangle, quadrilatère,
+    polygone régulier / irrégulier, cercle, ellipse, arc
+
+---
+
+## 🧠 3. Sélection et Transformation
+
+### 3.2 Sélection multiple
+- [ ] Sélection de plusieurs éléments visuels simultanément
+- [ ] Modification simultanée des attributs communs
+
+### 3.3 Transformations interactives
+- [x] Translation
+- [x] Rotation
+- [x] Mise à l’échelle (scale)
+- [ ] Manipulation directe dans la scène (gizmo, handles)
+
+### 3.4 Historique de transformation
+- [ ] Annuler et refaire les actions (undo / redo)
+- [ ] Historiser toutes les modifications d’attributs ou transformations
+
+---
+
+## 🧱 4. 3D et Géométrie
+
+### 4.1 Boîte de délimitation
+- [ ] Affichage d’un bounding box autour de chaque modèle 3D
+- [ ] Taille ajustée automatiquement à chaque modèle
+
+### 4.2 Primitives géométriques
+- [ ] Génération procédurale d’au moins 2 primitives 3D (ex: cube, sphère, cylindre, cône)
+- [ ] Aucun fichier externe requis
+
+### 4.3 Modèles 3D
+- [x] Importation et affichage d’au moins 3 types de modèles 3D externes (OBJ, PLY, STL, etc.)
+- [ ] Gestion des matériaux et textures
+
+---
+
+## 🎥 5. Caméras et Navigation
+
+### 5.1 Caméra interactive
+- [x] Mouvement intuitif (orbit, pan, zoom)
+- [x] Contrôle fluide via clavier/souris
+
+### 5.2 Caméras multiples
+- [x] Support de plusieurs caméras distinctes
+- [x] Chacune possède ses propres attributs
+- [ ] Modes perspective et orthographique
+
+### 5.4 Focus automatique
+- [x] Focus automatique sur la sélection
+- [ ] Vue recentrée avec cadrage optimal

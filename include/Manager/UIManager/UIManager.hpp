@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UI/ToolBar/ToolBar.hpp"
+#include "UI/Toolbar/Toolbar.hpp"
 
 #include "Manager/ViewportManager/ViewportManager.hpp"
 #include "Manager/PropertiesManager/PropertiesManager.hpp"

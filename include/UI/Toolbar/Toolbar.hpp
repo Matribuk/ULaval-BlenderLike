@@ -6,6 +6,11 @@
 #include <string>
 #include "ofGraphics.h"
 
+enum class ToolMode {
+    Select,
+    Move
+};
+
 struct ToolButton {
     std::string name;
     std::vector<std::function<void(const std::any&)>> action;
@@ -24,8 +29,10 @@ class Toolbar {
         void setSelectedTool(int tool);
         void addTool(ToolButton);
 
-        void setImportCallback(std::function<void()> callback) { _onImport = callback; }
-        void setExportCallback(std::function<void()> callback) { _onExport = callback; }
+        void setImportCallback(std::function<void()> callback);
+        void setExportCallback(std::function<void()> callback);
+
+        ToolMode getActiveToolMode() const;
 
     private:
         void _applyCursor();

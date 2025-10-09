@@ -2,43 +2,81 @@
 
 ActionManager::ActionManager(
     EntityManager& entityManager, ComponentRegistry& componentRegistry, PrimitiveSystem& primitiveSystem,
-    FileManager& fileManager, EventManager& eventManager, ViewportManager& viewportManager, std::vector<EntityID>& testEntities
+    FileManager& fileManager, EventManager& eventManager, ViewportManager& viewportManager, CameraManager& cameraManager,
+    std::vector<EntityID>& testEntities
 ) : _entityManager(entityManager), _componentRegistry(componentRegistry), _primitiveSystem(primitiveSystem),
-    _fileManager(fileManager), _eventManager(eventManager), _viewportManager(viewportManager), _testEntities(testEntities) {}
+    _fileManager(fileManager), _eventManager(eventManager), _viewportManager(viewportManager), _cameraManager(cameraManager),
+    _testEntities(testEntities) {}
 
-void ActionManager::updateCameraAction(std::unique_ptr<CameraManager>& cameraManager)
+void ActionManager::updateCameraAction(Toolbar* toolbar)
 {
     auto& input = InputManager::get();
 
-    EntityID cameraToControl = cameraManager->getActiveCameraId();
+    EntityID cameraToControl = this->_cameraManager.getActiveCameraId();
 
     Viewport* activeViewport = this->_viewportManager.getActiveViewport();
     if (activeViewport && activeViewport->getCamera() != INVALID_ENTITY)
         cameraToControl = activeViewport->getCamera();
 
     if (cameraToControl != INVALID_ENTITY) {
-        cameraManager->getActiveCameraId();
-        cameraManager->setActiveCamera(cameraToControl);
+        EntityID previousActive = this->_cameraManager.getActiveCameraId();
+        this->_cameraManager.setActiveCamera(cameraToControl);
 
-        if (input.isKeyPressed('q')) cameraManager->pan(glm::vec3(1.0f, 0.0f, 0.0f));
-        if (input.isKeyPressed('d')) cameraManager->pan(glm::vec3(-1.0f, 0.0f, 0.0f));
-        if (input.isKeyPressed('z')) cameraManager->pan(glm::vec3(0.0f, 0.0f, 1.0f));
-        if (input.isKeyPressed('s')) cameraManager->pan(glm::vec3(0.0f, 0.0f, -1.0f));
-        if (input.isKeyPressed(OF_KEY_SPACE)) cameraManager->pan(glm::vec3(0.0f, 1.0f, 0.0f));
-        if (input.isKeyPressed(OF_KEY_LEFT_SHIFT)) cameraManager->pan(glm::vec3(0.0f, -1.0f, 0.0f));
+        if (activeViewport && activeViewport->isMouseDragging()) {
+            ToolMode mode = toolbar ? toolbar->getActiveToolMode() : ToolMode::Select;
 
-        if (input.isKeyPressed(OF_KEY_DOWN)) cameraManager->rotate(glm::vec2(0.0f, 1.0f));
-        if (input.isKeyPressed(OF_KEY_LEFT)) cameraManager->rotate(glm::vec2(-1.0f, 0.0f));
-        if (input.isKeyPressed(OF_KEY_UP)) cameraManager->rotate(glm::vec2(0.0f, -1.0f));
-        if (input.isKeyPressed(OF_KEY_RIGHT)) cameraManager->rotate(glm::vec2(1.0f, 0.0f));
+            if (mode == ToolMode::Move) {
+                glm::vec2 dragDelta = activeViewport->getMouseDragDelta();
 
-        if (input.isKeyPressed('k')) cameraManager->zoom(1.0f);
-        if (input.isKeyPressed('l')) cameraManager->zoom(-1.0f);
-        if (input.isKeyPressed('f')) cameraManager->focusTarget(cameraToControl);
+                float sensitivity = 0.000005f;
+                glm::vec3 movement(
+                    dragDelta.x * sensitivity,
+                    dragDelta.y * sensitivity,
+                    0.0f
+                );
+
+                Transform* t = this->_componentRegistry.getComponent<Transform>(cameraToControl);
+                if (t) {
+                    if (input.isMouseButtonPressed(0)) {
+                        glm::vec3 panMovement( dragDelta.x, dragDelta.y, 0.0f);
+
+                        this->_cameraManager.pan(panMovement);
+                    } else if (input.isMouseButtonPressed(1)) {
+                        glm::vec2 rotateMovement(dragDelta.x, -dragDelta.y);
+
+                        this->_cameraManager.rotate(rotateMovement);
+                    } else if (input.isMouseButtonPressed(2)) {
+                        glm::vec3 panMovement(0.0f, 0.0f, dragDelta.y);
+
+                        this->_cameraManager.pan(panMovement);
+                    }
+                }
+            }
+        }
+
+        if (input.isKeyPressed('q')) this->_cameraManager.pan(glm::vec3(1.0f, 0.0f, 0.0f));
+        if (input.isKeyPressed('d')) this->_cameraManager.pan(glm::vec3(-1.0f, 0.0f, 0.0f));
+        if (input.isKeyPressed('z')) this->_cameraManager.pan(glm::vec3(0.0f, 0.0f, 1.0f));
+        if (input.isKeyPressed('s')) this->_cameraManager.pan(glm::vec3(0.0f, 0.0f, -1.0f));
+        if (input.isKeyPressed(OF_KEY_SPACE)) this->_cameraManager.pan(glm::vec3(0.0f, 1.0f, 0.0f));
+        if (input.isKeyPressed(OF_KEY_LEFT_SHIFT)) this->_cameraManager.pan(glm::vec3(0.0f, -1.0f, 0.0f));
+
+        if (input.isKeyPressed(OF_KEY_DOWN)) this->_cameraManager.rotate(glm::vec2(0.0f, 1.0f));
+        if (input.isKeyPressed(OF_KEY_LEFT)) this->_cameraManager.rotate(glm::vec2(-1.0f, 0.0f));
+        if (input.isKeyPressed(OF_KEY_UP)) this->_cameraManager.rotate(glm::vec2(0.0f, -1.0f));
+        if (input.isKeyPressed(OF_KEY_RIGHT)) this->_cameraManager.rotate(glm::vec2(1.0f, 0.0f));
+
+        if (input.isKeyPressed('+')) this->_cameraManager.zoom(1.0f);
+        if (input.isKeyPressed('-')) this->_cameraManager.zoom(-1.0f);
+        if (input.isKeyPressed('f')) this->_cameraManager.focusTarget(cameraToControl);
+
+        if (previousActive != INVALID_ENTITY)
+            this->_cameraManager.setActiveCamera(previousActive);
     }
+
     if (input.isKeyPressed('j')) {
-        cameraManager->switchCamera();
-        this->_viewportManager.getActiveViewport()->setCamera(cameraManager->getActiveCameraId());
+        this->_cameraManager.switchCamera();
+        this->_viewportManager.getActiveViewport()->setCamera(this->_cameraManager.getActiveCameraId());
     }
 }
 

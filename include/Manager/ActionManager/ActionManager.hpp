@@ -19,6 +19,8 @@
 #include "Events/EventTypes/Events/SelectionEvent.hpp"
 #include "Events/EventManager/EventManager.hpp"
 
+#include "UI/Toolbar/Toolbar.hpp"
+
 #include <vector>
 #include <functional>
 
@@ -31,10 +33,11 @@ class ActionManager {
             FileManager& fileManager,
             EventManager& eventManager,
             ViewportManager& viewportManager,
+            CameraManager& cameraManager,
             std::vector<EntityID>& testEntities
         );
 
-        void updateCameraAction(std::unique_ptr<CameraManager>& cameraManager);
+        void updateCameraAction(Toolbar* toolbar = nullptr);
 
         void registerAllActions();
 
@@ -46,6 +49,7 @@ class ActionManager {
         void _selectEntity(int index);
         void _registerKeyboardActions();
         void _registerShortcuts();
+        void _registerMouseActions();
 
         EntityManager& _entityManager;
         ComponentRegistry& _componentRegistry;
@@ -53,6 +57,7 @@ class ActionManager {
         FileManager& _fileManager;
         EventManager& _eventManager;
         ViewportManager& _viewportManager;
+        CameraManager& _cameraManager;
         std::vector<EntityID>& _testEntities;
 
         EntityID _selectedEntity = INVALID_ENTITY;
