@@ -29,6 +29,7 @@ class Toolbar {
         void setSelectedTool(int tool);
         void addTool(ToolButton);
 
+        void setToggleProjectionCallback(std::function<void()> callback);
         void setImportCallback(std::function<void()> callback);
         void setExportCallback(std::function<void()> callback);
 
@@ -38,6 +39,7 @@ class Toolbar {
         void _applyCursor();
         void _renderToolButton(size_t index, const ImVec2& size);
 
+        std::function<void()> _onToggleProjection;
         std::function<void()> _onImport;
         std::function<void()> _onExport;
 

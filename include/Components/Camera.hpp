@@ -4,6 +4,7 @@
 #include <glm/mat4x4.hpp>
 
 struct Camera {
+    bool isOrtho = false;
     glm::vec3 forward{0.0f, 0.0f, -1.0f};
     glm::vec3 up{0.0f, 1.0f, 0.0f};
 
@@ -17,6 +18,10 @@ struct Camera {
     float farClip{1000.0f};
 
     float aspectRatio{1.0f};
+
+    float orthoScale{10.0f};
+    float minOrthoScale{0.5f};
+    float maxOrthoScale{100.0f};
 
     glm::mat4 viewMatrix{1.0f};
     glm::mat4 projMatrix{1.0f};

@@ -31,6 +31,9 @@ class CameraManager {
         EntityID getActiveCameraId() const;
         EntityID getCameraAtIndex(int index) const;
 
+        void toggleProjection(EntityID cameraId);
+        void setProjection(EntityID cameraId, bool isOrtho);
+
     private:
         ComponentRegistry &_componentRegistry;
         EntityManager &_entityManager;

@@ -4,6 +4,43 @@ CameraSystem::CameraSystem(ComponentRegistry& registry, TransformSystem& transfo
     : _componentRegistry(registry), _transformSystem(transformSystem)
 {}
 
+void CameraSystem::update(std::vector<EntityID> cameraEntities, int viewportWidth, int viewportHeight)
+{
+    for (EntityID id : cameraEntities)
+    {
+        Camera *cam = this->_componentRegistry.getComponent<Camera>(id);
+        Transform *transform = this->_componentRegistry.getComponent<Transform>(id);
+        if (cam && transform)
+        {
+            cam->aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
+
+            if (cam->focusMode)
+                cam->viewMatrix = glm::lookAt(transform->position, cam->target, cam->up);
+            else
+                cam->viewMatrix = glm::lookAt(transform->position, transform->position + cam->forward, cam->up);
+
+            if (cam->isOrtho) {
+                float halfWidth = cam->orthoScale * cam->aspectRatio;
+                float halfHeight = cam->orthoScale;
+
+                cam->projMatrix = glm::ortho(
+                    -halfWidth, halfWidth,
+                    -halfHeight, halfHeight,
+                    cam->nearClip,
+                    cam->farClip
+                );
+            } else {
+                cam->projMatrix = glm::perspective(
+                    glm::radians(cam->fov),
+                    cam->aspectRatio,
+                    cam->nearClip,
+                    cam->farClip
+                );
+            }
+        }
+    }
+}
+
 void CameraSystem::pan(EntityID camEntity, glm::vec3 vect)
 {
     Camera* cam = this->_componentRegistry.getComponent<Camera>(camEntity);
@@ -13,7 +50,7 @@ void CameraSystem::pan(EntityID camEntity, glm::vec3 vect)
     this->_transformSystem.setCameraPosition(camEntity, vect * cam->panSensitivity);
 
     cam->forward = this->_transformSystem.getForward(camEntity);
-    cam->up      = this->_transformSystem.getUp(camEntity);
+    cam->up = this->_transformSystem.getUp(camEntity);
 }
 
 void CameraSystem::rotate(EntityID camEntity, glm::vec2 vect)
@@ -24,7 +61,7 @@ void CameraSystem::rotate(EntityID camEntity, glm::vec2 vect)
     this->_transformSystem.setCameraRotation(camEntity, vect * cam->rotateSensitivity);
 
     cam->forward = this->_transformSystem.getForward(camEntity);
-    cam->up      = this->_transformSystem.getUp(camEntity);
+    cam->up = this->_transformSystem.getUp(camEntity);
 }
 
 void CameraSystem::zoom(EntityID camEntity, float amount)
@@ -32,10 +69,17 @@ void CameraSystem::zoom(EntityID camEntity, float amount)
     float deltaTime = ofGetLastFrameTime();
     Camera *cam = this->_componentRegistry.getComponent<Camera>(camEntity);
     Transform *transform = this->_componentRegistry.getComponent<Transform>(camEntity);
+    if (!cam || !transform) return;
 
-    float newFov = cam->fov - deltaTime * amount * cam->zoomSensitivity;
-    newFov = glm::clamp(newFov, cam->minFov, cam->maxFov);
-    cam->fov = newFov;
+    if (cam->isOrtho) {
+        float zoomFactor = 1.0f - (amount * deltaTime * 0.1f);
+        cam->orthoScale *= zoomFactor;
+        cam->orthoScale = glm::clamp(cam->orthoScale, cam->minOrthoScale, cam->maxOrthoScale);
+    } else {
+        float newFov = cam->fov - deltaTime * amount * cam->zoomSensitivity;
+        newFov = glm::clamp(newFov, cam->minFov, cam->maxFov);
+        cam->fov = newFov;
+    }
 
     if (cam->focusMode) {
         cam->viewMatrix = glm::lookAt(
@@ -43,30 +87,6 @@ void CameraSystem::zoom(EntityID camEntity, float amount)
             cam->target,
             cam->up
         );
-    }
-}
-
-void CameraSystem::update(std::vector<EntityID> cameraEntities, int viewportWidth, int viewportHeight)
-{
-    for (EntityID id : cameraEntities)
-    {
-        Camera *cam = this->_componentRegistry.getComponent<Camera>(id);
-        Transform *transform = this->_componentRegistry.getComponent<Transform>(id);
-        if (cam && transform)
-        {
-            cam->aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
-            if (cam->focusMode)
-                cam->viewMatrix = glm::lookAt(transform->position, cam->target, cam->up);
-            else
-                cam->viewMatrix = glm::lookAt(transform->position, transform->position + cam->forward, cam->up);
-
-            cam->projMatrix = glm::perspective(
-                glm::radians(cam->fov),
-                cam->aspectRatio,
-                cam->nearClip,
-                cam->farClip
-            );
-        }
     }
 }
 

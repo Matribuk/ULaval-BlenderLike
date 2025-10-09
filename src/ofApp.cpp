@@ -24,6 +24,17 @@ void ofApp::setup()
     this->_setupScene();
 
     this->_toolbar = std::make_unique<Toolbar>();
+
+    this->_toolbar->setToggleProjectionCallback([this]() {
+        Viewport* activeViewport = this->_viewportManager->getActiveViewport();
+        if (activeViewport) {
+            EntityID cameraId = activeViewport->getCamera();
+            if (cameraId != INVALID_ENTITY) {
+                this->_cameraManager->toggleProjection(cameraId);
+            }
+        }
+    });
+
     this->_toolbar->setImportCallback([this]() {
         ofFileDialogResult result = ofSystemLoadDialog("Choisir un modèle à importer", false);
 
@@ -283,7 +294,7 @@ void ofApp::_drawInstructions()
         ImGui::TextWrapped(
             "Press any KEY to test KeyEvent\n"
             "Move MOUSE to test MouseEvent\n"
-            "Click MOUSE buttons to test\n"
+            "Press P for switch camera mode\n"
             "CTRL+Z do nothing for now\n"
             "CTRL+Y do nothing for now\n"
             "In MOVE mode left click to move\n"

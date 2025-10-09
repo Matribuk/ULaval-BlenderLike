@@ -28,7 +28,7 @@ void ActionManager::updateCameraAction(Toolbar* toolbar)
             if (mode == ToolMode::Move) {
                 glm::vec2 dragDelta = activeViewport->getMouseDragDelta();
 
-                float sensitivity = 0.000005f;
+                float sensitivity = 0.05f;
                 glm::vec3 movement(
                     dragDelta.x * sensitivity,
                     dragDelta.y * sensitivity,
@@ -38,11 +38,11 @@ void ActionManager::updateCameraAction(Toolbar* toolbar)
                 Transform* t = this->_componentRegistry.getComponent<Transform>(cameraToControl);
                 if (t) {
                     if (input.isMouseButtonPressed(0)) {
-                        glm::vec3 panMovement( dragDelta.x, dragDelta.y, 0.0f);
+                        glm::vec3 panMovement(-dragDelta.x, dragDelta.y, 0.0f);
 
                         this->_cameraManager.pan(panMovement);
                     } else if (input.isMouseButtonPressed(1)) {
-                        glm::vec2 rotateMovement(dragDelta.x, -dragDelta.y);
+                        glm::vec2 rotateMovement(dragDelta.x, dragDelta.y);
 
                         this->_cameraManager.rotate(rotateMovement);
                     } else if (input.isMouseButtonPressed(2)) {
@@ -54,17 +54,17 @@ void ActionManager::updateCameraAction(Toolbar* toolbar)
             }
         }
 
-        if (input.isKeyPressed('q')) this->_cameraManager.pan(glm::vec3(1.0f, 0.0f, 0.0f));
-        if (input.isKeyPressed('d')) this->_cameraManager.pan(glm::vec3(-1.0f, 0.0f, 0.0f));
+        if (input.isKeyPressed('d')) this->_cameraManager.pan(glm::vec3(1.0f, 0.0f, 0.0f));
+        if (input.isKeyPressed('q')) this->_cameraManager.pan(glm::vec3(-1.0f, 0.0f, 0.0f));
         if (input.isKeyPressed('z')) this->_cameraManager.pan(glm::vec3(0.0f, 0.0f, 1.0f));
         if (input.isKeyPressed('s')) this->_cameraManager.pan(glm::vec3(0.0f, 0.0f, -1.0f));
         if (input.isKeyPressed(OF_KEY_SPACE)) this->_cameraManager.pan(glm::vec3(0.0f, 1.0f, 0.0f));
         if (input.isKeyPressed(OF_KEY_LEFT_SHIFT)) this->_cameraManager.pan(glm::vec3(0.0f, -1.0f, 0.0f));
 
         if (input.isKeyPressed(OF_KEY_DOWN)) this->_cameraManager.rotate(glm::vec2(0.0f, 1.0f));
-        if (input.isKeyPressed(OF_KEY_LEFT)) this->_cameraManager.rotate(glm::vec2(-1.0f, 0.0f));
+        if (input.isKeyPressed(OF_KEY_RIGHT)) this->_cameraManager.rotate(glm::vec2(-1.0f, 0.0f));
         if (input.isKeyPressed(OF_KEY_UP)) this->_cameraManager.rotate(glm::vec2(0.0f, -1.0f));
-        if (input.isKeyPressed(OF_KEY_RIGHT)) this->_cameraManager.rotate(glm::vec2(1.0f, 0.0f));
+        if (input.isKeyPressed(OF_KEY_LEFT)) this->_cameraManager.rotate(glm::vec2(1.0f, 0.0f));
 
         if (input.isKeyPressed('+')) this->_cameraManager.zoom(1.0f);
         if (input.isKeyPressed('-')) this->_cameraManager.zoom(-1.0f);
@@ -90,8 +90,13 @@ void ActionManager::_registerKeyboardActions()
 {
     auto& input = InputManager::get();
 
-    input.registerKeyAction('n', [this]() {
-        //just an example
+    input.registerKeyAction('p', [this]() {
+        Viewport* activeViewport = this->_viewportManager.getActiveViewport();
+        if (activeViewport) {
+            EntityID cameraId = activeViewport->getCamera();
+            if (cameraId != INVALID_ENTITY)
+                this->_cameraManager.toggleProjection(cameraId);
+        }
     });
 }
 

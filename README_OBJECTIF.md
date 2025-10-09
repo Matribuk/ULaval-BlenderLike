@@ -82,7 +82,7 @@
 ### 5.2 Caméras multiples
 - [x] Support de plusieurs caméras distinctes
 - [x] Chacune possède ses propres attributs
-- [ ] Modes perspective et orthographique
+- [x] Modes perspective et orthographique
 
 ### 5.4 Focus automatique
 - [x] Focus automatique sur la sélection
