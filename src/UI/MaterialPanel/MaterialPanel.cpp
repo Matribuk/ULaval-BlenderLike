@@ -28,21 +28,25 @@ void MaterialPanel::render()
     if (this->_entityId == INVALID_ENTITY)
         return;
 
-    if (this->_renderable && this->_renderable->material) {
-        ImGui::Text("Material:");
-
-        if (this->_renderable->material->shader)
-            ImGui::Text(" - Shader: Set");
-        else
-            ImGui::Text(" - Shader: None");
-
-        if (this->_renderable->material->texture)
-            ImGui::Text(" - Texture: Set");
-        else
-            ImGui::Text(" - Texture: None");
-
-        ImGui::Separator();
-
+    if (this->_renderable) {
         ImGui::Checkbox("Visible", &this->_renderable->visible);
+
+        if (this->_renderable->material) {
+            ImGui::Text("Material:");
+
+            if (this->_renderable->material->shader)
+                ImGui::Text(" - Shader: Set");
+            else
+                ImGui::Text(" - Shader: None");
+
+            if (this->_renderable->material->texture)
+                ImGui::Text(" - Texture: Set");
+            else
+                ImGui::Text(" - Texture: None");
+
+            ImGui::Separator();
+
+            ImGui::Checkbox("Visible", &this->_renderable->visible);
+        }
     }
 }

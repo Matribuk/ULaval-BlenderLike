@@ -81,6 +81,7 @@ void CameraManager::focusTarget(EntityID camEntity, EntityID targetEntity)
         camTransform->rotation.z = 0;
         camTransform->isDirty = true;
         cam->focusMode = false;
+        cam->targetEntity = INVALID_ENTITY;
         return;
     }
 
@@ -94,6 +95,7 @@ void CameraManager::focusTarget(EntityID camEntity, EntityID targetEntity)
         return;
 
     cam->target = targetPosition;
+    cam->targetEntity = targetEntity;
     cam->focusMode = true;
 
     cam->distanceToTarget = glm::length(camTransform->position - targetPosition);

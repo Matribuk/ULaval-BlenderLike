@@ -1,8 +1,7 @@
 #include "Systems/CameraSystem/CameraSystem.hpp"
 
 CameraSystem::CameraSystem(ComponentRegistry& registry, TransformSystem& transformSystem)
-    : _componentRegistry(registry), _transformSystem(transformSystem)
-{}
+    : _componentRegistry(registry), _transformSystem(transformSystem) {}
 
 void CameraSystem::update(std::vector<EntityID> cameraEntities, int viewportWidth, int viewportHeight)
 {
@@ -10,9 +9,30 @@ void CameraSystem::update(std::vector<EntityID> cameraEntities, int viewportWidt
     {
         Camera *cam = this->_componentRegistry.getComponent<Camera>(id);
         Transform *transform = this->_componentRegistry.getComponent<Transform>(id);
-        if (cam && transform)
-        {
+        if (cam && transform) {
             cam->aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
+
+            if (cam->focusMode && cam->targetEntity != INVALID_ENTITY) {
+                Transform* targetTransform = this->_componentRegistry.getComponent<Transform>(cam->targetEntity);
+                if (targetTransform) {
+                    cam->target = targetTransform->position;
+
+                    float cosYaw = cos(cam->yaw);
+                    float sinYaw = sin(cam->yaw);
+                    float cosPitch = cos(cam->pitch);
+                    float sinPitch = sin(cam->pitch);
+
+                    glm::vec3 offset(
+                        -cam->distanceToTarget * cosPitch * sinYaw,
+                        -cam->distanceToTarget * sinPitch,
+                        -cam->distanceToTarget * cosPitch * cosYaw
+                    );
+
+                    transform->position = cam->target + offset;
+                    transform->isDirty = true;
+                    cam->forward = glm::normalize(cam->target - transform->position);
+                }
+            }
 
             if (cam->focusMode)
                 cam->viewMatrix = glm::lookAt(transform->position, cam->target, cam->up);
