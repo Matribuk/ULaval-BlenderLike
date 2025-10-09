@@ -120,18 +120,31 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
     Transform* camTransform = _componentRegistry.getComponent<Transform>(camEntityId);
     if (!cam || !camTransform) return INVALID_ENTITY;
 
-    float viewportAspect = static_cast<float>(vpWidth) / static_cast<float>(vpHeight);
-    glm::mat4 proj = glm::perspective(glm::radians(cam->fov), viewportAspect, cam->nearClip, cam->farClip);
-    glm::mat4 view = cam->viewMatrix;
+    glm::mat4 proj;
+    if (fabs(glm::determinant(cam->projMatrix)) > 1e-8f) {
+        proj = cam->projMatrix;
+    } else {
+        float viewportAspect = static_cast<float>(vpWidth) / static_cast<float>(vpHeight);
+        if (cam->isOrtho) {
+            float halfWidth = cam->orthoScale * viewportAspect;
+            float halfHeight = cam->orthoScale;
+            proj = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, cam->nearClip, cam->farClip);
+        } else {
+            proj = glm::perspective(glm::radians(cam->fov), viewportAspect, cam->nearClip, cam->farClip);
+        }
+    }
 
-    std::cout << "[SelectionSystem] Viewport aspect: " << viewportAspect 
-              << " (was: " << cam->aspectRatio << ")\n";
+    glm::vec3 camPos = camTransform->position;
+    glm::vec3 forward = glm::normalize(cam->forward);
+    glm::vec3 upVec = glm::normalize(-cam->up);
+    glm::mat4 view = glm::lookAt(camPos, camPos + forward, upVec);
+
     if (fabs(glm::determinant(proj * view)) < 1e-8f) return INVALID_ENTITY;
 
     glm::mat4 invVP;
     try { invVP = glm::inverse(proj * view); } catch(...) { return INVALID_ENTITY; }
 
-    float ndcX = (localX / static_cast<float>(vpWidth)) * 2.0f - 1.0f;
+    float ndcX = 1.0f - (localX / static_cast<float>(vpWidth)) * 2.0f;
     float ndcY = (localY / static_cast<float>(vpHeight)) * 2.0f - 1.0f;
 
     glm::vec4 clipNear(ndcX, ndcY, -1.0f, 1.0f);
@@ -156,15 +169,6 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         if (!t || !s) continue;
 
         glm::mat4 transformMatrix = _getOrComputeTransformMatrix(t);
-
-        bool hasRotation = (t->rotation.x != 0.0f || t->rotation.y != 0.0f || t->rotation.z != 0.0f);
-        bool hasScale = (t->scale.x != 1.0f || t->scale.y != 1.0f || t->scale.z != 1.0f);
-        if (hasRotation || hasScale) {
-            std::cout << "  Entity " << id << " transform: pos=(" << t->position.x << "," << t->position.y << "," << t->position.z << ")"
-                      << " rot=(" << t->rotation.x << "," << t->rotation.y << "," << t->rotation.z << ")"
-                      << " scale=(" << t->scale.x << "," << t->scale.y << "," << t->scale.z << ")\n";
-        }
-
         glm::vec3 localMin, localMax;
 
         if (Box* box = _componentRegistry.getComponent<Box>(id)) {
@@ -188,9 +192,9 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         glm::vec3 worldMin, worldMax;
         _transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
 
-        std::cout << "Testing entity " << id 
-                  << " AABB: min=" << worldMin.x << "," << worldMin.y << "," << worldMin.z 
-                  << " max=" << worldMax.x << "," << worldMax.y << "," << worldMax.z << "\n";
+        std::cout << "Testing entity " << id
+                << " AABB: min=" << worldMin.x << "," << worldMin.y << "," << worldMin.z 
+                << " max=" << worldMax.x << "," << worldMax.y << "," << worldMax.z << "\n";
 
         float tHit = 0.0f;
         bool hit = false;
@@ -198,11 +202,10 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
             hit = _intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
             if (hit) {
                 glm::vec3 hitPoint = rayOrigin + rayDir * tHit;
-                std::cout << "  -> HIT at t=" << tHit << " worldPos=(" 
-                          << hitPoint.x << "," << hitPoint.y << "," << hitPoint.z << ")\n";
+                std::cout << "  -> HIT at t=" << tHit << " worldPos=(" << hitPoint.x << "," << hitPoint.y << "," << hitPoint.z << ")\n";
             }
-        } catch(...) { 
-            hit = false; 
+        } catch(...) {
+            hit = false;
         }
 
         if (hit && tHit < closestT) {
