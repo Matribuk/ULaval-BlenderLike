@@ -33,14 +33,12 @@ class SelectionSystem {
         SelectionSystem(
             ComponentRegistry& componentRegistry,
             EntityManager& entityManager,
-            EventManager& eventManager,
-            CameraManager& cameraManager,
-            ViewportManager& viewportManager
+            EventManager& eventManager
         );
 
         ~SelectionSystem() = default;
 
-        void setup();
+        void setupManagers(CameraManager& cameraManager, ViewportManager& viewportManager);
 
         EntityID getSelectedEntity();
         void setSelectedEntity(EntityID selectedEntity);
@@ -49,8 +47,8 @@ class SelectionSystem {
         ComponentRegistry& _componentRegistry;
         EntityManager& _entityManager;
         EventManager& _eventManager;
-        CameraManager& _cameraManager;
-        ViewportManager& _viewportManager;
+        CameraManager* _cameraManager = nullptr;
+        ViewportManager* _viewportManager = nullptr;
 
         EntityID _selectedEntity = 0;
 

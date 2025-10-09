@@ -4,20 +4,18 @@
 SelectionSystem::SelectionSystem(
     ComponentRegistry& registry,
     EntityManager& entityManager,
-    EventManager& eventManager,
-    CameraManager& cameraManager,
-    ViewportManager& viewportManager
+    EventManager& eventManager
 )
     : _componentRegistry(registry),
       _entityManager(entityManager),
-      _eventManager(eventManager),
-      _cameraManager(cameraManager),
-      _viewportManager(viewportManager)
+      _eventManager(eventManager)
 {
 }
 
-void SelectionSystem::setup()
+void SelectionSystem::setupManagers(CameraManager& cameraManager, ViewportManager& viewportManager)
 {
+    this->_cameraManager = &cameraManager;
+    this->_viewportManager = &viewportManager;
     this->_eventManager.subscribe<MouseEvent>([this](const MouseEvent& e) {
         if (e.type == MouseEventType::Pressed && e.button == 0) {
             this->_handleMouseEvent(e);
@@ -84,7 +82,7 @@ void SelectionSystem::_transformAABB(const glm::vec3& localMin, const glm::vec3&
 EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouseGlobalPos)
 {
     Viewport* vp = nullptr;
-    try { vp = this->_viewportManager.getActiveViewport(); } catch(...) { vp = nullptr; }
+    try { vp = this->_viewportManager->getActiveViewport(); } catch(...) { vp = nullptr; }
     if (!vp) return INVALID_ENTITY;
 
     ofRectangle rect;
@@ -100,7 +98,7 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
     if (vpWidth <= 0 || vpHeight <= 0) return INVALID_ENTITY;
 
     EntityID camEntityId = vp->getCamera();
-    if (camEntityId == INVALID_ENTITY) camEntityId = this->_cameraManager.getActiveCameraId();
+    if (camEntityId == INVALID_ENTITY) camEntityId = this->_cameraManager->getActiveCameraId();
     if (camEntityId == INVALID_ENTITY) return INVALID_ENTITY;
 
     Camera* cam = this->_componentRegistry.getComponent<Camera>(camEntityId);
