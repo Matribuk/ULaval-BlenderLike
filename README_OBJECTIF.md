@@ -69,7 +69,6 @@
 
 ### 4.3 Modèles 3D
 - [x] Importation et affichage d’au moins 3 types de modèles 3D externes (OBJ, PLY, STL, etc.)
-- [ ] Gestion des matériaux et textures
 
 ---
 
@@ -86,4 +85,4 @@
 
 ### 5.4 Focus automatique
 - [x] Focus automatique sur la sélection
-- [ ] Vue recentrée avec cadrage optimal
+- [x] Vue recentrée avec cadrage optimal (cacher les autre element non focus)

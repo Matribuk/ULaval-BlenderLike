@@ -194,6 +194,8 @@ void ofApp::_setupEventSubscribers()
 
         this->_selectedEntity = e.selected ? e.entityID : 0;
 
+        this->_actionManager->setSelectedEntity(this->_selectedEntity);
+
         if (this->_selectedEntity != INVALID_ENTITY) {
             this->_colorPalette->setEntity(this->_selectedEntity);
             this->_tranformPanel->setSelectedEntity(this->_selectedEntity);
@@ -203,7 +205,6 @@ void ofApp::_setupEventSubscribers()
             this->_tranformPanel->unsetSelectedEntity();
             this->_materialPanel->unsetSelectedEntity();
         }
-
     });
 
     this->_eventManager.subscribe<CameraEvent>([this](const CameraEvent& e) {

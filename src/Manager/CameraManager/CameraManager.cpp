@@ -7,10 +7,29 @@ EntityID CameraManager::addCamera(glm::vec3 pos)
 {
     EntityID cameraID = this->_entityManager.createEntity().getId();
     Transform transform(pos);
-    if (std::find(this->_cameraEntities.begin(), this->_cameraEntities.end(), cameraID) == this->_cameraEntities.end())
-    {
+
+    if (std::find(this->_cameraEntities.begin(), this->_cameraEntities.end(), cameraID) == this->_cameraEntities.end()) {
         this->_componentRegistry.registerComponent<Transform>(cameraID, transform);
         this->_componentRegistry.registerComponent<Camera>(cameraID, Camera());
+
+        Camera* cam = this->_componentRegistry.getComponent<Camera>(cameraID);
+        Transform* t = this->_componentRegistry.getComponent<Transform>(cameraID);
+
+        if (cam && t) {
+            glm::vec3 lookTarget(0, 0, 0);
+            glm::vec3 direction = glm::normalize(lookTarget - pos);
+
+            cam->forward = direction;
+
+            cam->yaw = atan2(direction.x, direction.z);
+            cam->pitch = asin(direction.y);
+
+            t->rotation.x = cam->yaw;
+            t->rotation.y = cam->pitch;
+            t->rotation.z = 0;
+            t->isDirty = true;
+        }
+
         this->_cameraEntities.push_back(cameraID);
         if (this->_activeCamera == INVALID_ENTITY)
             setActiveCamera(cameraID);
@@ -49,20 +68,49 @@ void CameraManager::switchCamera()
     this->_activeCamera = this->_cameraEntities[this->_activeCameraIndex];
 }
 
-void CameraManager::focusTarget(EntityID camEntity)
+void CameraManager::focusTarget(EntityID camEntity, EntityID targetEntity)
 {
-    Camera *cam = this->_componentRegistry.getComponent<Camera>(camEntity);
-    Transform *transform = this->_componentRegistry.getComponent<Transform>(camEntity);
-    if (!cam || !transform)
+    Camera* cam = this->_componentRegistry.getComponent<Camera>(camEntity);
+    Transform* camTransform = this->_componentRegistry.getComponent<Transform>(camEntity);
+
+    if (!cam || !camTransform) return;
+
+    if (cam->focusMode) {
+        camTransform->rotation.x = cam->yaw;
+        camTransform->rotation.y = cam->pitch;
+        camTransform->rotation.z = 0;
+        camTransform->isDirty = true;
+        cam->focusMode = false;
+        cam->targetEntity = INVALID_ENTITY;
+        return;
+    }
+
+    glm::vec3 targetPosition;
+
+    if (targetEntity != INVALID_ENTITY) {
+        Transform* targetTransform = this->_componentRegistry.getComponent<Transform>(targetEntity);
+        if (targetTransform)
+            targetPosition = targetTransform->position;
+    } else
         return;
 
+    cam->target = targetPosition;
+    cam->targetEntity = targetEntity;
     cam->focusMode = true;
-    float distance = glm::length(transform->position - cam->target);
 
-    if (distance < cam->minDistance || distance > cam->maxDistance)
-        distance = glm::clamp(distance, cam->minDistance, cam->maxDistance);
+    cam->distanceToTarget = glm::length(camTransform->position - targetPosition);
+    cam->distanceToTarget = glm::clamp(cam->distanceToTarget, cam->minDistance, cam->maxDistance);
 
-    transform->position = cam->target - cam->forward * distance;
+    glm::vec3 directionToTarget = glm::normalize(targetPosition - camTransform->position);
+
+    cam->yaw = atan2(directionToTarget.x, directionToTarget.z);
+    cam->pitch = asin(directionToTarget.y);
+    cam->pitch = glm::clamp(cam->pitch, glm::radians(cam->minPitch), glm::radians(cam->maxPitch));
+
+    camTransform->isDirty = true;
+
+    cam->forward = directionToTarget;
+    cam->up = glm::vec3(0, 1, 0);
 }
 
 void CameraManager::zoom(float dir)

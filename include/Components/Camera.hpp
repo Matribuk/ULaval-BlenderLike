@@ -2,6 +2,7 @@
 
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
+#include "Core/Entity/Entity.hpp"
 
 struct Camera {
     bool isOrtho = false;
@@ -10,6 +11,7 @@ struct Camera {
 
     bool focusMode{false};
     glm::vec3 target{0.0f, 0.0f, 0.0f};
+    EntityID targetEntity{INVALID_ENTITY};
 
     float fov{60.0f};
     float minFov{15.0f};

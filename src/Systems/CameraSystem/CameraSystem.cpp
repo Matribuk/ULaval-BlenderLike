@@ -1,8 +1,7 @@
 #include "Systems/CameraSystem/CameraSystem.hpp"
 
 CameraSystem::CameraSystem(ComponentRegistry& registry, TransformSystem& transformSystem)
-    : _componentRegistry(registry), _transformSystem(transformSystem)
-{}
+    : _componentRegistry(registry), _transformSystem(transformSystem) {}
 
 void CameraSystem::update(std::vector<EntityID> cameraEntities, int viewportWidth, int viewportHeight)
 {
@@ -10,9 +9,30 @@ void CameraSystem::update(std::vector<EntityID> cameraEntities, int viewportWidt
     {
         Camera *cam = this->_componentRegistry.getComponent<Camera>(id);
         Transform *transform = this->_componentRegistry.getComponent<Transform>(id);
-        if (cam && transform)
-        {
+        if (cam && transform) {
             cam->aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
+
+            if (cam->focusMode && cam->targetEntity != INVALID_ENTITY) {
+                Transform* targetTransform = this->_componentRegistry.getComponent<Transform>(cam->targetEntity);
+                if (targetTransform) {
+                    cam->target = targetTransform->position;
+
+                    float cosYaw = cos(cam->yaw);
+                    float sinYaw = sin(cam->yaw);
+                    float cosPitch = cos(cam->pitch);
+                    float sinPitch = sin(cam->pitch);
+
+                    glm::vec3 offset(
+                        -cam->distanceToTarget * cosPitch * sinYaw,
+                        -cam->distanceToTarget * sinPitch,
+                        -cam->distanceToTarget * cosPitch * cosYaw
+                    );
+
+                    transform->position = cam->target + offset;
+                    transform->isDirty = true;
+                    cam->forward = glm::normalize(cam->target - transform->position);
+                }
+            }
 
             if (cam->focusMode)
                 cam->viewMatrix = glm::lookAt(transform->position, cam->target, cam->up);
@@ -46,7 +66,8 @@ void CameraSystem::pan(EntityID camEntity, glm::vec3 vect)
     Camera* cam = this->_componentRegistry.getComponent<Camera>(camEntity);
     if (!cam) return;
 
-    cam->focusMode = false;
+    if (cam->focusMode) return;
+
     this->_transformSystem.setCameraPosition(camEntity, vect * cam->panSensitivity);
 
     cam->forward = this->_transformSystem.getForward(camEntity);
@@ -56,12 +77,50 @@ void CameraSystem::pan(EntityID camEntity, glm::vec3 vect)
 void CameraSystem::rotate(EntityID camEntity, glm::vec2 vect)
 {
     Camera* cam = this->_componentRegistry.getComponent<Camera>(camEntity);
-    if (!cam) return;
+    Transform* transform = this->_componentRegistry.getComponent<Transform>(camEntity);
+    if (!cam || !transform) return;
 
-    this->_transformSystem.setCameraRotation(camEntity, vect * cam->rotateSensitivity);
+    if (cam->focusMode) {
+        float deltaTime = ofGetLastFrameTime();
 
-    cam->forward = this->_transformSystem.getForward(camEntity);
-    cam->up = this->_transformSystem.getUp(camEntity);
+        float yawDelta = vect.x * cam->rotateSensitivity * deltaTime;
+        float pitchDelta = vect.y * cam->rotateSensitivity * deltaTime;
+
+        cam->yaw += yawDelta;
+        cam->pitch += pitchDelta;
+
+        cam->pitch = glm::clamp(cam->pitch, glm::radians(cam->minPitch), glm::radians(cam->maxPitch));
+
+        float cosYaw = cos(cam->yaw);
+        float sinYaw = sin(cam->yaw);
+        float cosPitch = cos(cam->pitch);
+        float sinPitch = sin(cam->pitch);
+
+        glm::vec3 offset(
+            -cam->distanceToTarget * cosPitch * sinYaw,
+            -cam->distanceToTarget * sinPitch,
+            -cam->distanceToTarget * cosPitch * cosYaw
+        );
+
+        transform->position = cam->target + offset;
+        transform->isDirty = true;
+
+        cam->forward = glm::normalize(cam->target - transform->position);
+        cam->up = glm::vec3(0, 1, 0);
+
+        std::cout << "Position AFTER: " << transform->position.x << ", " << transform->position.y << ", " << transform->position.z << std::endl;
+        std::cout << "Target: " << cam->target.x << ", " << cam->target.y << ", " << cam->target.z << std::endl;
+        std::cout << "Offset: " << offset.x << ", " << offset.y << ", " << offset.z << std::endl;
+        std::cout << "Distance: " << cam->distanceToTarget << std::endl;
+    } else {
+        this->_transformSystem.setCameraRotation(camEntity, vect * cam->rotateSensitivity);
+
+        cam->forward = this->_transformSystem.getForward(camEntity);
+        cam->up = this->_transformSystem.getUp(camEntity);
+
+        cam->yaw = atan2(cam->forward.x, cam->forward.z);
+        cam->pitch = asin(cam->forward.y);
+    }
 }
 
 void CameraSystem::zoom(EntityID camEntity, float amount)
