@@ -3,6 +3,7 @@
 #include <limits>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <iostream>
 
 SelectionSystem::SelectionSystem(
@@ -45,31 +46,72 @@ void SelectionSystem::_handleMouseEvent(const MouseEvent& e)
     _performRaycastInActiveViewport(mousePos);
 }
 
+glm::mat4 SelectionSystem::_getOrComputeTransformMatrix(Transform* t) const
+{
+    if (!t->isDirty && glm::determinant(t->matrix) != 0.0f) {
+        return t->matrix;
+    }
+
+    glm::mat4 matrice = glm::translate(glm::mat4(1.0f), t->position);
+    matrice = matrice * glm::yawPitchRoll(t->rotation.y, t->rotation.x, t->rotation.z);
+    matrice = glm::scale(matrice, t->scale);
+
+    return matrice;
+}
+
+void SelectionSystem::_transformAABB(const glm::vec3& localMin, const glm::vec3& localMax,
+                                     const glm::mat4& transform,
+                                     glm::vec3& outMin, glm::vec3& outMax) const
+{
+    glm::vec3 corners[8] = {
+        glm::vec3(localMin.x, localMin.y, localMin.z),
+        glm::vec3(localMax.x, localMin.y, localMin.z),
+        glm::vec3(localMin.x, localMax.y, localMin.z),
+        glm::vec3(localMax.x, localMax.y, localMin.z),
+        glm::vec3(localMin.x, localMin.y, localMax.z),
+        glm::vec3(localMax.x, localMin.y, localMax.z),
+        glm::vec3(localMin.x, localMax.y, localMax.z),
+        glm::vec3(localMax.x, localMax.y, localMax.z)
+    };
+
+    outMin = glm::vec3(std::numeric_limits<float>::max());
+    outMax = glm::vec3(std::numeric_limits<float>::lowest());
+
+    for (int i = 0; i < 8; ++i) {
+        glm::vec4 transformed = transform * glm::vec4(corners[i], 1.0f);
+        glm::vec3 point = glm::vec3(transformed) / transformed.w;
+
+        outMin = glm::min(outMin, point);
+        outMax = glm::max(outMax, point);
+    }
+}
+
 EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouseGlobalPos)
 {
-    // 1) Get active viewport
     Viewport* vp = nullptr;
     try { vp = _viewportManager.getActiveViewport(); } catch(...) { vp = nullptr; }
     if (!vp) return INVALID_ENTITY;
 
-    // 2) Viewport rect
     ofRectangle rect;
     try { rect = vp->getRect(); } catch(...) { return INVALID_ENTITY; }
 
-    // 3) Check if click is inside viewport
     if (!rect.inside(mouseGlobalPos.x, mouseGlobalPos.y)) {
         std::cout << "[SelectionSystem] Click outside viewport -> ignored\n";
+        std::cout << "  Mouse: (" << mouseGlobalPos.x << ", " << mouseGlobalPos.y << ")\n";
+        std::cout << "  Viewport: x=" << rect.x << " y=" << rect.y << " w=" << rect.width << " h=" << rect.height << "\n";
         return INVALID_ENTITY;
     }
 
-    // 4) Local viewport coordinates
     float localX = mouseGlobalPos.x - rect.x;
     float localY = mouseGlobalPos.y - rect.y;
     int vpWidth = static_cast<int>(rect.getWidth());
     int vpHeight = static_cast<int>(rect.getHeight());
+
+    std::cout << "[SelectionSystem] Mouse global: (" << mouseGlobalPos.x << ", " << mouseGlobalPos.y << ")\n";
+    std::cout << "[SelectionSystem] Mouse local: (" << localX << ", " << localY << ") in viewport " << vpWidth << "x" << vpHeight << "\n";
+
     if (vpWidth <= 0 || vpHeight <= 0) return INVALID_ENTITY;
 
-    // 5) Get camera
     EntityID camEntityId = vp->getCamera();
     if (camEntityId == INVALID_ENTITY) camEntityId = _cameraManager.getActiveCameraId();
     if (camEntityId == INVALID_ENTITY) return INVALID_ENTITY;
@@ -78,16 +120,20 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
     Transform* camTransform = _componentRegistry.getComponent<Transform>(camEntityId);
     if (!cam || !camTransform) return INVALID_ENTITY;
 
-    glm::mat4 proj = cam->projMatrix;
+    float viewportAspect = static_cast<float>(vpWidth) / static_cast<float>(vpHeight);
+    glm::mat4 proj = glm::perspective(glm::radians(cam->fov), viewportAspect, cam->nearClip, cam->farClip);
     glm::mat4 view = cam->viewMatrix;
+
+    std::cout << "[SelectionSystem] Viewport aspect: " << viewportAspect 
+              << " (was: " << cam->aspectRatio << ")\n";
     if (fabs(glm::determinant(proj * view)) < 1e-8f) return INVALID_ENTITY;
 
     glm::mat4 invVP;
     try { invVP = glm::inverse(proj * view); } catch(...) { return INVALID_ENTITY; }
 
-    // 6) Convert mouse to world ray
     float ndcX = (localX / static_cast<float>(vpWidth)) * 2.0f - 1.0f;
-    float ndcY = 1.0f - (localY / static_cast<float>(vpHeight)) * 2.0f;
+    float ndcY = (localY / static_cast<float>(vpHeight)) * 2.0f - 1.0f;
+
     glm::vec4 clipNear(ndcX, ndcY, -1.0f, 1.0f);
     glm::vec4 clipFar(ndcX, ndcY, 1.0f, 1.0f);
 
@@ -99,7 +145,6 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
     glm::vec3 rayOrigin = glm::vec3(worldNear4) / worldNear4.w;
     glm::vec3 rayDir    = glm::normalize(glm::vec3(worldFar4) / worldFar4.w - rayOrigin);
 
-    // 7) Test intersection with all selectable entities
     EntityID closest = INVALID_ENTITY;
     float closestT = std::numeric_limits<float>::max();
 
@@ -110,30 +155,55 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         Selectable* s = _componentRegistry.getComponent<Selectable>(id);
         if (!t || !s) continue;
 
-        glm::vec3 aabbMin, aabbMax;
+        glm::mat4 transformMatrix = _getOrComputeTransformMatrix(t);
+
+        bool hasRotation = (t->rotation.x != 0.0f || t->rotation.y != 0.0f || t->rotation.z != 0.0f);
+        bool hasScale = (t->scale.x != 1.0f || t->scale.y != 1.0f || t->scale.z != 1.0f);
+        if (hasRotation || hasScale) {
+            std::cout << "  Entity " << id << " transform: pos=(" << t->position.x << "," << t->position.y << "," << t->position.z << ")"
+                      << " rot=(" << t->rotation.x << "," << t->rotation.y << "," << t->rotation.z << ")"
+                      << " scale=(" << t->scale.x << "," << t->scale.y << "," << t->scale.z << ")\n";
+        }
+
+        glm::vec3 localMin, localMax;
 
         if (Box* box = _componentRegistry.getComponent<Box>(id)) {
             glm::vec3 half = box->dimensions * 0.5f;
-            aabbMin = t->position - half;
-            aabbMax = t->position + half;
+            localMin = -half;
+            localMax = half;
         } else if (Sphere* sphere = _componentRegistry.getComponent<Sphere>(id)) {
             glm::vec3 half(sphere->radius);
-            aabbMin = t->position - half;
-            aabbMax = t->position + half;
+            localMin = -half;
+            localMax = half;
         } else if (Plane* plane = _componentRegistry.getComponent<Plane>(id)) {
-            glm::vec3 half(plane->size.x*0.5f, 0.01f, plane->size.y*0.5f); // thin Y thickness
-            aabbMin = t->position - half;
-            aabbMax = t->position + half;
+            glm::vec3 half(plane->size.x*0.5f, 0.5f, plane->size.y*0.5f);
+            localMin = -half;
+            localMax = half;
         } else {
-            glm::vec3 half = glm::max(t->scale * 0.5f, glm::vec3(0.0001f));
-            aabbMin = t->position - half;
-            aabbMax = t->position + half;
+            glm::vec3 half = glm::max(t->scale * 0.5f, glm::vec3(0.1f));
+            localMin = -half;
+            localMax = half;
         }
+
+        glm::vec3 worldMin, worldMax;
+        _transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
+
+        std::cout << "Testing entity " << id 
+                  << " AABB: min=" << worldMin.x << "," << worldMin.y << "," << worldMin.z 
+                  << " max=" << worldMax.x << "," << worldMax.y << "," << worldMax.z << "\n";
 
         float tHit = 0.0f;
         bool hit = false;
-        try { hit = _intersectsRayAABB(rayOrigin, rayDir, aabbMin, aabbMax, tHit); } 
-        catch(...) { hit = false; }
+        try {
+            hit = _intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
+            if (hit) {
+                glm::vec3 hitPoint = rayOrigin + rayDir * tHit;
+                std::cout << "  -> HIT at t=" << tHit << " worldPos=(" 
+                          << hitPoint.x << "," << hitPoint.y << "," << hitPoint.z << ")\n";
+            }
+        } catch(...) { 
+            hit = false; 
+        }
 
         if (hit && tHit < closestT) {
             closestT = tHit;
@@ -141,7 +211,6 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         }
     }
 
-    // 8) Update selection and log meaningful info
     if (closest != INVALID_ENTITY) {
         std::cout << "[SelectionSystem] Entity " << closest << " selected\n";
         this->_eventManager.emit(SelectionEvent(closest, true));
@@ -156,7 +225,6 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
 
 void SelectionSystem::_updateSelection(EntityID selected)
 {
-    // Validate selected exists
     if (selected != INVALID_ENTITY && !_entityManager.isEntityValid(selected)) {
         selected = INVALID_ENTITY;
     }

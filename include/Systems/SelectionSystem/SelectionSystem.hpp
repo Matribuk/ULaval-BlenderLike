@@ -49,4 +49,9 @@ class SelectionSystem {
         void _updateSelection(EntityID selected);
         bool _intersectsRayAABB(const glm::vec3& rayOrigin, const glm::vec3& rayDir,
                             const glm::vec3& aabbMin, const glm::vec3& aabbMax, float& outT) const;
+
+        glm::mat4 _getOrComputeTransformMatrix(Transform* t) const;
+        void _transformAABB(const glm::vec3& localMin, const glm::vec3& localMax,
+                           const glm::mat4& transform,
+                           glm::vec3& outMin, glm::vec3& outMax) const;
 };
