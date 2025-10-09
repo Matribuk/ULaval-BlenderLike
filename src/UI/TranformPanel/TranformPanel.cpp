@@ -21,6 +21,7 @@ void TranformPanel::render()
         ImGui::Separator();
         ImGui::Text("Transform");
         ImGui::Text("( x )\t\t\t\t( y )\t\t\t\t( z )");
+
         edited |= ImGui::InputFloat3("Position", &transform->position[0]);
         edited |= ImGui::InputFloat3("Rotation (°)", &rotationDegrees[0]);
         edited |= ImGui::InputFloat3("Scale (%)", &scalePercent[0]);
