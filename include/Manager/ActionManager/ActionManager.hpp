@@ -31,11 +31,11 @@ class ActionManager {
             EntityManager& entityManager,
             ComponentRegistry& componentRegistry,
             PrimitiveSystem& primitiveSystem,
-            SelectionSystem& selectionSystem,
             FileManager& fileManager,
             EventManager& eventManager,
             ViewportManager& viewportManager,
             CameraManager& cameraManager,
+            SelectionSystem& selectionSystem,
             std::vector<EntityID>& testEntities
         );
 
@@ -58,11 +58,11 @@ class ActionManager {
         EntityManager& _entityManager;
         ComponentRegistry& _componentRegistry;
         PrimitiveSystem& _primitiveSystem;
-        SelectionSystem& _selectionSystem;
         FileManager& _fileManager;
         EventManager& _eventManager;
         ViewportManager& _viewportManager;
         CameraManager& _cameraManager;
+        SelectionSystem& _selectionSystem;
         std::vector<EntityID>& _testEntities;
 
         EntityID _selectedEntity = INVALID_ENTITY;

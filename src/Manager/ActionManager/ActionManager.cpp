@@ -4,8 +4,11 @@ ActionManager::ActionManager(
     EntityManager& entityManager, ComponentRegistry& componentRegistry, PrimitiveSystem& primitiveSystem,
     FileManager& fileManager, EventManager& eventManager, ViewportManager& viewportManager, CameraManager& cameraManager,
     SelectionSystem& selectionSystem, std::vector<EntityID>& testEntities
-) : _entityManager(entityManager), _componentRegistry(componentRegistry), _primitiveSystem(primitiveSystem), _selectionSystem(selectionSystem),
-    _fileManager(fileManager), _eventManager(eventManager), _viewportManager(viewportManager), _testEntities(testEntities) {}
+) : _entityManager(entityManager), _componentRegistry(componentRegistry), _primitiveSystem(primitiveSystem),
+    _fileManager(fileManager), _eventManager(eventManager), _viewportManager(viewportManager), _cameraManager(cameraManager),
+    _selectionSystem(selectionSystem), _testEntities(testEntities)
+{
+}
 
 void ActionManager::toggleIsolateSelection()
 {

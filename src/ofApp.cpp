@@ -84,11 +84,11 @@ void ofApp::setup()
         this->_entityManager,
         this->_componentRegistry,
         *this->_primitiveSystem,
-        *this->_selectionSystem,
         *this->_fileManager,
         this->_eventManager,
         *this->_viewportManager,
         *this->_cameraManager,
+        *this->_selectionSystem,
         this->_testEntities
     );
     this->_actionManager->registerAllActions();
