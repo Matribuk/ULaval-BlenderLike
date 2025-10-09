@@ -37,6 +37,7 @@ class ActionManager {
             std::vector<EntityID>& testEntities
         );
 
+        void toggleIsolateSelection();
         void updateCameraAction(Toolbar* toolbar = nullptr);
 
         void registerAllActions();
@@ -45,11 +46,15 @@ class ActionManager {
         EntityID getSelectedEntity() const;
 
     private:
+        bool _isIsolated = false;
+        std::unordered_map<EntityID, bool> _savedVisibilityStates;
+
         void _exportSelectedEntity();
         void _selectEntity(int index);
         void _registerKeyboardActions();
         void _registerShortcuts();
-        void _registerMouseActions();
+        void _isolateEntity(EntityID entity);
+        void _showAllEntities();
 
         EntityManager& _entityManager;
         ComponentRegistry& _componentRegistry;

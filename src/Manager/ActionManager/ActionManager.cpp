@@ -8,6 +8,16 @@ ActionManager::ActionManager(
     _fileManager(fileManager), _eventManager(eventManager), _viewportManager(viewportManager), _cameraManager(cameraManager),
     _testEntities(testEntities) {}
 
+void ActionManager::toggleIsolateSelection()
+{
+    if (this->_isIsolated)
+        _showAllEntities();
+    else {
+        if (this->_selectedEntity != INVALID_ENTITY)
+            this->_isolateEntity(this->_selectedEntity);
+    }
+}
+
 void ActionManager::updateCameraAction(Toolbar* toolbar)
 {
     auto& input = InputManager::get();
@@ -36,7 +46,7 @@ void ActionManager::updateCameraAction(Toolbar* toolbar)
                 );
 
                 Transform* t = this->_componentRegistry.getComponent<Transform>(cameraToControl);
-                if (t) {
+                if (t && !_isIsolated) {
                     if (input.isMouseButtonPressed(0)) {
                         glm::vec3 panMovement(-dragDelta.x, dragDelta.y, 0.0f);
 
@@ -68,7 +78,6 @@ void ActionManager::updateCameraAction(Toolbar* toolbar)
 
         if (input.isKeyPressed('+')) this->_cameraManager.zoom(1.0f);
         if (input.isKeyPressed('-')) this->_cameraManager.zoom(-1.0f);
-        if (input.isKeyPressed('f')) this->_cameraManager.focusTarget(cameraToControl);
 
         if (previousActive != INVALID_ENTITY)
             this->_cameraManager.setActiveCamera(previousActive);
@@ -86,6 +95,16 @@ void ActionManager::registerAllActions()
     this->_registerShortcuts();
 }
 
+void ActionManager::setSelectedEntity(EntityID entity)
+{
+    this->_selectedEntity = entity;
+}
+
+EntityID ActionManager::getSelectedEntity() const
+{
+    return this->_selectedEntity;
+}
+
 void ActionManager::_registerKeyboardActions()
 {
     auto& input = InputManager::get();
@@ -97,6 +116,21 @@ void ActionManager::_registerKeyboardActions()
             if (cameraId != INVALID_ENTITY)
                 this->_cameraManager.toggleProjection(cameraId);
         }
+    });
+
+    input.registerKeyAction('f', [this]() {
+        EntityID cameraId = this->_cameraManager.getActiveCameraId();
+
+        Camera* cam = this->_componentRegistry.getComponent<Camera>(cameraId);
+        bool wasInFocusMode = (cam && cam->focusMode);
+
+        this->_cameraManager.focusTarget(cameraId, this->_selectedEntity);
+
+        if (!wasInFocusMode && this->_selectedEntity != INVALID_ENTITY)
+            this->toggleIsolateSelection();
+
+        else if (wasInFocusMode && this->_isIsolated)
+            this->toggleIsolateSelection();
     });
 }
 
@@ -128,12 +162,34 @@ void ActionManager::_selectEntity(int index)
     this->_selectedEntity = entity;
 }
 
-void ActionManager::setSelectedEntity(EntityID entity)
+void ActionManager::_isolateEntity(EntityID entity)
 {
-    this->_selectedEntity = entity;
+    this->_savedVisibilityStates.clear();
+
+    for (EntityID id : this->_entityManager.getAllEntities()) {
+        Camera* camera = this->_componentRegistry.getComponent<Camera>(id);
+        if (camera) continue;
+
+        Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+        if (renderable) {
+            this->_savedVisibilityStates[id] = renderable->visible;
+            if (id != entity)
+                renderable->visible = false;
+        }
+    }
+
+    this->_isIsolated = true;
 }
 
-EntityID ActionManager::getSelectedEntity() const
+void ActionManager::_showAllEntities()
 {
-    return this->_selectedEntity;
+    for (const auto& [id, wasVisible] : this->_savedVisibilityStates) {
+        Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+        if (renderable)
+            renderable->visible = wasVisible;
+    }
+
+    this->_savedVisibilityStates.clear();
+    this->_isIsolated = false;
 }
+

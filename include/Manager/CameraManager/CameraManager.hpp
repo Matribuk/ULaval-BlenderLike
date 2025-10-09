@@ -17,7 +17,7 @@ class CameraManager {
 
         void setActiveCamera(EntityID id);
         void switchCamera();
-        void focusTarget(EntityID camEntity);
+        void focusTarget(EntityID camEntity, EntityID targetEntity = INVALID_ENTITY);
 
         void zoom(float dir);
         void rotate(const glm::vec2 vect);
