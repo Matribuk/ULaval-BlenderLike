@@ -13,6 +13,8 @@ struct Renderable {
     bool visible{true};
     Material* material{nullptr};
 
+    bool showOutline{false};
+
     Renderable() = default;
     Renderable(const ofMesh& m, const ofColor& c = ofColor(255, 255, 255), bool v = true, ofShader* s = nullptr, ofTexture* t = nullptr)
         : mesh(m), color(c), visible(v), material(new Material{s, t}) {}
