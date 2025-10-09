@@ -5,12 +5,18 @@ UIManager::UIManager(
     ViewportManager& viewportManager,
     PropertiesManager& propertiesManager,
     CameraManager& cameraManager,
+    SkyboxPanel& skyboxPanel,
+    InstructionsPanel& instructionsPanel,
+    EventLogPanel& eventLogPanel,
     RenderSystem& renderSystem
 ) :
     _toolbar(toolbar),
     _viewportManager(viewportManager),
     _propertiesManager(propertiesManager),
     _cameraManager(cameraManager),
+    _skyboxPanel(skyboxPanel),
+    _instructionsPanel(instructionsPanel),
+    _eventLogPanel(eventLogPanel),
     _renderSystem(renderSystem) {}
 
 void UIManager::render()
@@ -20,6 +26,9 @@ void UIManager::render()
     this->_toolbar.render();
     this->_propertiesManager.render();
     this->_viewportManager.renderAll();
+    this->_instructionsPanel.render();
+    this->_eventLogPanel.render();
+    this->_skyboxPanel.render();
 
     renderViewportControls();
 
@@ -181,6 +190,7 @@ void UIManager::_setupInitialLayout()
     ImGui::DockBuilderDockWindow("Inspector", dockLeft);
     ImGui::DockBuilderDockWindow("Event Log", dockDown);
     ImGui::DockBuilderDockWindow("Instructions", dockDown);
+    ImGui::DockBuilderDockWindow("Skybox Settings", dockDown);
     ImGui::DockBuilderDockWindow("Viewport 1", dockMain);
     ImGui::DockBuilderDockWindow("Viewport Manager", dockRight);
 

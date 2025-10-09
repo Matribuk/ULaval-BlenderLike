@@ -1,6 +1,9 @@
 #pragma once
 
 #include "UI/Toolbar/Toolbar.hpp"
+#include "UI/SkyboxPanel/SkyboxPanel.hpp"
+#include "UI/InstructionsPanel/InstructionsPanel.hpp"
+#include "UI/EventLogPanel/EventLogPanel.hpp"
 
 #include "Manager/ViewportManager/ViewportManager.hpp"
 #include "Manager/PropertiesManager/PropertiesManager.hpp"
@@ -13,7 +16,6 @@
 #include "imgui_internal.h"
 #include "ofxImGui.h"
 
-
 class UIManager {
     public:
         UIManager(
@@ -21,6 +23,9 @@ class UIManager {
             ViewportManager& viewportManager,
             PropertiesManager& propertiesManager,
             CameraManager& cameraManager,
+            SkyboxPanel& skyboxPanel,
+            InstructionsPanel& instructionsPanel,
+            EventLogPanel& eventLogPanel,
             RenderSystem& renderSystem
         );
 
@@ -35,6 +40,9 @@ class UIManager {
         ViewportManager& _viewportManager;
         PropertiesManager& _propertiesManager;
         CameraManager& _cameraManager;
+        SkyboxPanel& _skyboxPanel;
+        InstructionsPanel& _instructionsPanel;
+        EventLogPanel& _eventLogPanel;
         RenderSystem& _renderSystem;
 
         ImGuiID _dockspaceId = 0;

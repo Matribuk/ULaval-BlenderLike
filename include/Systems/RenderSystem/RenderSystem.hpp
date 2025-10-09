@@ -18,18 +18,24 @@ class RenderSystem {
         ~RenderSystem() = default;
 
         void render();
-        void setActiveCamera(EntityID cameraEntity);
-
-        Camera *getActiveCameraObject() const;
-        EntityID getActiveCameraId() const;
+        void setSkyColors(const glm::vec3& top, const glm::vec3& bottom);
 
     private:
         ComponentRegistry& _registry;
         EntityManager& _entityManager;
         CameraManager& _cameraManager;
 
-        void setupRenderState();
-        ofCamera buildCameraFromComponents(Camera& camera, const Transform& transform);
-        void renderEntities();
-        void drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material *material = nullptr);
+        void _setupRenderState();
+        ofCamera _buildCameraFromComponents(Camera& camera, const Transform& transform);
+        void _renderEntities();
+        void _drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material *material = nullptr);
+
+        ofShader _skyShader;
+        ofVboMesh _skyQuad;
+        bool _skyInitialized = false;
+        glm::vec3 _skyTopColor{0.529f, 0.808f, 0.922f};
+        glm::vec3 _skyBottomColor{0.9f, 0.95f, 1.0f};
+
+        void _initSkybox();
+        void _renderSkybox();
 };

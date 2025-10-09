@@ -43,6 +43,9 @@
 #include "UI/Viewport/Viewport.hpp"
 #include "UI/TranformPanel/TranformPanel.hpp"
 #include "UI/MaterialPanel/MaterialPanel.hpp"
+#include "UI/SkyboxPanel/SkyboxPanel.hpp"
+#include "UI/InstructionsPanel/InstructionsPanel.hpp"
+#include "UI/EventLogPanel/EventLogPanel.hpp"
 
 #include <ofMain.h>
 #include "ofxImGui.h"
@@ -58,13 +61,10 @@ class ofApp : public ofBaseApp {
 
         void keyPressed(int key);
         void keyReleased(int key);
-        void mouseMoved(int x, int y);
-        void mouseDragged(int x, int y, int button);
-        void mousePressed(int x, int y, int button);
-        void mouseReleased(int x, int y, int button);
-        void mouseScrolled(int x, int y, float scrollX, float scrollY);
+
 
     private:
+        ofLight _light;
         EventManager _eventManager;
         EntityManager _entityManager;
 
@@ -81,6 +81,9 @@ class ofApp : public ofBaseApp {
         std::unique_ptr<MaterialPanel> _materialPanel;
         std::unique_ptr<ColorPalette> _colorPalette;
         std::unique_ptr<EventBridge> _eventBridge;
+        std::unique_ptr<SkyboxPanel> _skyboxPanel;
+        std::unique_ptr<InstructionsPanel> _instructionsPanel;
+        std::unique_ptr<EventLogPanel> _eventLogPanel;
         std::unique_ptr<Toolbar> _toolbar;
         ComponentRegistry _componentRegistry;
 
@@ -89,16 +92,6 @@ class ofApp : public ofBaseApp {
         std::unique_ptr<RenderSystem> _renderSystem;
         std::unique_ptr<PrimitiveSystem> _primitiveSystem;
         std::unique_ptr<SelectionSystem> _selectionSystem;
-
-        struct EventLog {
-            std::string message;
-            std::chrono::time_point<std::chrono::steady_clock> timestamp;
-            ofColor color;
-        };
-
-        std::vector<EventLog> _eventLogs;
-        const size_t _MAX_LOGS = 20;
-
         ofxImGui::Gui _gui;
         std::vector<EntityID> _testEntities;
         EntityID _cameraEntity = INVALID_ENTITY;
@@ -115,11 +108,8 @@ class ofApp : public ofBaseApp {
         int _selectionEventCount = 0;
         int _cameraEventCount = 0;
 
-        void _addLog(const std::string& message, const ofColor& color = ofColor::white);
         void _setupEventSubscribers();
         void _setupSystems();
         void _setupScene();
         void _drawUI();
-        void _drawEventLog();
-        void _drawInstructions();
 };

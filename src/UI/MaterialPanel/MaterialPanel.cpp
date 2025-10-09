@@ -1,9 +1,7 @@
 #include "UI/MaterialPanel/MaterialPanel.hpp"
 
 MaterialPanel::MaterialPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem)
-    : _componentRegistry(componentRegistry), _selectionSystem(selectionSystem)
-{
-}
+    : _componentRegistry(componentRegistry), _selectionSystem(selectionSystem){}
 
 void MaterialPanel::render()
 {

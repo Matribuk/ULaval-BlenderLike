@@ -2,6 +2,14 @@
 
 void ofApp::setup()
 {
+    ofEnableDepthTest();
+    ofEnableLighting();
+    ofEnableSeparateSpecularLight();
+
+    _light.setup();
+    _light.setPosition(0, 10, 0);
+    _light.enable();
+
     ofSetWindowTitle("Event System & Primitive Rendering Test");
     ofSetFrameRate(60);
     ofBackground(20);
@@ -11,18 +19,19 @@ void ofApp::setup()
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     this->_eventBridge = std::make_unique<EventBridge>(this->_eventManager);
-    this->_historyManager = std::make_unique<HistoryManager>();
     this->_eventBridge->setup();
 
-    this->_addLog("=== System Initialized ===", ofColor::green);
-
+    this->_eventLogPanel = std::make_unique<EventLogPanel>();
     InputManager::get().subscribeToEvents(this->_eventManager);
 
     this->_setupSystems();
 
+    std::cout << "Scene setup complete with test entities." << std::endl;
     this->_sceneManager = std::make_unique<SceneManager>(this->_entityManager, this->_componentRegistry, this->_eventManager);
     this->_setupScene();
 
+    this->_skyboxPanel = std::make_unique<SkyboxPanel>(*this->_renderSystem);
+    this->_instructionsPanel = std::make_unique<InstructionsPanel>();
     this->_toolbar = std::make_unique<Toolbar>();
 
     this->_toolbar->setToggleProjectionCallback([this]() {
@@ -40,7 +49,7 @@ void ofApp::setup()
 
         if (result.bSuccess) {
             std::string filePath = result.getPath();
-            ofLogNotice("Import") << "Fichier sélectionné : " << filePath;
+            this->_eventLogPanel->addLog("Fichier sélectionné : " + filePath, ofColor::aqua);
 
             auto import = this->_fileManager->importMesh(filePath);
 
@@ -98,12 +107,15 @@ void ofApp::setup()
         *this->_viewportManager,
         *this->_propertiesManager,
         *this->_cameraManager,
+        *this->_skyboxPanel,
+        *this->_instructionsPanel,
+        *this->_eventLogPanel,
         *this->_renderSystem
     );
 
     this->_setupEventSubscribers();
 
-    this->_addLog("System ready!", ofColor::cyan);
+    this->_eventLogPanel->addLog("System ready!", ofColor::cyan);
 }
 
 void ofApp::_setupSystems()
@@ -113,7 +125,8 @@ void ofApp::_setupSystems()
     this->_cameraSystem = std::make_unique<CameraSystem>(this->_componentRegistry, *this->_transformSystem);
     this->_cameraManager = std::make_unique<CameraManager>(this->_componentRegistry, this->_entityManager, *this->_cameraSystem);
     this->_renderSystem = std::make_unique<RenderSystem>(this->_componentRegistry, this->_entityManager, *this->_cameraManager);
-    this->_addLog("All systems initialized", ofColor::green);
+
+    this->_eventLogPanel->addLog("All systems initialized", ofColor::green);
 }
 
 void ofApp::_setupScene()
@@ -125,7 +138,7 @@ void ofApp::_setupScene()
     this->_sceneManager->registerEntity(boxEntity.getId(), "Box");
     this->_componentRegistry.registerComponent(boxEntity.getId(), Selectable());
     this->_testEntities.push_back(boxEntity.getId());
-    this->_addLog("Box entity created (ID: " + ofToString(boxEntity.getId()) + ")", ofColor::magenta);
+    this->_eventLogPanel->addLog("Box entity created (ID: " + ofToString(boxEntity.getId()) + ")", ofColor::magenta);
 
     Entity sphereEntity = this->_entityManager.createEntity();
     this->_componentRegistry.registerComponent(sphereEntity.getId(), Transform(glm::vec3(0, 0, 0)));
@@ -134,7 +147,7 @@ void ofApp::_setupScene()
     this->_sceneManager->registerEntity(sphereEntity.getId(), "Sphere");
     this->_componentRegistry.registerComponent(sphereEntity.getId(), Selectable());
     this->_testEntities.push_back(sphereEntity.getId());
-    this->_addLog("Sphere entity created (ID: " + ofToString(sphereEntity.getId()) + ")", ofColor::magenta);
+    this->_eventLogPanel->addLog("Sphere entity created (ID: " + ofToString(sphereEntity.getId()) + ")", ofColor::magenta);
 
     Entity planeEntity = this->_entityManager.createEntity();
     this->_componentRegistry.registerComponent(planeEntity.getId(), Transform(glm::vec3(3, 0, 0)));
@@ -143,10 +156,10 @@ void ofApp::_setupScene()
     this->_sceneManager->registerEntity(planeEntity.getId(), "Plane");
     this->_componentRegistry.registerComponent(planeEntity.getId(), Selectable());
     this->_testEntities.push_back(planeEntity.getId());
-    this->_addLog("Plane entity created (ID: " + ofToString(planeEntity.getId()) + ")", ofColor::magenta);
+    this->_eventLogPanel->addLog("Plane entity created (ID: " + ofToString(planeEntity.getId()) + ")", ofColor::magenta);
 
     this->_primitiveSystem->generateMeshes();
-    this->_addLog("All primitive meshes generated", ofColor::green);
+    this->_eventLogPanel->addLog("All primitive meshes generated", ofColor::green);
 }
 
 
@@ -159,10 +172,10 @@ void ofApp::_setupEventSubscribers()
 
         if (e.type == KeyEventType::Pressed) {
             this->_keyPressCount++;
-            this->_addLog(ss.str(), ofColor::yellow);
+            this->_eventLogPanel->addLog(ss.str(), ofColor::yellow);
         } else {
             this->_keyReleaseCount++;
-            this->_addLog(ss.str(), ofColor::orange);
+            this->_eventLogPanel->addLog(ss.str(), ofColor::orange);
         }
     });
 
@@ -172,28 +185,28 @@ void ofApp::_setupEventSubscribers()
         switch(e.type) {
             case MouseEventType::Pressed:
                 ss << "Mouse PRESSED at (" << e.x << ", " << e.y << ") btn:" << e.button;
-                this->_addLog(ss.str(), ofColor::lightBlue);
+                this->_eventLogPanel->addLog(ss.str(), ofColor::lightBlue);
                 this->_mousePressCount++;
                 break;
             case MouseEventType::Released:
                 ss << "Mouse RELEASED at (" << e.x << ", " << e.y << ") btn:" << e.button;
-                this->_addLog(ss.str(), ofColor::lightCyan);
+                this->_eventLogPanel->addLog(ss.str(), ofColor::lightCyan);
                 this->_mouseReleaseCount++;
                 break;
             case MouseEventType::Moved:
                 this->_mouseMoveCount++;
                 if (this->_mouseMoveCount % 30 == 0) {
                     ss << "Mouse moved (" << e.x << ", " << e.y << ") [count:" << this->_mouseMoveCount << "]";
-                    this->_addLog(ss.str(), ofColor(100, 100, 150));
+                    this->_eventLogPanel->addLog(ss.str(), ofColor(100, 100, 150));
                 }
                 break;
             case MouseEventType::Dragged:
                 ss << "Mouse DRAGGED at (" << e.x << ", " << e.y << ") btn:" << e.button;
-                this->_addLog(ss.str(), ofColor::purple);
+                this->_eventLogPanel->addLog(ss.str(), ofColor::purple);
                 break;
             case MouseEventType::Scrolled:
                 ss << "Mouse SCROLLED at (" << e.x << ", " << e.y << ")";
-                this->_addLog(ss.str(), ofColor::magenta);
+                this->_eventLogPanel->addLog(ss.str(), ofColor::magenta);
                 break;
         }
     });
@@ -202,7 +215,7 @@ void ofApp::_setupEventSubscribers()
         std::stringstream ss;
         ss << "SelectionEvent: Entity #" << e.entityID << " - ";
         ss << (e.selected ? "SELECTED" : "DESELECTED");
-        this->_addLog(ss.str(), ofColor::lime);
+        this->_eventLogPanel->addLog(ss.str(), ofColor::lime);
         this->_selectionEventCount++;
 
 
@@ -212,7 +225,7 @@ void ofApp::_setupEventSubscribers()
     this->_eventManager.subscribe<CameraEvent>([this](const CameraEvent& e) {
         std::stringstream ss;
         ss << "CameraEvent: pos(" << e.position.x << "," << e.position.y << "," << e.position.z << ")";
-        this->_addLog(ss.str(), ofColor::pink);
+        this->_eventLogPanel->addLog(ss.str(), ofColor::pink);
         this->_cameraEventCount++;
 
         this->_cameraPosition = e.position;
@@ -224,7 +237,7 @@ void ofApp::_setupEventSubscribers()
         }
     });
 
-    this->_addLog("Event subscribers registered", ofColor::green);
+    this->_eventLogPanel->addLog("Event subscribers registered", ofColor::green);
 }
 
 void ofApp::update()
@@ -252,7 +265,7 @@ void ofApp::update()
 
 void ofApp::draw()
 {
-    ofDisableDepthTest();
+    ofEnableDepthTest();
     glDisable(GL_CULL_FACE);
 
     ofPushView();
@@ -269,62 +282,13 @@ void ofApp::_drawUI()
 
     this->_uiManager->render();
 
-    _drawEventLog();
-    _drawInstructions();
-
     this->_gui.end();
-}
-
-void ofApp::_drawEventLog()
-{
-    if (ImGui::Begin("Event Log", nullptr, ImGuiWindowFlags_NoCollapse)) {
-        auto now = std::chrono::steady_clock::now();
-        for (auto it = this->_eventLogs.rbegin(); it != this->_eventLogs.rend(); ++it) {
-            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - it->timestamp).count();
-            ImGui::TextColored(
-                ImVec4(it->color.r / 255.0f, it->color.g / 255.0f, it->color.b / 255.0f, it->color.a / 255.0f),
-                "[%.2fs] %s", elapsed / 1000.0f, it->message.c_str()
-            );
-        }
-    }
-    ImGui::End();
-}
-
-void ofApp::_drawInstructions()
-{
-
-    if (ImGui::Begin("Instructions", nullptr, ImGuiWindowFlags_NoCollapse)) {
-        ImGui::TextWrapped(
-            "Press any KEY to test KeyEvent\n"
-            "Move MOUSE to test MouseEvent\n"
-            "Press P for switch camera mode\n"
-            "CTRL+Z do nothing for now\n"
-            "CTRL+Y do nothing for now\n"
-            "In MOVE mode left click to move\n"
-            "In MOVE mode middle click to rotate\n"
-            "In MOVE mode right click to go forward/backward\n"
-        );
-    }
-    ImGui::End();
-}
-
-void ofApp::_addLog(const std::string& message, const ofColor& color)
-{
-    EventLog log;
-    log.message = message;
-    log.timestamp = std::chrono::steady_clock::now();
-    log.color = color;
-
-    this->_eventLogs.insert(this->_eventLogs.begin(), log);
-
-    if (this->_eventLogs.size() > this->_MAX_LOGS)
-        this->_eventLogs.resize(this->_MAX_LOGS);
 }
 
 void ofApp::exit()
 {
     this->_eventBridge->remove();
-    this->_addLog("System shutdown", ofColor::red);
+    this->_eventLogPanel->addLog("System shutdown", ofColor::red);
 }
 
 void ofApp::keyPressed(int key)
@@ -336,13 +300,3 @@ void ofApp::keyReleased(int key)
 {
     this->_eventManager.emit(KeyEvent(key, KeyEventType::Released));
 }
-
-void ofApp::mouseMoved(int x, int y) {}
-
-void ofApp::mouseDragged(int x, int y, int button) {}
-
-void ofApp::mousePressed(int x, int y, int button) {}
-
-void ofApp::mouseReleased(int x, int y, int button) {}
-
-void ofApp::mouseScrolled(int x, int y, float scrollX, float scrollY) {}
