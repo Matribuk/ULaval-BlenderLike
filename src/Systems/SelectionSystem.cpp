@@ -1,4 +1,5 @@
 #include "Systems/SelectionSystem.hpp"
+#include "Manager/ViewportManager.hpp"
 
 SelectionSystem::SelectionSystem(
     ComponentRegistry& registry,
