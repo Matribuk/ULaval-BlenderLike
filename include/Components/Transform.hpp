@@ -3,7 +3,8 @@
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 #include <vector>
-#include "Core/Entity/Entity.hpp"
+
+#include "Core/Entity.hpp"
 
 struct Transform {
     glm::vec3 position{0.0f, 0.0f, 0.0f};

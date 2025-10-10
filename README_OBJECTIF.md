@@ -42,7 +42,11 @@
 ## 🧠 3. Sélection et Transformation
 
 ### 3.1 Graphe de scène
-Tous les éléments visuels présents dans une scène sont organisés dans une ou des structures de données qui permettent l’ajout, la suppression, la sélection et l’édition d’attributs.
+- [ ] Les éléments visuels présents organisés dans une scene permettent:
+  - [ ] L'ajout d’attributs
+  - [ ] La suppression d’attributs
+  - [x] La sélection d’attributs
+  - [x] L’édition d’attributs.
 
 ### 3.2 Sélection multiple
 - [ ] Sélection de plusieurs éléments visuels simultanément

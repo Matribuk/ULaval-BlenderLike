@@ -2,7 +2,8 @@
 
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
-#include "Core/Entity/Entity.hpp"
+
+#include "Core/Entity.hpp"
 
 struct Camera {
     bool isOrtho = false;
