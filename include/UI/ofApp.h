@@ -46,6 +46,7 @@
 #include "UI/SkyboxPanel/SkyboxPanel.hpp"
 #include "UI/InstructionsPanel/InstructionsPanel.hpp"
 #include "UI/EventLogPanel/EventLogPanel.hpp"
+#include "UI/AssetsPanel/AssetsPanel.hpp"
 
 #include <ofMain.h>
 #include "ofxImGui.h"
@@ -84,6 +85,7 @@ class ofApp : public ofBaseApp {
         std::unique_ptr<SkyboxPanel> _skyboxPanel;
         std::unique_ptr<InstructionsPanel> _instructionsPanel;
         std::unique_ptr<EventLogPanel> _eventLogPanel;
+        std::unique_ptr<AssetsPanel> _assetsPanel;
         std::unique_ptr<Toolbar> _toolbar;
         ComponentRegistry _componentRegistry;
 
