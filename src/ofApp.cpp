@@ -32,6 +32,7 @@ void ofApp::setup()
 
     this->_skyboxPanel = std::make_unique<SkyboxPanel>(*this->_renderSystem);
     this->_instructionsPanel = std::make_unique<InstructionsPanel>();
+    this->_fileManager = std::make_unique<FileManager>(this->_componentRegistry, this->_entityManager);
     this->_toolbar = std::make_unique<Toolbar>();
 
     this->_toolbar->setToggleProjectionCallback([this]() {
@@ -83,7 +84,6 @@ void ofApp::setup()
     this->_tranformPanel = std::make_unique<TranformPanel>(this->_componentRegistry, *this->_selectionSystem);
     this->_colorPalette = std::make_unique<ColorPalette>(this->_componentRegistry, *this->_selectionSystem);
 
-    this->_fileManager = std::make_unique<FileManager>(this->_componentRegistry, this->_entityManager);
 
     this->_viewportManager->createViewport(*this->_cameraManager, *this->_renderSystem, glm::vec3{0, 5, 10});
 
