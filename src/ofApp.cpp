@@ -27,7 +27,12 @@ void ofApp::setup()
     this->_setupSystems();
 
     std::cout << "Scene setup complete with test entities." << std::endl;
-    this->_sceneManager = std::make_unique<SceneManager>(this->_entityManager, this->_componentRegistry, this->_eventManager);
+    this->_sceneManager = std::make_unique<SceneManager>(
+        this->_entityManager,
+        this->_componentRegistry,
+        this->_eventManager,
+        *this->_transformSystem
+    );
     this->_setupScene();
 
     this->_skyboxPanel = std::make_unique<SkyboxPanel>(*this->_renderSystem);

@@ -21,7 +21,7 @@ class PrimitiveSystem {
         ComponentRegistry& _registry;
         EntityManager& _entityManager;
 
-        ofMesh generateBoxMesh(const glm::vec3& dims);
-        ofMesh generateSphereMesh(float radius);
-        ofMesh generatePlaneMesh(const glm::vec2& size);
+        ofMesh _generateBoxMesh(const glm::vec3& dims);
+        ofMesh _generateSphereMesh(float radius);
+        ofMesh _generatePlaneMesh(const glm::vec2& size);
 };

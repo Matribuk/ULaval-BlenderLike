@@ -2,8 +2,8 @@
 #include "Events/EventTypes/Events/SelectionEvent.hpp"
 
 SceneManager::SceneManager(
-    EntityManager& entityManager, ComponentRegistry& componentRegistry, EventManager& eventManager)
-    : _entityManager(entityManager), _componentRegistry(componentRegistry), _eventManager(eventManager) {}
+    EntityManager& entityManager, ComponentRegistry& componentRegistry, EventManager& eventManager, TransformSystem& transformSystem )
+    : _entityManager(entityManager), _componentRegistry(componentRegistry), _eventManager(eventManager), _transformSystem(transformSystem) {}
 
 void SceneManager::registerEntity(EntityID id, const std::string& name)
 {
@@ -33,12 +33,10 @@ void SceneManager::unregisterEntity(EntityID id)
     if (rootIt != this->_rootEntities.end())
         this->_rootEntities.erase(rootIt);
 
-    for (EntityID childId : it->second.children) {
-        auto childIt = this->_entities.find(childId);
-        if (childIt != this->_entities.end()) {
-            childIt->second.parent = INVALID_ENTITY;
-            this->_rootEntities.push_back(childId);
-        }
+    std::vector<EntityID> childrenCopy = it->second.children;
+    for (EntityID childId : childrenCopy) {
+        this->_entityManager.destroyEntity(childId);
+        unregisterEntity(childId);
     }
 
     this->_entities.erase(it);
@@ -52,6 +50,9 @@ void SceneManager::setParent(EntityID child, EntityID parent)
     if (childIt == this->_entities.end() || parentIt == this->_entities.end())
         return;
 
+    if (this->_isDescendant(parent, child))
+        return;
+
     if (childIt->second.parent != INVALID_ENTITY)
         removeParent(child);
 
@@ -61,6 +62,8 @@ void SceneManager::setParent(EntityID child, EntityID parent)
 
     childIt->second.parent = parent;
     parentIt->second.children.push_back(child);
+
+    this->_transformSystem.setParent(child, parent);
 }
 
 void SceneManager::removeParent(EntityID child)
@@ -79,6 +82,8 @@ void SceneManager::removeParent(EntityID child)
 
     childIt->second.parent = INVALID_ENTITY;
     this->_rootEntities.push_back(child);
+
+    this->_transformSystem.removeParent(child);
 }
 
 void SceneManager::selectEntity(EntityID id)
@@ -102,8 +107,11 @@ void SceneManager::render()
             std::cout << "nice try man" << std::endl;
         }
     }
+    ImGui::SameLine();
+
     if (ImGui::Button("Delete Selected")) {
         if (this->_selectedEntity != INVALID_ENTITY) {
+
             this->_entityManager.destroyEntity(this->_selectedEntity);
             unregisterEntity(this->_selectedEntity);
             this->_selectedEntity = INVALID_ENTITY;
@@ -120,6 +128,21 @@ void SceneManager::render()
         this->_renderEntityNode(rootId);
 
     ImGui::EndChild();
+}
+
+bool SceneManager::_isDescendant(EntityID entityId, EntityID targetId) const
+{
+    auto it = this->_entities.find(entityId);
+    if (it == this->_entities.end())
+        return false;
+
+    if (it->second.parent == INVALID_ENTITY)
+        return false;
+
+    if (it->second.parent == targetId)
+        return true;
+
+    return _isDescendant(it->second.parent, targetId);
 }
 
 void SceneManager::_renderEntityNode(EntityID id, int depth)
@@ -171,18 +194,25 @@ void SceneManager::_renderEntityNode(EntityID id, int depth)
 
 void SceneManager::_handleDragDrop(EntityID id)
 {
-    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+    Camera* camera = this->_componentRegistry.getComponent<Camera>(id);
+
+    if (!camera &&ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
         ImGui::SetDragDropPayload("ENTITY_NODE", &id, sizeof(EntityID));
+
+        auto it = this->_entities.find(id);
+        if (it != this->_entities.end())
+            ImGui::Text("Moving: %s", it->second.name.c_str());
+
         ImGui::EndDragDropSource();
     }
 
-    if (ImGui::BeginDragDropTarget()) {
+    if (!camera && ImGui::BeginDragDropTarget()) {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY_NODE")) {
             EntityID draggedId = *(const EntityID*)payload->Data;
-            if (draggedId != id) {
-                setParent(draggedId, id);
-                ofLogNotice("SceneManager") << "Set parent: " << draggedId << " -> " << id;
-            }
+
+                if (draggedId != id)
+                    if (!this->_isDescendant(id, draggedId))
+                        setParent(draggedId, id);
         }
         ImGui::EndDragDropTarget();
     }

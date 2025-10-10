@@ -61,8 +61,7 @@ void UIManager::setupDockspace()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
     bool open = ImGui::Begin("DockSpace", nullptr, window_flags);
-    if (open)
-    {
+    if (open) {
         this->_dockspaceId = ImGui::GetID("MainDockspace");
         ImGui::DockSpace(this->_dockspaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 
@@ -78,8 +77,7 @@ void UIManager::setupDockspace()
 
 void UIManager::renderViewportControls()
 {
-    if (ImGui::Begin("Viewport Manager", nullptr, ImGuiWindowFlags_NoCollapse))
-    {
+    if (ImGui::Begin("Viewport Manager", nullptr, ImGuiWindowFlags_NoCollapse)) {
         ImGui::Text("Active Viewports: %zu", this->_viewportManager.getViewports().size());
         ImGui::Separator();
 

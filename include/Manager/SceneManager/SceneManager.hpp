@@ -3,6 +3,8 @@
 #include "Core/EntityManager/EntityManager.hpp"
 #include "Core/ComponentRegistry/ComponentRegistry.hpp"
 
+#include "Systems/TransformSystem/TransformSystem.hpp"
+
 #include "Events/EventManager/EventManager.hpp"
 
 #include "Components/Primitive/Box.hpp"
@@ -26,7 +28,7 @@ struct EntityNode {
 
 class SceneManager {
     public:
-        SceneManager(EntityManager& entityManager, ComponentRegistry& componentRegistry, EventManager& eventManager);
+        SceneManager(EntityManager& entityManager, ComponentRegistry& componentRegistry, EventManager& eventManager, TransformSystem& transformSystem );
         ~SceneManager() = default;
 
         void render();
@@ -46,14 +48,14 @@ class SceneManager {
         EntityManager& _entityManager;
         ComponentRegistry& _componentRegistry;
         EventManager& _eventManager;
+        TransformSystem& _transformSystem;
 
         std::unordered_map<EntityID, EntityNode> _entities;
         std::vector<EntityID> _rootEntities;
         EntityID _selectedEntity = INVALID_ENTITY;
 
+        bool _isDescendant(EntityID entityId, EntityID targetId) const;
         void _renderEntityNode(EntityID id, int depth = 0);
-
         std::string _generateDefaultName(EntityID id);
-
         void _handleDragDrop(EntityID id);
 };
