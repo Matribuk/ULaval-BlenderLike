@@ -2,7 +2,10 @@
 
 void EventManager::processEvents()
 {
-    for (auto& e : this->_eventQueue) {
+    auto eventsToProcess = std::move(this->_eventQueue);
+    this->_eventQueue.clear();
+
+    for (auto& e : eventsToProcess) {
         auto it = this->_subscribers.find(typeid(*e).hash_code());
         if (it != this->_subscribers.end()) {
             for (auto& callback : it->second) {
@@ -10,5 +13,4 @@ void EventManager::processEvents()
             }
         }
     }
-    this->_eventQueue.clear();
 }
