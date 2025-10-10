@@ -23,109 +23,109 @@ ApplicationRuntime::~ApplicationRuntime()
 
 void ApplicationRuntime::initialize()
 {
-    _eventBridge = std::make_unique<EventBridge>(_eventManager);
-    _eventBridge->setup();
+    this->_eventBridge = std::make_unique<EventBridge>(this->_eventManager);
+    this->_eventBridge->setup();
 
-    _setupEventSubscribers();
+    this->_setupEventSubscribers();
 }
 
 void ApplicationRuntime::update(int windowWidth, int windowHeight)
 {
     auto& input = InputManager::get();
 
-    for (EntityID id : _testEntities) {
-        if (id == _systems.selectionSystem->getSelectedEntity()) continue;
+    for (EntityID id : this->_testEntities) {
+        if (id == this->_systems.selectionSystem->getSelectedEntity()) continue;
 
-        Transform* t = _componentRegistry.getComponent<Transform>(id);
+        Transform* t = this->_componentRegistry.getComponent<Transform>(id);
 
-        if (t) _systems.transformSystem->markDirty(id);
+        if (t) this->_systems.transformSystem->markDirty(id);
     }
 
-    _eventManager.processEvents();
+    this->_eventManager.processEvents();
 
     input.processKeyActions();
     input.processShortcuts();
 
-    _managers.actionManager->updateCameraControls(_ui.toolbar.get());
+    this->_managers.actionManager->updateCameraControls(this->_ui.toolbar.get());
 
-    _managers.cameraManager->update(windowWidth, windowHeight);
-    _systems.transformSystem->update();
+    this->_managers.cameraManager->update(windowWidth, windowHeight);
+    this->_systems.transformSystem->update();
 
     input.endFrame();
 }
 
 void ApplicationRuntime::shutdown()
 {
-    if (_eventBridge) {
-        _eventBridge->remove();
-        _ui.eventLogPanel->addLog("System shutdown", ofColor::red);
+    if (this->_eventBridge) {
+        this->_eventBridge->remove();
+        this->_ui.eventLogPanel->addLog("System shutdown", ofColor::red);
     }
 }
 
 void ApplicationRuntime::_setupEventSubscribers()
 {
-    _eventManager.subscribe<KeyEvent>([this](const KeyEvent& e) {
+    this->_eventManager.subscribe<KeyEvent>([this](const KeyEvent& e) {
         std::stringstream ss;
         ss << "KeyEvent: " << (char)e.key << " (" << e.key << ") - ";
         ss << (e.type == KeyEventType::Pressed ? "PRESSED" : "RELEASED");
 
         ofColor color = (e.type == KeyEventType::Pressed) ? ofColor::yellow : ofColor::orange;
-        _ui.eventLogPanel->addLog(ss.str(), color);
+        this->_ui.eventLogPanel->addLog(ss.str(), color);
     });
 
-    _eventManager.subscribe<MouseEvent>([this](const MouseEvent& e) {
+    this->_eventManager.subscribe<MouseEvent>([this](const MouseEvent& e) {
         std::stringstream ss;
 
         switch(e.type) {
             case MouseEventType::Pressed:
                 ss << "Mouse PRESSED at (" << e.x << ", " << e.y << ") btn:" << e.button;
-                _ui.eventLogPanel->addLog(ss.str(), ofColor::lightBlue);
+                this->_ui.eventLogPanel->addLog(ss.str(), ofColor::lightBlue);
                 break;
             case MouseEventType::Released:
                 ss << "Mouse RELEASED at (" << e.x << ", " << e.y << ") btn:" << e.button;
-                _ui.eventLogPanel->addLog(ss.str(), ofColor::lightCyan);
+                this->_ui.eventLogPanel->addLog(ss.str(), ofColor::lightCyan);
                 break;
             case MouseEventType::Moved:
                 static int moveCount = 0;
                 moveCount++;
                 if (moveCount % 30 == 0) {
                     ss << "Mouse moved (" << e.x << ", " << e.y << ") [count:" << moveCount << "]";
-                    _ui.eventLogPanel->addLog(ss.str(), ofColor(100, 100, 150));
+                    this->_ui.eventLogPanel->addLog(ss.str(), ofColor(100, 100, 150));
                 }
                 break;
             case MouseEventType::Dragged:
                 ss << "Mouse DRAGGED at (" << e.x << ", " << e.y << ") btn:" << e.button;
-                _ui.eventLogPanel->addLog(ss.str(), ofColor::purple);
+                this->_ui.eventLogPanel->addLog(ss.str(), ofColor::purple);
                 break;
             case MouseEventType::Scrolled:
                 ss << "Mouse SCROLLED at (" << e.x << ", " << e.y << ")";
-                _ui.eventLogPanel->addLog(ss.str(), ofColor::magenta);
+                this->_ui.eventLogPanel->addLog(ss.str(), ofColor::magenta);
                 break;
         }
     });
 
-    _eventManager.subscribe<SelectionEvent>([this](const SelectionEvent& e) {
+    this->_eventManager.subscribe<SelectionEvent>([this](const SelectionEvent& e) {
         std::stringstream ss;
         ss << "SelectionEvent: Entity #" << e.entityID << " - ";
         ss << (e.selected ? "SELECTED" : "DESELECTED");
-        _ui.eventLogPanel->addLog(ss.str(), ofColor::lime);
+        this->_ui.eventLogPanel->addLog(ss.str(), ofColor::lime);
 
-        if (e.selected) _systems.selectionSystem->setSelectedEntity(e.entityID);
+        if (e.selected) this->_systems.selectionSystem->setSelectedEntity(e.entityID);
     });
 
-    _eventManager.subscribe<CameraEvent>([this](const CameraEvent& e) {
+    this->_eventManager.subscribe<CameraEvent>([this](const CameraEvent& e) {
         std::stringstream ss;
         ss << "CameraEvent: pos(" << e.position.x << "," << e.position.y << "," << e.position.z << ")";
-        _ui.eventLogPanel->addLog(ss.str(), ofColor::pink);
+        this->_ui.eventLogPanel->addLog(ss.str(), ofColor::pink);
 
-        if (_managers.cameraManager->getActiveCameraId() != INVALID_ENTITY) {
-            Transform* t = _componentRegistry.getComponent<Transform>(
-                _managers.cameraManager->getActiveCameraId()
+        if (this->_managers.cameraManager->getActiveCameraId() != INVALID_ENTITY) {
+            Transform* t = this->_componentRegistry.getComponent<Transform>(
+                this->_managers.cameraManager->getActiveCameraId()
             );
 
             if (t) t->position = e.position;
         }
     });
 
-    _ui.eventLogPanel->addLog("Event subscribers registered", ofColor::green);
+    this->_ui.eventLogPanel->addLog("Event subscribers registered", ofColor::green);
 }
