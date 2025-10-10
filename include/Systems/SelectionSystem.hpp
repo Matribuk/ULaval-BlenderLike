@@ -42,6 +42,7 @@ class SelectionSystem {
 
         EntityID getSelectedEntity();
         void setSelectedEntity(EntityID selectedEntity);
+        void setSelectMode(bool activateSelectMode);
 
     private:
         ComponentRegistry& _componentRegistry;
@@ -51,6 +52,7 @@ class SelectionSystem {
         ViewportManager* _viewportManager = nullptr;
 
         EntityID _selectedEntity = 0;
+        bool isSelectMode = false;
 
         void _handleMouseEvent(const MouseEvent& e);
         EntityID _performRaycastInActiveViewport(const glm::vec2& mouseGlobalPos);

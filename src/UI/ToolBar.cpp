@@ -5,12 +5,14 @@ Toolbar::Toolbar() : _selectedTool(-1), _buttonSpacing(5.0), _currentCursor(ImGu
     this->_tools.emplace_back(ToolButton{"Select", {
         [this](std::any){
             this->_currentCursor = ImGuiMouseCursor_Arrow;
+            if (this->_onSelect) this->_onSelect();
         }
     }});
 
     this->_tools.emplace_back(ToolButton{"Move", {
         [this](std::any){
             this->_currentCursor = ImGuiMouseCursor_Hand;
+            if (this->_onMove) this->_onMove();
         }
     }});
 
@@ -89,6 +91,16 @@ void Toolbar::setImportCallback(std::function<void()> callback)
 void Toolbar::setExportCallback(std::function<void()> callback)
 {
     this->_onExport = callback;
+}
+
+void Toolbar::setSelectCallback(std::function<void()> callback)
+{
+    this->_onSelect = callback;
+}
+
+void Toolbar::setMoveCallback(std::function<void()> callback)
+{
+    this->_onMove = callback;
 }
 
 ToolMode Toolbar::getActiveToolMode() const

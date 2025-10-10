@@ -124,7 +124,7 @@
 - [x] Ray casting pour sélection 3D
 - [x] Mise à jour composants Selectable
 - [x] Émission SelectionEvents
-- [ ] S'active seulement en select mode
+- [x] S'active seulement en select mode
 - [x] Bounding boxes
 - [ ] Gère tout type de mesh
 - [ ] Select seulement des objets visibles

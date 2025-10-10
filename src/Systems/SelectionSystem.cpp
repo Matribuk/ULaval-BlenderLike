@@ -36,7 +36,8 @@ void SelectionSystem::setSelectedEntity(EntityID selectedEntity)
 void SelectionSystem::_handleMouseEvent(const MouseEvent& e)
 {
     glm::vec2 mousePos(static_cast<float>(e.x), static_cast<float>(e.y));
-    this->_performRaycastInActiveViewport(mousePos);
+    if (this->isSelectMode)
+        this->_performRaycastInActiveViewport(mousePos);
 }
 
 glm::mat4 SelectionSystem::_getOrComputeTransformMatrix(Transform* t) const
@@ -178,13 +179,7 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         this->_transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
 
         float tHit = 0.0f;
-        bool hit = false;
-        try {
-            hit = this->_intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
-            if (hit) glm::vec3 hitPoint = rayOrigin + rayDir * tHit;
-        } catch(...) {
-            hit = false;
-        }
+        bool hit = this->_intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
 
         if (hit && tHit < closestT) {
             closestT = tHit;
@@ -259,4 +254,10 @@ bool SelectionSystem::_intersectsRayAABB(
     if (tmax < 0.0f) return false;
     outT = tmin >= 0.0f ? tmin : tmax;
     return true;
+}
+
+void SelectionSystem::setSelectMode(bool activateSelectMode)
+{
+    std::cout << "[Selection system] toggle selection mode" << std::endl;
+    this->isSelectMode = activateSelectMode;
 }
