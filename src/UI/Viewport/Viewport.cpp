@@ -176,7 +176,7 @@ void Viewport::_handleMouseDrag()
     if (_isDragging) {
         if (ImGui::IsMouseDown(ImGuiMouseButton_Left) ||
             ImGui::IsMouseDown(ImGuiMouseButton_Middle) ||
-            ImGui::IsMouseDown(ImGuiMouseButton_Middle)) {
+            ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
             ImVec2 mousePos = ImGui::GetMousePos();
             glm::vec2 currentPos = glm::vec2(mousePos.x, mousePos.y);
 
