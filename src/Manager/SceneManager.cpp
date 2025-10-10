@@ -141,7 +141,7 @@ bool SceneManager::_isDescendant(EntityID entityId, EntityID targetId) const
     if (it->second.parent == targetId)
         return true;
 
-    return _isDescendant(it->second.parent, targetId);
+    return this->_isDescendant(it->second.parent, targetId);
 }
 
 void SceneManager::_renderEntityNode(EntityID id, int depth)

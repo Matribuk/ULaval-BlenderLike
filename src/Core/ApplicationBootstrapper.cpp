@@ -12,27 +12,27 @@ ApplicationBootstrapper::ApplicationBootstrapper(
 
 bool ApplicationBootstrapper::bootstrap()
 {
-    if (!this->_phase1InitializeSystems()) {
+    if (!this->_InitializeSystems()) {
         this->_logError("Failed to initialize systems");
         return false;
     }
 
-    if (!this->_phase2InitializeManagers()) {
+    if (!this->_InitializeManagers()) {
         this->_logError("Failed to initialize managers");
         return false;
     }
 
-    if (!this->_phase3InitializeUI()) {
+    if (!this->_InitializeUI()) {
         this->_logError("Failed to initialize UI");
         return false;
     }
 
-    if (!this->_phase4SetupCallbacks()) {
+    if (!this->_SetupCallbacks()) {
         this->_logError("Failed to setup callbacks");
         return false;
     }
 
-    if (!this->_phase5CreateTestScene()) {
+    if (!this->_CreateTestScene()) {
         this->_logError("Failed to create test scene");
         return false;
     }
@@ -59,7 +59,7 @@ std::vector<EntityID>& ApplicationBootstrapper::getTestEntities()
     return this->_testEntities;
 }
 
-bool ApplicationBootstrapper::_phase1InitializeSystems()
+bool ApplicationBootstrapper::_InitializeSystems()
 {
     this->_systems.transformSystem = std::make_unique<TransformSystem>(
         this->_componentRegistry,
@@ -79,7 +79,7 @@ bool ApplicationBootstrapper::_phase1InitializeSystems()
     return true;
 }
 
-bool ApplicationBootstrapper::_phase2InitializeManagers()
+bool ApplicationBootstrapper::_InitializeManagers()
 {
     this->_managers.cameraManager = std::make_unique<CameraManager>(
         this->_componentRegistry,
@@ -131,7 +131,7 @@ bool ApplicationBootstrapper::_phase2InitializeManagers()
     return true;
 }
 
-bool ApplicationBootstrapper::_phase3InitializeUI()
+bool ApplicationBootstrapper::_InitializeUI()
 {
     this->_ui.eventLogPanel = std::make_unique<EventLogPanel>();
     this->_ui.toolbar = std::make_unique<Toolbar>();
@@ -164,7 +164,7 @@ bool ApplicationBootstrapper::_phase3InitializeUI()
     return true;
 }
 
-bool ApplicationBootstrapper::_phase4SetupCallbacks()
+bool ApplicationBootstrapper::_SetupCallbacks()
 {
     InputManager::get().subscribeToEvents(this->_eventManager);
 
@@ -209,7 +209,7 @@ bool ApplicationBootstrapper::_phase4SetupCallbacks()
     return true;
 }
 
-bool ApplicationBootstrapper::_phase5CreateTestScene()
+bool ApplicationBootstrapper::_CreateTestScene()
 {
     this->_managers.viewportManager->createViewport(
         *this->_managers.cameraManager,

@@ -92,11 +92,11 @@ class ApplicationBootstrapper {
 
         std::vector<EntityID> _testEntities;
 
-        bool _phase1InitializeSystems();
-        bool _phase2InitializeManagers();
-        bool _phase3InitializeUI();
-        bool _phase4SetupCallbacks();
-        bool _phase5CreateTestScene();
+        bool _InitializeSystems();
+        bool _InitializeManagers();
+        bool _InitializeUI();
+        bool _SetupCallbacks();
+        bool _CreateTestScene();
 
         void _logError(const std::string& message);
 };
