@@ -24,18 +24,14 @@
 - [ ] Minimum 5 représentations visuelles du curseur
 - [ ] Changement du curseur selon l’état de l’application (dessin, sélection, transformation, etc.)
 
-### 2.2 Outils de dessin
-- [ ] Modification interactive :
-  - [ ] Épaisseur des contours
-  - [ ] Couleur des contours
-  - [ ] Couleur de remplissage
-  - [ ] Couleur d’arrière-plan
-- [ ] Support des modes RGB et HSB
-
 ### 2.3 Primitives vectorielles
 - [ ] Création interactive d’au moins **6 types de primitives** parmi :
   - point, ligne, carré, rectangle, triangle, quadrilatère,
     polygone régulier / irrégulier, cercle, ellipse, arc
+
+### 2.5 Interface
+- [x] Un ou des éléments d’interface graphique offrent de la rétroaction informative visuelle
+- [ ] Des contrôles interactifs pour influencer les états de l’application.
 
 ---
 

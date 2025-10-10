@@ -1,7 +1,10 @@
 #include "Systems/RenderSystem/RenderSystem.hpp"
 
 RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr, CameraManager &cameraManager)
-    : _registry(registry), _entityManager(entityMgr), _cameraManager(cameraManager) {}
+    : _registry(registry), _entityManager(entityMgr), _cameraManager(cameraManager)
+{
+    this->_initSkybox();
+}
 
 void RenderSystem::render()
 {
@@ -15,7 +18,8 @@ void RenderSystem::render()
         return;
     }
 
-    setupRenderState();
+    this->_setupRenderState();
+    this->_renderSkybox();
 
     glMatrixMode(GL_PROJECTION);
     glLoadMatrixf(glm::value_ptr(activeCamera->projMatrix));
@@ -34,17 +38,21 @@ void RenderSystem::render()
     }
     ofPopStyle();
 
-    renderEntities();
+    this->_renderEntities();
 }
 
-void RenderSystem::setupRenderState()
+void RenderSystem::setSkyColors(const glm::vec3& top, const glm::vec3& bottom)
 {
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    ofEnableDepthTest();
+    _skyTopColor = top;
+    _skyBottomColor = bottom;
 }
 
-ofCamera RenderSystem::buildCameraFromComponents(Camera& camera, const Transform& transform)
+void RenderSystem::_setupRenderState()
+{
+    glDisable(GL_CULL_FACE);
+}
+
+ofCamera RenderSystem::_buildCameraFromComponents(Camera& camera, const Transform& transform)
 {
     glm::vec3 camPos = transform.position;
     glm::vec3 forward = glm::normalize(camera.forward);
@@ -90,7 +98,7 @@ ofCamera RenderSystem::buildCameraFromComponents(Camera& camera, const Transform
     return cam;
 }
 
-void RenderSystem::renderEntities()
+void RenderSystem::_renderEntities()
 {
     for (EntityID id : this->_entityManager.getAllEntities()) {
         Transform* transform = this->_registry.getComponent<Transform>(id);
@@ -98,11 +106,11 @@ void RenderSystem::renderEntities()
 
         if (!transform || !render || !render->visible) continue;
 
-        drawMesh(render->mesh, transform->matrix, render->color, render->material);
+        this->_drawMesh(render->mesh, transform->matrix, render->color, render->material);
     }
 }
 
-void RenderSystem::drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material *material)
+void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material *material)
 {
     ofPushMatrix();
     ofMultMatrix(transform);
@@ -129,4 +137,51 @@ void RenderSystem::drawMesh(const ofMesh& mesh, const glm::mat4& transform, cons
         mesh.draw();
 
     ofPopMatrix();
+}
+
+void RenderSystem::_initSkybox()
+{
+    bool loaded = this->_skyShader.load("shaders/sky");
+
+    if (!loaded)
+        loaded = this->_skyShader.load(ofToDataPath("shaders/sky"));
+
+    if (loaded)
+        std::cout << "Sky shader loaded successfully" << std::endl;
+    else {
+        std::cout << "Sky shader failed to load" << std::endl;
+        return;
+    }
+
+    this->_skyQuad.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
+
+    this->_skyQuad.addVertex(glm::vec3(-1, -1, 0.999));
+    this->_skyQuad.addVertex(glm::vec3( 1, -1, 0.999));
+    this->_skyQuad.addVertex(glm::vec3(-1,  1, 0.999));
+    this->_skyQuad.addVertex(glm::vec3( 1,  1, 0.999));
+
+    this->_skyInitialized = true;
+}
+
+void RenderSystem::_renderSkybox()
+{
+    if (!_skyInitialized)
+        return;
+
+    glClearColor(this->_skyBottomColor.r, this->_skyBottomColor.g, this->_skyBottomColor.b, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
+
+    this->_skyShader.begin();
+
+    this->_skyShader.setUniform3f("topColor", this->_skyTopColor);
+    this->_skyShader.setUniform3f("bottomColor", this->_skyBottomColor);
+
+    this->_skyQuad.draw();
+    this->_skyShader.end();
+
+    glDepthMask(GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
 }

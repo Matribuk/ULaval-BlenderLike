@@ -21,7 +21,8 @@ void Viewport::renderScene()
     if (!this->_fboInitialized) return;
 
     this->_fbo.begin();
-    ofClear(50, 50, 60, 255);
+
+    glClear(GL_DEPTH_BUFFER_BIT);
 
     EntityID previousCamera = this->_cameraManager.getActiveCameraId();
 
