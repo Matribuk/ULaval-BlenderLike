@@ -109,12 +109,10 @@ void RenderSystem::_renderEntities()
 
         if (!transform || !render || !render->visible) continue;
 
-        bool isSelected = (selectedEntities.find(id) != selectedEntities.end());
-
+        bool isSelected = (id == selectedEntity);
         this->_drawMesh(render->mesh, transform->matrix, render->color, render->material, isSelected);
     }
 }
-
 
 void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material, bool isSelected)
 {
