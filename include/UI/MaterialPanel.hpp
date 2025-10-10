@@ -19,6 +19,7 @@ class MaterialPanel {
 
     private:
         ComponentRegistry& _componentRegistry;
-        Renderable* _renderable = nullptr;
         SelectionSystem& _selectionSystem;
+
+        void _addMaterialComponent(EntityID entityId);
 };

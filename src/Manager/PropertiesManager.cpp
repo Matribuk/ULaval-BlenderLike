@@ -1,7 +1,20 @@
 #include "Manager/PropertiesManager.hpp"
 
-PropertiesManager::PropertiesManager(TranformPanel& tranformPanel, MaterialPanel& materialPanel, ColorPanel& ColorPanel, SceneManager& sceneManager)
-    : _tranformPanel(tranformPanel), _materialPanel(materialPanel), _ColorPanel(ColorPanel), _sceneManager(sceneManager) {}
+PropertiesManager::PropertiesManager(
+    TranformPanel& tranformPanel,
+    MaterialPanel& materialPanel,
+    ColorPanel& ColorPanel,
+    SceneManager& sceneManager,
+    ComponentRegistry& componentRegistry,
+    SelectionSystem& selectionSystem
+) :
+    _tranformPanel(tranformPanel),
+    _materialPanel(materialPanel),
+    _ColorPanel(ColorPanel),
+    _sceneManager(sceneManager),
+    _componentRegistry(componentRegistry),
+    _selectionSystem(selectionSystem)
+{}
 
 void PropertiesManager::render()
 {
@@ -41,6 +54,11 @@ void PropertiesManager::render()
         ImGui::Separator();
         ImGui::Spacing();
 
+        if (ImGui::SmallButton("x##DeleteColor"))
+        this->_deleteComponnent("Color");
+
+        ImGui::SameLine();
+
         if (ImGui::CollapsingHeader("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Indent(10.0f);
             this->_ColorPanel.render();
@@ -50,6 +68,11 @@ void PropertiesManager::render()
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
+
+        if (ImGui::SmallButton("x##DeleteMaterial"))
+        this->_deleteComponnent("Material");
+
+        ImGui::SameLine();
 
         if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Indent(10.0f);
@@ -62,4 +85,17 @@ void PropertiesManager::render()
 
     ImGui::End();
     ImGui::PopStyleColor(1);
+}
+
+void PropertiesManager::_deleteComponnent(std::string componentName)
+{
+    EntityID selected = this->_sceneManager.getSelectedEntity();
+    if (selected == INVALID_ENTITY) return;
+
+    if (componentName == "Color" && this->_componentRegistry.hasComponent<Renderable>(selected))
+        this->_componentRegistry.removeComponent<Renderable>(selected);
+
+    if (componentName == "Material" && this->_componentRegistry.hasComponent<Renderable>(selected))
+        this->_componentRegistry.removeComponent<Renderable>(selected);
+
 }

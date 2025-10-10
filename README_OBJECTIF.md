@@ -42,9 +42,9 @@
 ## 🧠 3. Sélection et Transformation
 
 ### 3.1 Graphe de scène
-- [ ] Les éléments visuels présents organisés dans une scene permettent:
-  - [ ] L'ajout d’attributs
-  - [ ] La suppression d’attributs
+- [x] Les éléments visuels présents organisés dans une scene permettent:
+  - [x] L'ajout d’attributs
+  - [x] La suppression d’attributs
   - [x] La sélection d’attributs
   - [x] L’édition d’attributs.
 

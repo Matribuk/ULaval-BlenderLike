@@ -21,4 +21,7 @@ class TranformPanel {
     private:
         ComponentRegistry& _componentRegistry;
         SelectionSystem& _selectionSystem;
+
+        void _addTransformComponent(EntityID entityId);
+
 };

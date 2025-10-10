@@ -145,7 +145,9 @@ bool ApplicationBootstrapper::_phase3InitializeUI()
         *this->_ui.transformPanel,
         *this->_ui.materialPanel,
         *this->_ui.colorPanel,
-        *this->_managers.sceneManager
+        *this->_managers.sceneManager,
+        this->_componentRegistry,
+        *this->_systems.selectionSystem
     );
 
     this->_managers.uiManager = std::make_unique<UIManager>(

@@ -22,4 +22,6 @@ class ColorPanel {
         ofColor _color;
         ComponentRegistry& _componentRegistry;
         SelectionSystem& _selectionSystem;
+
+        void _addColorComponent(EntityID entityId);
 };

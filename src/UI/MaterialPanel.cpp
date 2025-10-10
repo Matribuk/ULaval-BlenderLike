@@ -5,30 +5,43 @@ MaterialPanel::MaterialPanel(ComponentRegistry& componentRegistry, SelectionSyst
 
 void MaterialPanel::render()
 {
-    EntityID selectedEntity = this->_selectionSystem.getSelectedEntity();
-    Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(selectedEntity);
-    if (this->_selectionSystem.getSelectedEntity() == INVALID_ENTITY)
+    EntityID entityId = this->_selectionSystem.getSelectedEntity();
+
+    if (entityId == INVALID_ENTITY)
         return;
 
-    if (this->_renderable) {
-        ImGui::Checkbox("Visible", &this->_renderable->visible);
+    Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(entityId);
 
-        if (this->_renderable->material) {
-            ImGui::Text("Material:");
+    if (!renderable) {
+        ImGui::Button("Add Material Component");
+        if (ImGui::IsItemClicked()) _addMaterialComponent(entityId);
 
-            if (this->_renderable->material->shader)
-                ImGui::Text(" - Shader: Set");
-            else
-                ImGui::Text(" - Shader: None");
-
-            if (this->_renderable->material->texture)
-                ImGui::Text(" - Texture: Set");
-            else
-                ImGui::Text(" - Texture: None");
-
-            ImGui::Separator();
-
-            ImGui::Checkbox("Visible", &this->_renderable->visible);
-        }
+        return;
     }
+
+    ImGui::Checkbox("Visible", &renderable->visible);
+
+    if (renderable->material) {
+        ImGui::Text("Material:");
+
+        if (renderable->material->shader)
+            ImGui::Text(" - Shader: Set");
+        else
+            ImGui::Text(" - Shader: None");
+
+        if (renderable->material->texture)
+            ImGui::Text(" - Texture: Set");
+        else
+            ImGui::Text(" - Texture: None");
+
+        ImGui::Separator();
+
+    }
+}
+
+void MaterialPanel::_addMaterialComponent(EntityID entityId)
+{
+    if (entityId == INVALID_ENTITY) return;
+
+    this->_componentRegistry.registerComponent<Renderable>(entityId, Renderable(ofMesh(), ofColor::white));
 }

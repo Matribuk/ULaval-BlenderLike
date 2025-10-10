@@ -5,29 +5,43 @@ TranformPanel::TranformPanel(ComponentRegistry& componentRegistry, SelectionSyst
 
 void TranformPanel::render()
 {
-    EntityID selectedEntity = this->_selectionSystem.getSelectedEntity();
-    Transform* transform = this->_componentRegistry.getComponent<Transform>(selectedEntity);
-    if (selectedEntity == INVALID_ENTITY)
+    EntityID entityId = this->_selectionSystem.getSelectedEntity();
+
+    if (entityId == INVALID_ENTITY)
         return;
 
-    if (transform) {
-        bool edited = false;
+        Transform* transform = this->_componentRegistry.getComponent<Transform>(entityId);
 
-        glm::vec3 rotationDegrees = glm::degrees(transform->rotation);
-        glm::vec3 scalePercent = transform->scale * 100.0f;
+    if (!transform) {
+        ImGui::Button("Add Color Component");
+        if (ImGui::IsItemClicked()) _addTransformComponent(entityId);
 
-        ImGui::Separator();
-        ImGui::Text("Transform");
-        ImGui::Text("( x )\t\t\t\t( y )\t\t\t\t( z )");
-
-        edited |= ImGui::InputFloat3("Position", &transform->position[0]);
-        edited |= ImGui::InputFloat3("Rotation (°)", &rotationDegrees[0]);
-        edited |= ImGui::InputFloat3("Scale (%)", &scalePercent[0]);
-
-        if (edited) {
-            transform->rotation = glm::radians(rotationDegrees);
-            transform->scale = scalePercent / 100.0f;
-            transform->isDirty = true;
-        }
+        return;
     }
+
+    bool edited = false;
+
+    glm::vec3 rotationDegrees = glm::degrees(transform->rotation);
+    glm::vec3 scalePercent = transform->scale * 100.0f;
+
+    ImGui::Separator();
+    ImGui::Text("Transform");
+    ImGui::Text("( x )\t\t\t\t( y )\t\t\t\t( z )");
+
+    edited |= ImGui::InputFloat3("Position", &transform->position[0]);
+    edited |= ImGui::InputFloat3("Rotation (°)", &rotationDegrees[0]);
+    edited |= ImGui::InputFloat3("Scale (%)", &scalePercent[0]);
+
+    if (edited) {
+        transform->rotation = glm::radians(rotationDegrees);
+        transform->scale = scalePercent / 100.0f;
+        transform->isDirty = true;
+    }
+}
+
+void TranformPanel::_addTransformComponent(EntityID entityId)
+{
+    if (entityId == INVALID_ENTITY) return;
+
+    this->_componentRegistry.registerComponent<Transform>(entityId, Transform(glm::vec3(0, 0, 0)));
 }

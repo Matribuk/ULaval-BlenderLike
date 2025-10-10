@@ -15,8 +15,19 @@ ColorPanel::ColorPanel(ComponentRegistry& componentRegistry, SelectionSystem& se
 
 void ColorPanel::render()
 {
-    Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(this->_selectionSystem.getSelectedEntity());
-    if (!renderable) return;
+    EntityID entityId = this->_selectionSystem.getSelectedEntity();
+
+    if (entityId == INVALID_ENTITY)
+        return;
+
+    Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(entityId);
+
+    if (!renderable) {
+        ImGui::Button("Add Color Component");
+        if (ImGui::IsItemClicked()) _addColorComponent(entityId);
+
+        return;
+    }
 
     ImVec4 color = renderable->color;
 
@@ -50,3 +61,9 @@ const ofColor& ColorPanel::getSelectedColor() const
     return this->_color;
 }
 
+void ColorPanel::_addColorComponent(EntityID entityId)
+{
+    if (entityId == INVALID_ENTITY) return;
+
+    this->_componentRegistry.registerComponent<Renderable>(entityId, Renderable(ofMesh(), ofColor::white));
+}
