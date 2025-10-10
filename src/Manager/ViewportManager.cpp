@@ -27,8 +27,10 @@ void ViewportManager::removeViewport(CameraManager& cameraManager, ViewportID id
 
     if (it != this->_viewports.end()) {
         EntityID cameraId = (*it)->getCamera();
-        if (cameraId != INVALID_ENTITY)
+        if (cameraId != INVALID_ENTITY) {
             cameraManager.removeCamera(cameraId);
+            _sceneManager.unregisterEntity(cameraId);
+        }
 
         this->_viewports.erase(it);
     }
