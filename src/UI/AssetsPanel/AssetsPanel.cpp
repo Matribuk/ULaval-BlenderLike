@@ -181,7 +181,7 @@ void AssetsPanel::_renderAssetThumbnail(const AssetInfo& asset)
     ImGui::SetCursorScreenPos(cursorPos);
     ImGui::InvisibleButton("##thumbnail", ImVec2(thumbnailSize, thumbnailSize));
 
-    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
         size_t assetIndex = &asset - &this->_assets[0];
 
         if (asset.isImage) {

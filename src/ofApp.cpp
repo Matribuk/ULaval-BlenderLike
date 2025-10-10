@@ -106,6 +106,8 @@ void ofApp::setup()
     });
 
     this->_viewportManager = std::make_unique<ViewportManager>(*this->_sceneManager);
+    this->_imageExporter = std::make_unique<ImageSequenceExporter>(*this->_viewportManager);
+    this->_exportPanel = std::make_unique<ExportPanel>(*this->_imageExporter, *this->_viewportManager);
 
     this->_selectionSystem = std::make_unique<SelectionSystem>(
         this->_componentRegistry,
@@ -179,6 +181,7 @@ void ofApp::setup()
         *this->_instructionsPanel,
         *this->_eventLogPanel,
         *this->_assetsPanel,
+        *this->_exportPanel,
         *this->_renderSystem
     );
 
@@ -339,11 +342,21 @@ void ofApp::update()
 {
     auto& input = InputManager::get();
 
+    double speedRotate = 0.1;
     for (EntityID id : this->_testEntities) {
         if (id == this->_selectionSystem->getSelectedEntity()) continue;
         Transform* t = this->_componentRegistry.getComponent<Transform>(id);
+        if (this->_componentRegistry.hasComponent<Box>(id)) {
+            t->rotation.y += speedRotate;
+        } else if (this->_componentRegistry.hasComponent<Sphere>(id)) {
+            t->rotation.x += speedRotate;
+            t->rotation.y += speedRotate;
+        } else if (this->_componentRegistry.hasComponent<Plane>(id)) {
+            t->rotation.x += speedRotate;
+        }
         if (t)
             this->_transformSystem->markDirty(id);
+        speedRotate += 0.05;
     }
 
     this->_eventManager.processEvents();
@@ -355,6 +368,7 @@ void ofApp::update()
     this->_cameraManager->update(ofGetWidth(), ofGetHeight());
 
     this->_transformSystem->update();
+    this->_imageExporter->update(ofGetLastFrameTime());
     input.endFrame();
 }
 

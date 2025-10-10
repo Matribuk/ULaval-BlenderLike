@@ -5,6 +5,7 @@
 #include "UI/InstructionsPanel/InstructionsPanel.hpp"
 #include "UI/EventLogPanel/EventLogPanel.hpp"
 #include "UI/AssetsPanel/AssetsPanel.hpp"
+#include "UI/ExportPanel/ExportPanel.hpp"
 
 #include "Manager/ViewportManager/ViewportManager.hpp"
 #include "Manager/PropertiesManager/PropertiesManager.hpp"
@@ -28,6 +29,7 @@ class UIManager {
             InstructionsPanel& instructionsPanel,
             EventLogPanel& eventLogPanel,
             AssetsPanel& assetsPanel,
+            ExportPanel& exportPanel,
             RenderSystem& renderSystem
         );
 
@@ -47,6 +49,7 @@ class UIManager {
         InstructionsPanel& _instructionsPanel;
         EventLogPanel& _eventLogPanel;
         AssetsPanel& _assetsPanel;
+        ExportPanel& _exportPanel;
         RenderSystem& _renderSystem;
 
         ImGuiID _dockspaceId = 0;

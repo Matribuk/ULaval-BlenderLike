@@ -36,6 +36,7 @@
 #include "Systems/RenderSystem/RenderSystem.hpp"
 #include "Systems/TransformSystem/TransformSystem.hpp"
 #include "Systems/SelectionSystem/SelectionSystem.hpp"
+#include "Systems/ImageSequenceExporter/ImageSequenceExporter.hpp"
 
 // UI
 #include "UI/ColorPalette/ColorPalette.hpp"
@@ -47,6 +48,7 @@
 #include "UI/InstructionsPanel/InstructionsPanel.hpp"
 #include "UI/EventLogPanel/EventLogPanel.hpp"
 #include "UI/AssetsPanel/AssetsPanel.hpp"
+#include "UI/ExportPanel/ExportPanel.hpp"
 
 #include <ofMain.h>
 #include "ofxImGui.h"
@@ -86,6 +88,7 @@ class ofApp : public ofBaseApp {
         std::unique_ptr<InstructionsPanel> _instructionsPanel;
         std::unique_ptr<EventLogPanel> _eventLogPanel;
         std::unique_ptr<AssetsPanel> _assetsPanel;
+        std::unique_ptr<ExportPanel> _exportPanel;
         std::unique_ptr<Toolbar> _toolbar;
         ComponentRegistry _componentRegistry;
 
@@ -94,6 +97,7 @@ class ofApp : public ofBaseApp {
         std::unique_ptr<RenderSystem> _renderSystem;
         std::unique_ptr<PrimitiveSystem> _primitiveSystem;
         std::unique_ptr<SelectionSystem> _selectionSystem;
+        std::unique_ptr<ImageSequenceExporter> _imageExporter;
         ofxImGui::Gui _gui;
         std::vector<EntityID> _testEntities;
         EntityID _cameraEntity = INVALID_ENTITY;
