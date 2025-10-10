@@ -37,6 +37,7 @@ class RenderSystem {
         bool _skyInitialized = false;
         glm::vec3 _skyTopColor{0.529f, 0.808f, 0.922f};
         glm::vec3 _skyBottomColor{0.9f, 0.95f, 1.0f};
+        float _boundingBoxSize = 2.0f;
 
         void _initSkybox();
         void _renderSkybox();

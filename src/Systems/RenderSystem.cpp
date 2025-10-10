@@ -2,7 +2,10 @@
 #include <glm/gtc/type_ptr.hpp>
 
 RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr)
-    : _registry(registry), _entityManager(entityMgr) {}
+    : _registry(registry), _entityManager(entityMgr)
+{
+    this->_initSkybox();
+}
 
 void RenderSystem::render()
 {
@@ -106,11 +109,11 @@ void RenderSystem::_renderEntities()
         if (!transform || !render || !render->visible) continue;
 
         bool isSelected = (id == selectedEntity);
-        drawMesh(render->mesh, transform->matrix, render->color, render->material, isSelected);
+        this->_drawMesh(render->mesh, transform->matrix, render->color, render->material, isSelected);
     }
 }
 
-void RenderSystem::drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material, bool isSelected)
+void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material, bool isSelected)
 {
     ofPushMatrix();
     ofMultMatrix(transform);
@@ -147,7 +150,7 @@ void RenderSystem::drawMesh(const ofMesh& mesh, const glm::mat4& transform, cons
         ofPushStyle();
         ofNoFill();
         ofSetColor(ofColor::yellow);
-        ofSetLineWidth(4.0f);
+        ofSetLineWidth(this->_boundingBoxSize);
 
         ofScale(1.01f, 1.01f, 1.01f);
         mesh.drawWireframe();
