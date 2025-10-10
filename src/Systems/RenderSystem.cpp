@@ -126,6 +126,8 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
             material->shader->setUniformMatrix4f("viewMatrix", activeCam->viewMatrix);
             material->shader->setUniformMatrix4f("projMatrix", activeCam->projMatrix);
         }
+        material->shader->setUniform4f("color", ofFloatColor(color));
+        material->shader->setUniform1f("uTime", ofGetElapsedTimef());
 
         if (material->texture)
             material->shader->setUniformTexture("tex0", *material->texture, 0);
@@ -133,8 +135,13 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
         mesh.draw();
 
         material->shader->end();
-    } else
+    } else if (material && material->texture && !material->shader) {
+        material->texture->bind();
         mesh.draw();
+        material->texture->unbind();
+    } else {
+        mesh.draw();
+    }
 
     ofPopMatrix();
 }

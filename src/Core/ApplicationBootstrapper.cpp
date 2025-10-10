@@ -81,6 +81,8 @@ bool ApplicationBootstrapper::_InitializeSystems()
 
 bool ApplicationBootstrapper::_InitializeManagers()
 {
+    this->_managers.resourceManager = std::make_unique<ResourceManager>();
+
     this->_managers.cameraManager = std::make_unique<CameraManager>(
         this->_componentRegistry,
         this->_entityManager,
