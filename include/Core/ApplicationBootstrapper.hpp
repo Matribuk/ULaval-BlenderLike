@@ -28,6 +28,7 @@
 #include "UI/SkyboxPanel.hpp"
 #include "UI/InstructionsPanel.hpp"
 #include "UI/EventLogPanel.hpp"
+#include "UI/AssetsPanel.hpp"
 
 #include "Components/Transform.hpp"
 #include "Components/Renderable.hpp"
@@ -67,6 +68,7 @@ struct UIContext {
     std::unique_ptr<SkyboxPanel> skyboxPanel;
     std::unique_ptr<InstructionsPanel> instructionsPanel;
     std::unique_ptr<EventLogPanel> eventLogPanel;
+    std::unique_ptr<AssetsPanel> assetsPanel;
 };
 
 class ApplicationBootstrapper {

@@ -6,6 +6,7 @@
 #include "Systems/RenderSystem.hpp"
 
 #include "ofxImGui.h"
+#include <functional>
 
 class Viewport {
     public:
@@ -32,6 +33,9 @@ class Viewport {
         bool isMouseDragging() const;
         glm::vec2 getMouseDragDelta() const;
 
+        void setAssetDropCallback(std::function<void(size_t, glm::vec2)> callback);
+        bool hasDroppedAsset() const { return _hasDroppedAsset; }
+
     private:
         CameraManager& _cameraManager;
         RenderSystem& _renderSystem;
@@ -48,6 +52,10 @@ class Viewport {
         glm::vec2 _lastMousePos;
         glm::vec2 _dragDelta;
 
+        bool _hasDroppedAsset = false;
+        std::function<void(size_t, glm::vec2)> _assetDropCallback;
+
         void _handleMouseDrag();
+        void _handleDropTarget();
         void _initializeFbo(int width, int height);
 };

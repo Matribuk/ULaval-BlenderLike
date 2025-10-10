@@ -8,6 +8,7 @@ UIManager::UIManager(
     SkyboxPanel& skyboxPanel,
     InstructionsPanel& instructionsPanel,
     EventLogPanel& eventLogPanel,
+    AssetsPanel& assetsPanel,
     RenderSystem& renderSystem
 ) :
     _toolbar(toolbar),
@@ -17,6 +18,7 @@ UIManager::UIManager(
     _skyboxPanel(skyboxPanel),
     _instructionsPanel(instructionsPanel),
     _eventLogPanel(eventLogPanel),
+    _assetsPanel(assetsPanel),
     _renderSystem(renderSystem) {}
 
 void UIManager::render()
@@ -28,6 +30,7 @@ void UIManager::render()
     this->_viewportManager.renderAll();
     this->_instructionsPanel.render();
     this->_eventLogPanel.render();
+    this->_assetsPanel.render();
     this->_skyboxPanel.render();
 
     renderViewportControls();
@@ -91,6 +94,11 @@ void UIManager::renderViewportControls()
                 auto& newViewport = this->_viewportManager.getViewports().back();
                 newViewport->setCamera(cameras[cameraIndex]);
             }
+
+            if (this->_newViewportCallback) {
+                this->_newViewportCallback(this->_viewportManager.getViewports().back().get());
+            }
+
             std::string vpName = "Viewport " + std::to_string(this->_viewportManager.getViewports().back()->getId());
             this->_viewportsToDock.push_back(vpName);
         }
@@ -158,6 +166,11 @@ void UIManager::dockNewViewport(const std::string& viewportName)
         ImGui::DockBuilderDockWindow(viewportName.c_str(), this->_dockspaceId);
 }
 
+void UIManager::setNewViewportCallback(std::function<void(Viewport*)> callback)
+{
+    this->_newViewportCallback = callback;
+}
+
 std::vector<EntityID> UIManager::_getAvailableCameras()
 {
     std::vector<EntityID> cameras;
@@ -189,6 +202,7 @@ void UIManager::_setupInitialLayout()
     ImGui::DockBuilderDockWindow("Event Log", dockDown);
     ImGui::DockBuilderDockWindow("Instructions", dockDown);
     ImGui::DockBuilderDockWindow("Skybox Settings", dockDown);
+    ImGui::DockBuilderDockWindow("Assets", dockRight);
     ImGui::DockBuilderDockWindow("Viewport 1", dockMain);
     ImGui::DockBuilderDockWindow("Viewport Manager", dockRight);
 
