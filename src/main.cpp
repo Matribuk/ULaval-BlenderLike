@@ -1,4 +1,4 @@
-#include "UI/ofApp.h"
+#include "ofApp.h"
 
 int main( ){
 

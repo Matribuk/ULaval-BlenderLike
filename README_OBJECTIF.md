@@ -25,17 +25,28 @@
 - [ ] Changement du curseur selon l’état de l’application (dessin, sélection, transformation, etc.)
 
 ### 2.3 Primitives vectorielles
-- [ ] Création interactive d’au moins **6 types de primitives** parmi :
-  - point, ligne, carré, rectangle, triangle, quadrilatère,
-    polygone régulier / irrégulier, cercle, ellipse, arc
+- [ ] Création interactive d’au moins **6 types de primitives** :
+  - [ ] Point
+  - [ ] Ligne
+  - [ ] Carré
+  - [ ] Rectangle
+  - [ ] Cercle
+  - [ ] Triangle
 
 ### 2.5 Interface
 - [x] Un ou des éléments d’interface graphique offrent de la rétroaction informative visuelle
-- [ ] Des contrôles interactifs pour influencer les états de l’application.
+- [x] Des contrôles interactifs pour influencer les états de l’application.
 
 ---
 
 ## 🧠 3. Sélection et Transformation
+
+### 3.1 Graphe de scène
+- [x] Les éléments visuels présents organisés dans une scene permettent:
+  - [x] L'ajout d’attributs
+  - [x] La suppression d’attributs
+  - [x] La sélection d’attributs
+  - [x] L’édition d’attributs.
 
 ### 3.2 Sélection multiple
 - [ ] Sélection de plusieurs éléments visuels simultanément
@@ -46,10 +57,6 @@
 - [x] Rotation
 - [x] Mise à l’échelle (scale)
 - [ ] Manipulation directe dans la scène (gizmo, handles)
-
-### 3.4 Historique de transformation
-- [ ] Annuler et refaire les actions (undo / redo)
-- [ ] Historiser toutes les modifications d’attributs ou transformations
 
 ---
 
