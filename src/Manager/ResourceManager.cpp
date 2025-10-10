@@ -106,7 +106,7 @@ std::string ResourceManager::getTexturePath(ofTexture& target) {
             return path;
         }
     }
-    return {};
+    return "";
 }
 
 std::string ResourceManager::getShaderPath(ofShader& target) {
@@ -115,7 +115,7 @@ std::string ResourceManager::getShaderPath(ofShader& target) {
             return path;
         }
     }
-    return {};
+    return "";
 }
 
 std::string ResourceManager::getMeshPath(ofMesh& target) {
@@ -124,7 +124,7 @@ std::string ResourceManager::getMeshPath(ofMesh& target) {
             return path;
         }
     }
-    return {};
+    return "";
 }
 
 ofShader& ResourceManager::loadShader(std::string vertexPath, std::string fragmentPath) {
