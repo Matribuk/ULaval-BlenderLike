@@ -9,6 +9,7 @@ UIManager::UIManager(
     InstructionsPanel& instructionsPanel,
     EventLogPanel& eventLogPanel,
     AssetsPanel& assetsPanel,
+    ExportPanel& exportPanel,
     RenderSystem& renderSystem
 ) :
     _toolbar(toolbar),
@@ -19,6 +20,7 @@ UIManager::UIManager(
     _instructionsPanel(instructionsPanel),
     _eventLogPanel(eventLogPanel),
     _assetsPanel(assetsPanel),
+    _exportPanel(exportPanel),
     _renderSystem(renderSystem) {}
 
 void UIManager::render()
@@ -31,6 +33,7 @@ void UIManager::render()
     this->_instructionsPanel.render();
     this->_eventLogPanel.render();
     this->_assetsPanel.render();
+    this->_exportPanel.render();
     this->_skyboxPanel.render();
 
     renderViewportControls();
@@ -203,6 +206,7 @@ void UIManager::_setupInitialLayout()
     ImGui::DockBuilderDockWindow("Instructions", dockDown);
     ImGui::DockBuilderDockWindow("Skybox Settings", dockDown);
     ImGui::DockBuilderDockWindow("Assets", dockRight);
+    ImGui::DockBuilderDockWindow("Export", dockDown);
     ImGui::DockBuilderDockWindow("Viewport 1", dockMain);
     ImGui::DockBuilderDockWindow("Viewport Manager", dockRight);
 

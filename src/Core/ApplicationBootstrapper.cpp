@@ -111,6 +111,8 @@ bool ApplicationBootstrapper::_InitializeManagers()
         *this->_managers.sceneManager
     );
 
+    this->_systems.imageExporter = std::make_unique<ImageSequenceExporter>(*this->_managers.viewportManager);
+
     this->_systems.selectionSystem = std::make_unique<SelectionSystem>(
         this->_componentRegistry,
         this->_entityManager,
@@ -147,6 +149,7 @@ bool ApplicationBootstrapper::_InitializeUI()
         this->_componentRegistry
     );
     this->_ui.assetsPanel->loadAssetsFromDataFolder();
+    this->_ui.exportPanel = std::make_unique<ExportPanel>(*this->_systems.imageExporter, *this->_managers.viewportManager);
 
     this->_managers.propertiesManager = std::make_unique<PropertiesManager>(
         *this->_ui.transformPanel,
@@ -166,6 +169,7 @@ bool ApplicationBootstrapper::_InitializeUI()
         *this->_ui.instructionsPanel,
         *this->_ui.eventLogPanel,
         *this->_ui.assetsPanel,
+        *this->_ui.exportPanel,
         *this->_systems.renderSystem
     );
 
