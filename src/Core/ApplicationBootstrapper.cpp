@@ -41,22 +41,22 @@ bool ApplicationBootstrapper::bootstrap()
 
 SystemsContext& ApplicationBootstrapper::getSystems()
 {
-    return _systems;
+    return this->_systems;
 }
 
 ManagersContext& ApplicationBootstrapper::getManagers()
 {
-    return _managers;
+    return this->_managers;
 }
 
 UIContext& ApplicationBootstrapper::getUI()
 {
-    return _ui;
+    return this->_ui;
 }
 
 std::vector<EntityID>& ApplicationBootstrapper::getTestEntities()
 {
-    return _testEntities;
+    return this->_testEntities;
 }
 
 bool ApplicationBootstrapper::_phase1InitializeSystems()

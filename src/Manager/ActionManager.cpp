@@ -19,41 +19,41 @@ ActionManager::ActionManager(
 
 void ActionManager::registerAllActions()
 {
-    _registerKeyboardActions();
-    _registerShortcuts();
+    this->_registerKeyboardActions();
+    this->_registerShortcuts();
 }
 
 void ActionManager::updateCameraControls(Toolbar* toolbar)
 {
-    EntityID cameraToControl = _cameraManager.getActiveCameraId();
+    EntityID cameraToControl = this->_cameraManager.getActiveCameraId();
 
-    Viewport* activeViewport = _viewportManager.getActiveViewport();
+    Viewport* activeViewport = this->_viewportManager.getActiveViewport();
     if (activeViewport && activeViewport->getCamera() != INVALID_ENTITY) cameraToControl = activeViewport->getCamera();
 
     if (cameraToControl != INVALID_ENTITY) {
-        EntityID previousActive = _cameraManager.getActiveCameraId();
-        _cameraManager.setActiveCamera(cameraToControl);
+        EntityID previousActive = this->_cameraManager.getActiveCameraId();
+        this->_cameraManager.setActiveCamera(cameraToControl);
 
-        _handleCameraMovement(cameraToControl, toolbar);
-        _handleKeyboardCameraControls();
+        this->_handleCameraMovement(cameraToControl, toolbar);
+        this->_handleKeyboardCameraControls();
 
-        if (previousActive != INVALID_ENTITY) _cameraManager.setActiveCamera(previousActive);
+        if (previousActive != INVALID_ENTITY) this->_cameraManager.setActiveCamera(previousActive);
     }
 
     auto& input = InputManager::get();
     if (input.isKeyPressed('j')) {
-        _cameraManager.switchCamera();
-        if (activeViewport) activeViewport->setCamera(_cameraManager.getActiveCameraId());
+        this->_cameraManager.switchCamera();
+        if (activeViewport) activeViewport->setCamera(this->_cameraManager.getActiveCameraId());
     }
 }
 
 void ActionManager::toggleIsolateSelection()
 {
-    if (_isIsolated) {
-        _showAllEntities();
+    if (this->_isIsolated) {
+        this->_showAllEntities();
     } else {
-        EntityID selected = _selectionSystem.getSelectedEntity();
-        if (selected != INVALID_ENTITY) _isolateEntity(selected);
+        EntityID selected = this->_selectionSystem.getSelectedEntity();
+        if (selected != INVALID_ENTITY) this->_isolateEntity(selected);
     }
 }
 
@@ -62,24 +62,24 @@ void ActionManager::_registerKeyboardActions()
     auto& input = InputManager::get();
 
     input.registerKeyAction('p', [this]() {
-        Viewport* activeViewport = _viewportManager.getActiveViewport();
+        Viewport* activeViewport = this->_viewportManager.getActiveViewport();
         if (activeViewport) {
             EntityID cameraId = activeViewport->getCamera();
-            if (cameraId != INVALID_ENTITY) _cameraManager.toggleProjection(cameraId);
+            if (cameraId != INVALID_ENTITY) this->_cameraManager.toggleProjection(cameraId);
         }
     });
 
     input.registerKeyAction('f', [this]() {
-        EntityID cameraId = _cameraManager.getActiveCameraId();
-        EntityID selected = _selectionSystem.getSelectedEntity();
+        EntityID cameraId = this->_cameraManager.getActiveCameraId();
+        EntityID selected = this->_selectionSystem.getSelectedEntity();
 
-        Camera* cam = _componentRegistry.getComponent<Camera>(cameraId);
+        Camera* cam = this->_componentRegistry.getComponent<Camera>(cameraId);
         bool wasInFocusMode = (cam && cam->focusMode);
 
-        _cameraManager.focusTarget(cameraId, selected);
+        this->_cameraManager.focusTarget(cameraId, selected);
 
         if (!wasInFocusMode && selected != INVALID_ENTITY) toggleIsolateSelection();
-        else if (wasInFocusMode && _isIsolated) toggleIsolateSelection();
+        else if (wasInFocusMode && this->_isIsolated) toggleIsolateSelection();
     });
 }
 
@@ -97,7 +97,7 @@ void ActionManager::_registerShortcuts()
 void ActionManager::_handleCameraMovement(EntityID cameraId, Toolbar* toolbar)
 {
     auto& input = InputManager::get();
-    Viewport* activeViewport = _viewportManager.getActiveViewport();
+    Viewport* activeViewport = this->_viewportManager.getActiveViewport();
 
     if (!activeViewport || !activeViewport->isMouseDragging()) return;
 
@@ -106,17 +106,17 @@ void ActionManager::_handleCameraMovement(EntityID cameraId, Toolbar* toolbar)
     if (mode == ToolMode::Move) {
         glm::vec2 dragDelta = activeViewport->getMouseDragDelta();
 
-        Transform* t = _componentRegistry.getComponent<Transform>(cameraId);
-        if (t && !_isIsolated) {
+        Transform* t = this->_componentRegistry.getComponent<Transform>(cameraId);
+        if (t && !this->_isIsolated) {
             if (input.isMouseButtonPressed(0)) {
                 glm::vec3 panMovement(-dragDelta.x, dragDelta.y, 0.0f);
-                _cameraManager.pan(panMovement);
+                this->_cameraManager.pan(panMovement);
             } else if (input.isMouseButtonPressed(1)) {
                 glm::vec2 rotateMovement(dragDelta.x, dragDelta.y);
-                _cameraManager.rotate(rotateMovement);
+                this->_cameraManager.rotate(rotateMovement);
             } else if (input.isMouseButtonPressed(2)) {
                 glm::vec3 panMovement(0.0f, 0.0f, dragDelta.y);
-                _cameraManager.pan(panMovement);
+                this->_cameraManager.pan(panMovement);
             }
         }
     }
@@ -126,48 +126,48 @@ void ActionManager::_handleKeyboardCameraControls()
 {
     auto& input = InputManager::get();
 
-    if (input.isKeyPressed('d')) _cameraManager.pan(glm::vec3(1.0f, 0.0f, 0.0f));
-    if (input.isKeyPressed('q')) _cameraManager.pan(glm::vec3(-1.0f, 0.0f, 0.0f));
-    if (input.isKeyPressed('z')) _cameraManager.pan(glm::vec3(0.0f, 0.0f, 1.0f));
-    if (input.isKeyPressed('s')) _cameraManager.pan(glm::vec3(0.0f, 0.0f, -1.0f));
+    if (input.isKeyPressed('d')) this->_cameraManager.pan(glm::vec3(1.0f, 0.0f, 0.0f));
+    if (input.isKeyPressed('q')) this->_cameraManager.pan(glm::vec3(-1.0f, 0.0f, 0.0f));
+    if (input.isKeyPressed('z')) this->_cameraManager.pan(glm::vec3(0.0f, 0.0f, 1.0f));
+    if (input.isKeyPressed('s')) this->_cameraManager.pan(glm::vec3(0.0f, 0.0f, -1.0f));
 
-    if (input.isKeyPressed(OF_KEY_SPACE)) _cameraManager.pan(glm::vec3(0.0f, 1.0f, 0.0f));
-    if (input.isKeyPressed(OF_KEY_LEFT_SHIFT)) _cameraManager.pan(glm::vec3(0.0f, -1.0f, 0.0f));
+    if (input.isKeyPressed(OF_KEY_SPACE)) this->_cameraManager.pan(glm::vec3(0.0f, 1.0f, 0.0f));
+    if (input.isKeyPressed(OF_KEY_LEFT_SHIFT)) this->_cameraManager.pan(glm::vec3(0.0f, -1.0f, 0.0f));
 
-    if (input.isKeyPressed(OF_KEY_DOWN)) _cameraManager.rotate(glm::vec2(0.0f, 1.0f));
-    if (input.isKeyPressed(OF_KEY_RIGHT)) _cameraManager.rotate(glm::vec2(-1.0f, 0.0f));
-    if (input.isKeyPressed(OF_KEY_UP)) _cameraManager.rotate(glm::vec2(0.0f, -1.0f));
-    if (input.isKeyPressed(OF_KEY_LEFT)) _cameraManager.rotate(glm::vec2(1.0f, 0.0f));
+    if (input.isKeyPressed(OF_KEY_DOWN)) this->_cameraManager.rotate(glm::vec2(0.0f, 1.0f));
+    if (input.isKeyPressed(OF_KEY_RIGHT)) this->_cameraManager.rotate(glm::vec2(-1.0f, 0.0f));
+    if (input.isKeyPressed(OF_KEY_UP)) this->_cameraManager.rotate(glm::vec2(0.0f, -1.0f));
+    if (input.isKeyPressed(OF_KEY_LEFT)) this->_cameraManager.rotate(glm::vec2(1.0f, 0.0f));
 
-    if (input.isKeyPressed('+')) _cameraManager.zoom(1.0f);
-    if (input.isKeyPressed('-')) _cameraManager.zoom(-1.0f);
+    if (input.isKeyPressed('+')) this->_cameraManager.zoom(1.0f);
+    if (input.isKeyPressed('-')) this->_cameraManager.zoom(-1.0f);
 }
 
 void ActionManager::_isolateEntity(EntityID entity)
 {
-    _savedVisibilityStates.clear();
+    this->_savedVisibilityStates.clear();
 
-    for (EntityID id : _entityManager.getAllEntities()) {
-        Camera* camera = _componentRegistry.getComponent<Camera>(id);
+    for (EntityID id : this->_entityManager.getAllEntities()) {
+        Camera* camera = this->_componentRegistry.getComponent<Camera>(id);
         if (camera) continue;
 
-        Renderable* renderable = _componentRegistry.getComponent<Renderable>(id);
+        Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
         if (renderable) {
-            _savedVisibilityStates[id] = renderable->visible;
+            this->_savedVisibilityStates[id] = renderable->visible;
             if (id != entity) renderable->visible = false;
         }
     }
 
-    _isIsolated = true;
+    this->_isIsolated = true;
 }
 
 void ActionManager::_showAllEntities()
 {
-    for (const auto& [id, wasVisible] : _savedVisibilityStates) {
-        Renderable* renderable = _componentRegistry.getComponent<Renderable>(id);
+    for (const auto& [id, wasVisible] : this->_savedVisibilityStates) {
+        Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
         if (renderable) renderable->visible = wasVisible;
     }
 
-    _savedVisibilityStates.clear();
-    _isIsolated = false;
+    this->_savedVisibilityStates.clear();
+    this->_isIsolated = false;
 }
