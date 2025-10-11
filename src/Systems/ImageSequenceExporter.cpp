@@ -100,8 +100,8 @@ std::string ImageSequenceExporter::_generateFilename(int frameIndex)
 
 std::string ImageSequenceExporter::_getCurrentTimestamp()
 {
-    auto now = std::time(nullptr);
-    auto tm = *std::localtime(&now);
+    std::time_t now = std::time(nullptr);
+    std::tm tm = *std::localtime(&now);
 
     std::stringstream ss;
     ss << std::put_time(&tm, "%Y%m%d_%H%M%S");

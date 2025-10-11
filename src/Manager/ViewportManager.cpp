@@ -10,7 +10,7 @@ ViewportID ViewportManager::createViewport(CameraManager& cameraManager, RenderS
 
     EntityID cameraId = cameraManager.addCamera(pos);
     this->_sceneManager.registerEntity(cameraId, "Camera " + to_string(cameraId));
-    auto viewport = std::make_unique<Viewport>(cameraManager, renderSystem, this->_eventManager, newId);
+    std::unique_ptr<Viewport> viewport = std::make_unique<Viewport>(cameraManager, renderSystem, this->_eventManager, newId);
 
     viewport->setCamera(cameraId);
 
