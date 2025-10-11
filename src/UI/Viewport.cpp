@@ -1,13 +1,15 @@
 #include "UI/Viewport.hpp"
+#include "Events/EventTypes/AssetDropEvent.hpp"
 
-Viewport::Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, ViewportID id)
-    : _cameraManager(cameraManager), _renderSystem(renderSystem), _id(id)
+Viewport::Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, EventManager& eventManager, ViewportID id)
+    : _cameraManager(cameraManager), _renderSystem(renderSystem), _eventManager(eventManager), _id(id)
 {
     this->_rect = ofRectangle((ofGetWindowWidth() - 1075) / 2 , (ofGetWindowHeight() - 605) / 2 , 1075, 605);
     this->_fboInitialized = false;
     this->_isDragging = false;
     this->_lastMousePos = glm::vec2(0);
     this->_dragDelta = glm::vec2(0);
+    this->_hasDroppedAsset = false;
 }
 
 Viewport::~Viewport()
@@ -66,6 +68,7 @@ bool Viewport::render()
         }
 
         this->_handleMouseDrag();
+        this->_handleDropTarget();
 
         bool hovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
         ImGui::End();
@@ -152,6 +155,11 @@ void Viewport::_initializeFbo(int width, int height)
     this->_fboInitialized = true;
 }
 
+bool Viewport::hasDroppedAsset() const
+{
+    return this->_hasDroppedAsset;
+}
+
 void Viewport::_handleMouseDrag()
 {
     if (ImGui::IsItemHovered()) {
@@ -179,5 +187,36 @@ void Viewport::_handleMouseDrag()
             this->_isDragging = false;
             this->_dragDelta = glm::vec2(0, 0);
         }
+    }
+}
+
+void Viewport::_handleDropTarget()
+{
+    if (ImGui::BeginDragDropTarget()) {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_IMAGE")) {
+            size_t assetIndex = *(const size_t*)payload->Data;
+
+            ImVec2 mousePos = ImGui::GetMousePos();
+            glm::vec2 dropPos = glm::vec2(mousePos.x - this->_rect.x, mousePos.y - this->_rect.y);
+
+            this->_hasDroppedAsset = true;
+
+            AssetDropEvent event(assetIndex, dropPos, this->_id);
+            this->_eventManager.emit(event);
+        }
+
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_MODEL")) {
+            size_t assetIndex = *(const size_t*)payload->Data;
+
+            ImVec2 mousePos = ImGui::GetMousePos();
+            glm::vec2 dropPos = glm::vec2(mousePos.x - this->_rect.x, mousePos.y - this->_rect.y);
+
+            this->_hasDroppedAsset = true;
+
+            AssetDropEvent event(assetIndex, dropPos, this->_id);
+            this->_eventManager.emit(event);
+        }
+
+        ImGui::EndDragDropTarget();
     }
 }

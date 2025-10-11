@@ -10,6 +10,7 @@
 #include "Systems/CameraSystem.hpp"
 #include "Systems/RenderSystem.hpp"
 #include "Systems/SelectionSystem.hpp"
+#include "Systems/ImageSequenceExporter.hpp"
 
 #include "Manager/CameraManager.hpp"
 #include "Manager/FileManager.hpp"
@@ -28,6 +29,8 @@
 #include "UI/SkyboxPanel.hpp"
 #include "UI/InstructionsPanel.hpp"
 #include "UI/EventLogPanel.hpp"
+#include "UI/AssetsPanel.hpp"
+#include "UI/ExportPanel.hpp"
 
 #include "Components/Transform.hpp"
 #include "Components/Renderable.hpp"
@@ -46,6 +49,7 @@ struct SystemsContext {
     std::unique_ptr<CameraSystem> cameraSystem;
     std::unique_ptr<RenderSystem> renderSystem;
     std::unique_ptr<SelectionSystem> selectionSystem;
+    std::unique_ptr<ImageSequenceExporter> imageExporter;
 };
 
 struct ManagersContext {
@@ -67,6 +71,8 @@ struct UIContext {
     std::unique_ptr<SkyboxPanel> skyboxPanel;
     std::unique_ptr<InstructionsPanel> instructionsPanel;
     std::unique_ptr<EventLogPanel> eventLogPanel;
+    std::unique_ptr<AssetsPanel> assetsPanel;
+    std::unique_ptr<ExportPanel> exportPanel;
 };
 
 class ApplicationBootstrapper {

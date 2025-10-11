@@ -8,6 +8,8 @@ UIManager::UIManager(
     SkyboxPanel& skyboxPanel,
     InstructionsPanel& instructionsPanel,
     EventLogPanel& eventLogPanel,
+    AssetsPanel& assetsPanel,
+    ExportPanel& exportPanel,
     RenderSystem& renderSystem
 ) :
     _toolbar(toolbar),
@@ -17,6 +19,8 @@ UIManager::UIManager(
     _skyboxPanel(skyboxPanel),
     _instructionsPanel(instructionsPanel),
     _eventLogPanel(eventLogPanel),
+    _assetsPanel(assetsPanel),
+    _exportPanel(exportPanel),
     _renderSystem(renderSystem) {}
 
 void UIManager::render()
@@ -28,6 +32,8 @@ void UIManager::render()
     this->_viewportManager.renderAll();
     this->_instructionsPanel.render();
     this->_eventLogPanel.render();
+    this->_assetsPanel.render();
+    this->_exportPanel.render();
     this->_skyboxPanel.render();
 
     renderViewportControls();
@@ -88,9 +94,10 @@ void UIManager::renderViewportControls()
 
             if (!cameras.empty()) {
                 size_t cameraIndex = (this->_viewportManager.getViewports().size() - 1) % cameras.size();
-                auto& newViewport = this->_viewportManager.getViewports().back();
+                std::unique_ptr<Viewport>& newViewport = this->_viewportManager.getViewports().back();
                 newViewport->setCamera(cameras[cameraIndex]);
             }
+
             std::string vpName = "Viewport " + std::to_string(this->_viewportManager.getViewports().back()->getId());
             this->_viewportsToDock.push_back(vpName);
         }
@@ -103,7 +110,7 @@ void UIManager::renderViewportControls()
 
         int toRemove = -1;
         for (size_t i = 0; i < this->_viewportManager.getViewports().size(); ++i) {
-            auto& vp = this->_viewportManager.getViewports()[i];
+            std::unique_ptr<Viewport>& vp = this->_viewportManager.getViewports()[i];
 
             ImGui::PushID(i);
 
@@ -189,6 +196,8 @@ void UIManager::_setupInitialLayout()
     ImGui::DockBuilderDockWindow("Event Log", dockDown);
     ImGui::DockBuilderDockWindow("Instructions", dockDown);
     ImGui::DockBuilderDockWindow("Skybox Settings", dockDown);
+    ImGui::DockBuilderDockWindow("Assets", dockRight);
+    ImGui::DockBuilderDockWindow("Export", dockDown);
     ImGui::DockBuilderDockWindow("Viewport 1", dockMain);
     ImGui::DockBuilderDockWindow("Viewport Manager", dockRight);
 

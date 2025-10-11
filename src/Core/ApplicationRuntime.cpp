@@ -50,6 +50,7 @@ void ApplicationRuntime::update(int windowWidth, int windowHeight)
 
     this->_managers.cameraManager->update(windowWidth, windowHeight);
     this->_systems.transformSystem->update();
+    this->_systems.imageExporter->update(ofGetLastFrameTime());
 
     input.endFrame();
 }

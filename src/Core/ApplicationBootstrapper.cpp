@@ -1,4 +1,5 @@
 #include "Core/ApplicationBootstrapper.hpp"
+#include "Events/EventTypes/AssetDropEvent.hpp"
 
 ApplicationBootstrapper::ApplicationBootstrapper(
     EntityManager& entityManager,
@@ -108,8 +109,11 @@ bool ApplicationBootstrapper::_InitializeManagers()
     );
 
     this->_managers.viewportManager = std::make_unique<ViewportManager>(
-        *this->_managers.sceneManager
+        *this->_managers.sceneManager,
+        this->_eventManager
     );
+
+    this->_systems.imageExporter = std::make_unique<ImageSequenceExporter>(*this->_managers.viewportManager);
 
     this->_systems.selectionSystem = std::make_unique<SelectionSystem>(
         this->_componentRegistry,
@@ -142,6 +146,12 @@ bool ApplicationBootstrapper::_InitializeUI()
     this->_ui.materialPanel = std::make_unique<MaterialPanel>(_componentRegistry, *_systems.selectionSystem);
     this->_ui.transformPanel = std::make_unique<TranformPanel>(_componentRegistry, *_systems.selectionSystem);
     this->_ui.colorPanel = std::make_unique<ColorPanel>(_componentRegistry, *_systems.selectionSystem);
+    this->_ui.assetsPanel = std::make_unique<AssetsPanel>(
+        *this->_managers.sceneManager,
+        this->_componentRegistry
+    );
+    this->_ui.assetsPanel->loadAssetsFromDataFolder();
+    this->_ui.exportPanel = std::make_unique<ExportPanel>(*this->_systems.imageExporter, *this->_managers.viewportManager);
 
     this->_managers.propertiesManager = std::make_unique<PropertiesManager>(
         *this->_ui.transformPanel,
@@ -160,6 +170,8 @@ bool ApplicationBootstrapper::_InitializeUI()
         *this->_ui.skyboxPanel,
         *this->_ui.instructionsPanel,
         *this->_ui.eventLogPanel,
+        *this->_ui.assetsPanel,
+        *this->_ui.exportPanel,
         *this->_systems.renderSystem
     );
 
@@ -169,6 +181,15 @@ bool ApplicationBootstrapper::_InitializeUI()
 bool ApplicationBootstrapper::_SetupCallbacks()
 {
     InputManager::get().subscribeToEvents(this->_eventManager);
+
+    this->_eventManager.subscribe<AssetDropEvent>([this](const AssetDropEvent& e) {
+        const AssetInfo* asset = this->_ui.assetsPanel->getAsset(e.assetIndex);
+        this->_managers.fileManager->handleAssetDrop(
+            asset,
+            *this->_managers.sceneManager,
+            *this->_ui.eventLogPanel
+        );
+    });
 
     this->_ui.toolbar->setToggleProjectionCallback([this]() {
         Viewport* activeViewport = this->_managers.viewportManager->getActiveViewport();
@@ -180,22 +201,13 @@ bool ApplicationBootstrapper::_SetupCallbacks()
     });
 
     this->_ui.toolbar->setImportCallback([this]() {
-        ofFileDialogResult result = ofSystemLoadDialog("Chose model to import", false);
-
+        ofFileDialogResult result = ofSystemLoadDialog("Choose a file to import (image or 3D model)", false);
         if (result.bSuccess) {
-            std::string filePath = result.getPath();
-            this->_ui.eventLogPanel->addLog("Selected file : " + filePath, ofColor::aqua);
-
-            auto import = this->_managers.fileManager->importMesh(filePath);
-
-            if (import.first != INVALID_ENTITY) {
-                std::filesystem::path path(filePath);
-                std::string name = path.stem().string();
-
-                this->_managers.sceneManager->registerEntity(import.first, name);
-                this->_ui.eventLogPanel->addLog("Imported model : " + name, ofColor::green);
-            } else
-                this->_ui.eventLogPanel->addLog("Failed to Import", ofColor::red);
+            this->_managers.fileManager->importAndAddAsset(
+                result.getPath(),
+                *this->_ui.assetsPanel,
+                *this->_ui.eventLogPanel
+            );
         }
     });
 

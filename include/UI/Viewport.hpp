@@ -4,12 +4,14 @@
 
 #include "Systems/CameraSystem.hpp"
 #include "Systems/RenderSystem.hpp"
+#include "Events/EventManager.hpp"
 
 #include "ofxImGui.h"
+#include <functional>
 
 class Viewport {
     public:
-        Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, ViewportID id = INVALID_VIEWPORT);
+        Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, EventManager& eventManager, ViewportID id = INVALID_VIEWPORT);
         ~Viewport();
 
         bool render();
@@ -32,9 +34,12 @@ class Viewport {
         bool isMouseDragging() const;
         glm::vec2 getMouseDragDelta() const;
 
+        bool hasDroppedAsset() const;
+
     private:
         CameraManager& _cameraManager;
         RenderSystem& _renderSystem;
+        EventManager& _eventManager;
         EntityID _cameraId = INVALID_ENTITY;
 
         ViewportID _id;
@@ -48,6 +53,9 @@ class Viewport {
         glm::vec2 _lastMousePos;
         glm::vec2 _dragDelta;
 
+        bool _hasDroppedAsset = false;
+
         void _handleMouseDrag();
+        void _handleDropTarget();
         void _initializeFbo(int width, int height);
 };

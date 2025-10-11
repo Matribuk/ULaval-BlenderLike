@@ -4,6 +4,8 @@
 #include "UI/SkyboxPanel.hpp"
 #include "UI/InstructionsPanel.hpp"
 #include "UI/EventLogPanel.hpp"
+#include "UI/ExportPanel.hpp"
+#include "UI/AssetsPanel.hpp"
 
 #include "Manager/ViewportManager.hpp"
 #include "Manager/PropertiesManager.hpp"
@@ -26,6 +28,8 @@ class UIManager {
             SkyboxPanel& skyboxPanel,
             InstructionsPanel& instructionsPanel,
             EventLogPanel& eventLogPanel,
+            AssetsPanel& assetsPanel,
+            ExportPanel& exportPanel,
             RenderSystem& renderSystem
         );
 
@@ -43,6 +47,8 @@ class UIManager {
         SkyboxPanel& _skyboxPanel;
         InstructionsPanel& _instructionsPanel;
         EventLogPanel& _eventLogPanel;
+        AssetsPanel& _assetsPanel;
+        ExportPanel& _exportPanel;
         RenderSystem& _renderSystem;
 
         ImGuiID _dockspaceId = 0;
