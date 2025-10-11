@@ -128,7 +128,6 @@
 - [x] Bounding boxes
 - [ ] Gère tout type de mesh
 - [ ] Select seulement des objets visibles
-- [ ] Select plusieurs objets simultanément
 
 ### Systems/TransformSystem.h
 
