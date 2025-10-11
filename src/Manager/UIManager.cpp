@@ -4,15 +4,11 @@ UIManager::UIManager(
     ViewportManager& viewportManager,
     PropertiesManager& propertiesManager,
     CameraManager& cameraManager,
-    AssetsPanel& assetsPanel,
-    ExportPanel& exportPanel,
     RenderSystem& renderSystem
 ) :
     _viewportManager(viewportManager),
     _propertiesManager(propertiesManager),
     _cameraManager(cameraManager),
-    _assetsPanel(assetsPanel),
-    _exportPanel(exportPanel),
     _renderSystem(renderSystem) {}
 
 void UIManager::render()
@@ -22,8 +18,8 @@ void UIManager::render()
     this->_toolbar->render();
     this->_propertiesManager.render();
     this->_viewportManager.renderAll();
-    this->_assetsPanel.render();
-    this->_exportPanel.render();
+    this->_assetsPanel->render();
+    this->_exportPanel->render();
     this->_instructionsPanel->render();
     this->_eventLogPanel->render();
     this->_skyboxPanel->render();
@@ -73,12 +69,14 @@ void UIManager::setupDockspace()
     ImGui::PopStyleVar(3);
 }
 
-void UIManager::setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, InstructionsPanel& instructionsPanel, EventLogPanel& eventLogPanel)
+void UIManager::setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, InstructionsPanel& instructionsPanel, EventLogPanel& eventLogPanel, AssetsPanel& assetsPanel, ExportPanel& exportPanel)
 {
     this->_toolbar = &toolbar;
     this->_skyboxPanel = &skyboxPanel;
     this->_instructionsPanel = &instructionsPanel;
     this->_eventLogPanel = &eventLogPanel;
+    this->_assetsPanel = &assetsPanel;
+    this->_exportPanel = &exportPanel;
 }
 
 void UIManager::renderViewportControls()
