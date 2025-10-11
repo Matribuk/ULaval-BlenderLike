@@ -13,6 +13,10 @@
 #include <ofMain.h>
 #include "ofxImGui.h"
 
+class RenderSystem;
+class Viewport;
+class SceneManager;
+
 class ViewportManager {
     public:
         ViewportManager(SceneManager& sceneManager, EventManager& eventManager);

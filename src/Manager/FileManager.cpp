@@ -39,6 +39,7 @@ std::pair<EntityID, std::string> FileManager::_importMesh(const std::string& fil
     glm::vec3 min = this->_model->getSceneMin();
     glm::vec3 max = this->_model->getSceneMax();
     glm::vec3 size = max - min;
+    glm::vec3 center = (min + max) * 0.5f;
     float maxDim = std::max({size.x, size.y, size.z});
 
     float targetSize = 5.0f;
@@ -51,11 +52,19 @@ std::pair<EntityID, std::string> FileManager::_importMesh(const std::string& fil
     if (numMeshes > 0) {
         ofMesh mesh = this->_model->getMesh(0);
 
+        for (size_t i = 0; i < mesh.getNumVertices(); i++) {
+            glm::vec3 vertex = mesh.getVertex(i);
+            vertex = (vertex - center) * scaleFactor;
+            mesh.setVertex(i, vertex);
+        }
+
         this->_componentRegistry.registerComponent(entity.getId(), Transform(
             glm::vec3(0),
-            glm::vec3(scaleFactor)
+            glm::vec3(1.0f)
         ));
 
+        glm::vec3 scaledSize = size * scaleFactor;
+        this->_componentRegistry.registerComponent(entity.getId(), Box(scaledSize));
         this->_componentRegistry.registerComponent(entity.getId(), Renderable(mesh, ofColor::white));
         this->_componentRegistry.registerComponent(entity.getId(), Selectable());
     }

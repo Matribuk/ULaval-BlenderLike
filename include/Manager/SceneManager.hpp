@@ -19,6 +19,8 @@
 #include <unordered_map>
 #include "ofxImGui.h"
 
+class SelectionSystem;
+
 struct EntityNode {
     EntityID id;
     std::string name;
@@ -40,20 +42,19 @@ class SceneManager {
         void setParent(EntityID child, EntityID parent);
         void removeParent(EntityID child);
 
-        void selectEntity(EntityID id);
-        EntityID getSelectedEntity() const { return _selectedEntity; }
-
         const std::vector<EntityID>& getRootEntities() const { return _rootEntities; }
+
+        void setSelectionSystem(SelectionSystem& selectionSystem);
 
     private:
         EntityManager& _entityManager;
         ComponentRegistry& _componentRegistry;
         EventManager& _eventManager;
         TransformSystem& _transformSystem;
+        SelectionSystem* _selectionSystem = nullptr;
 
         std::unordered_map<EntityID, EntityNode> _entities;
         std::vector<EntityID> _rootEntities;
-        EntityID _selectedEntity = INVALID_ENTITY;
 
         bool _isDescendant(EntityID entityId, EntityID targetId) const;
         void _renderEntityNode(EntityID id, int depth = 0);

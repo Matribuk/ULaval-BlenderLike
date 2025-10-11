@@ -32,6 +32,8 @@ class Toolbar {
         void setToggleProjectionCallback(std::function<void()> callback);
         void setImportCallback(std::function<void()> callback);
         void setExportCallback(std::function<void()> callback);
+        void setSelectCallback(std::function<void()> callback);
+        void setMoveCallback(std::function<void()> callback);
 
         ToolMode getActiveToolMode() const;
 
@@ -40,6 +42,8 @@ class Toolbar {
         void _renderToolButton(size_t index, const ImVec2& size);
 
         std::function<void()> _onToggleProjection;
+        std::function<void()> _onSelect;
+        std::function<void()> _onMove;
         std::function<void()> _onImport;
         std::function<void()> _onExport;
 

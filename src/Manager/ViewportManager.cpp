@@ -1,4 +1,5 @@
 #include "Manager/ViewportManager.hpp"
+#include "Manager/SceneManager.hpp"
 
 ViewportManager::ViewportManager(SceneManager& sceneManager, EventManager& eventManager)
     : _sceneManager(sceneManager), _eventManager(eventManager) {}

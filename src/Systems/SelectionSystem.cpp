@@ -1,22 +1,21 @@
 #include "Systems/SelectionSystem.hpp"
+#include "Manager/ViewportManager.hpp"
 
 SelectionSystem::SelectionSystem(
     ComponentRegistry& registry,
     EntityManager& entityManager,
-    EventManager& eventManager,
-    CameraManager& cameraManager,
-    ViewportManager& viewportManager
+    EventManager& eventManager
 )
     : _componentRegistry(registry),
       _entityManager(entityManager),
-      _eventManager(eventManager),
-      _cameraManager(cameraManager),
-      _viewportManager(viewportManager)
+      _eventManager(eventManager)
 {
 }
 
-void SelectionSystem::setup()
+void SelectionSystem::setupManagers(CameraManager& cameraManager, ViewportManager& viewportManager)
 {
+    this->_cameraManager = &cameraManager;
+    this->_viewportManager = &viewportManager;
     this->_eventManager.subscribe<MouseEvent>([this](const MouseEvent& e) {
         if (e.type == MouseEventType::Pressed && e.button == 0) {
             this->_handleMouseEvent(e);
@@ -37,7 +36,8 @@ void SelectionSystem::setSelectedEntity(EntityID selectedEntity)
 void SelectionSystem::_handleMouseEvent(const MouseEvent& e)
 {
     glm::vec2 mousePos(static_cast<float>(e.x), static_cast<float>(e.y));
-    this->_performRaycastInActiveViewport(mousePos);
+    if (this->isSelectMode)
+        this->_performRaycastInActiveViewport(mousePos);
 }
 
 glm::mat4 SelectionSystem::_getOrComputeTransformMatrix(Transform* t) const
@@ -83,7 +83,7 @@ void SelectionSystem::_transformAABB(const glm::vec3& localMin, const glm::vec3&
 EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouseGlobalPos)
 {
     Viewport* vp = nullptr;
-    try { vp = this->_viewportManager.getActiveViewport(); } catch(...) { vp = nullptr; }
+    try { vp = this->_viewportManager->getActiveViewport(); } catch(...) { vp = nullptr; }
     if (!vp) return INVALID_ENTITY;
 
     ofRectangle rect;
@@ -99,7 +99,7 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
     if (vpWidth <= 0 || vpHeight <= 0) return INVALID_ENTITY;
 
     EntityID camEntityId = vp->getCamera();
-    if (camEntityId == INVALID_ENTITY) camEntityId = this->_cameraManager.getActiveCameraId();
+    if (camEntityId == INVALID_ENTITY) camEntityId = this->_cameraManager->getActiveCameraId();
     if (camEntityId == INVALID_ENTITY) return INVALID_ENTITY;
 
     Camera* cam = this->_componentRegistry.getComponent<Camera>(camEntityId);
@@ -179,13 +179,7 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         this->_transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
 
         float tHit = 0.0f;
-        bool hit = false;
-        try {
-            hit = this->_intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
-            if (hit) glm::vec3 hitPoint = rayOrigin + rayDir * tHit;
-        } catch(...) {
-            hit = false;
-        }
+        bool hit = this->_intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
 
         if (hit && tHit < closestT) {
             closestT = tHit;
@@ -260,4 +254,10 @@ bool SelectionSystem::_intersectsRayAABB(
     if (tmax < 0.0f) return false;
     outT = tmin >= 0.0f ? tmin : tmax;
     return true;
+}
+
+void SelectionSystem::setSelectMode(bool activateSelectMode)
+{
+    std::cout << "[Selection system] toggle selection mode" << std::endl;
+    this->isSelectMode = activateSelectMode;
 }

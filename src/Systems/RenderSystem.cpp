@@ -1,15 +1,16 @@
 #include "Systems/RenderSystem.hpp"
+#include <glm/gtc/type_ptr.hpp>
 
-RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr, CameraManager &cameraManager)
-    : _registry(registry), _entityManager(entityMgr), _cameraManager(cameraManager)
+RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr)
+    : _registry(registry), _entityManager(entityMgr)
 {
     this->_initSkybox();
 }
 
 void RenderSystem::render()
 {
-    Camera* activeCamera = this->_cameraManager.getActiveCamera();
-    EntityID activeCameraId = this->_cameraManager.getActiveCameraId();
+    Camera* activeCamera = this->_cameraManager->getActiveCamera();
+    EntityID activeCameraId = this->_cameraManager->getActiveCameraId();
     if (activeCameraId == INVALID_ENTITY || !activeCamera) return;
 
     Transform* camTransform = this->_registry.getComponent<Transform>(activeCameraId);
@@ -100,17 +101,19 @@ ofCamera RenderSystem::_buildCameraFromComponents(Camera& camera, const Transfor
 
 void RenderSystem::_renderEntities()
 {
+    EntityID selectedEntity = this->_selectionSystem->getSelectedEntity();
     for (EntityID id : this->_entityManager.getAllEntities()) {
         Transform* transform = this->_registry.getComponent<Transform>(id);
         Renderable* render   = this->_registry.getComponent<Renderable>(id);
 
         if (!transform || !render || !render->visible) continue;
 
-        this->_drawMesh(render->mesh, transform->matrix, render->color, render->material);
+        bool isSelected = (id == selectedEntity);
+        this->_drawMesh(render->mesh, transform->matrix, render->color, render->material, isSelected);
     }
 }
 
-void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material *material)
+void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material, bool isSelected)
 {
     ofPushMatrix();
     ofMultMatrix(transform);
@@ -121,7 +124,7 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
 
         material->shader->setUniformMatrix4f("modelMatrix", transform);
 
-        Camera* activeCam = this->_cameraManager.getActiveCamera();
+        Camera* activeCam = this->_cameraManager->getActiveCamera();
         if (activeCam) {
             material->shader->setUniformMatrix4f("viewMatrix", activeCam->viewMatrix);
             material->shader->setUniformMatrix4f("projMatrix", activeCam->projMatrix);
@@ -143,6 +146,17 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
         mesh.draw();
     }
 
+    if (isSelected) {
+        ofPushStyle();
+        ofNoFill();
+        ofSetColor(ofColor::yellow);
+        ofSetLineWidth(this->_boundingBoxSize);
+
+        ofScale(1.01f, 1.01f, 1.01f);
+        mesh.drawWireframe();
+
+        ofPopStyle();
+    }
     ofPopMatrix();
 }
 
@@ -186,4 +200,10 @@ void RenderSystem::_renderSkybox()
 
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
+}
+
+void RenderSystem::setup(CameraManager& cameraManager, SelectionSystem& selectionSystem)
+{
+    this->_cameraManager = &cameraManager;
+    this->_selectionSystem = &selectionSystem;
 }

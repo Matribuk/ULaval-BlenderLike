@@ -72,9 +72,20 @@ bool ApplicationBootstrapper::_InitializeSystems()
         this->_entityManager
     );
 
+    this->_systems.selectionSystem = std::make_unique<SelectionSystem>(
+        this->_componentRegistry,
+        this->_entityManager,
+        this->_eventManager
+    );
+
     this->_systems.cameraSystem = std::make_unique<CameraSystem>(
         this->_componentRegistry,
         *this->_systems.transformSystem
+    );
+
+    this->_systems.renderSystem = std::make_unique<RenderSystem>(
+        this->_componentRegistry,
+        this->_entityManager
     );
 
     return true;
@@ -83,23 +94,6 @@ bool ApplicationBootstrapper::_InitializeSystems()
 bool ApplicationBootstrapper::_InitializeManagers()
 {
     this->_managers.resourceManager = std::make_unique<ResourceManager>();
-
-    this->_managers.cameraManager = std::make_unique<CameraManager>(
-        this->_componentRegistry,
-        this->_entityManager,
-        *this->_systems.cameraSystem
-    );
-
-    this->_systems.renderSystem = std::make_unique<RenderSystem>(
-        this->_componentRegistry,
-        this->_entityManager,
-        *this->_managers.cameraManager
-    );
-
-    this->_managers.fileManager = std::make_unique<FileManager>(
-        this->_componentRegistry,
-        this->_entityManager
-    );
 
     this->_managers.sceneManager = std::make_unique<SceneManager>(
         this->_entityManager,
@@ -115,14 +109,22 @@ bool ApplicationBootstrapper::_InitializeManagers()
 
     this->_systems.imageExporter = std::make_unique<ImageSequenceExporter>(*this->_managers.viewportManager);
 
-    this->_systems.selectionSystem = std::make_unique<SelectionSystem>(
+    this->_managers.cameraManager = std::make_unique<CameraManager>(
         this->_componentRegistry,
         this->_entityManager,
-        this->_eventManager,
-        *this->_managers.cameraManager,
-        *this->_managers.viewportManager
+        *this->_systems.cameraSystem
     );
-    this->_systems.selectionSystem->setup();
+
+    this->_managers.fileManager = std::make_unique<FileManager>(
+        this->_componentRegistry,
+        this->_entityManager
+    );
+
+    this->_managers.propertiesManager = std::make_unique<PropertiesManager>(
+        *this->_managers.sceneManager,
+        this->_componentRegistry,
+        *this->_systems.selectionSystem
+    );
 
     this->_managers.actionManager = std::make_unique<ActionManager>(
         this->_componentRegistry,
@@ -132,48 +134,28 @@ bool ApplicationBootstrapper::_InitializeManagers()
         *this->_managers.viewportManager,
         *this->_systems.selectionSystem
     );
-    this->_managers.actionManager->registerAllActions();
+
+    this->_managers.uiManager = std::make_unique<UIManager>(
+        *this->_managers.viewportManager,
+        *this->_managers.propertiesManager,
+        *this->_managers.cameraManager,
+        *this->_systems.renderSystem
+    );
 
     return true;
 }
 
 bool ApplicationBootstrapper::_InitializeUI()
 {
+    this->_ui.skyboxPanel = std::make_unique<SkyboxPanel>(*this->_systems.renderSystem);
+    this->_ui.materialPanel = std::make_unique<MaterialPanel>(this->_componentRegistry, *this->_systems.selectionSystem);
+    this->_ui.transformPanel = std::make_unique<TranformPanel>(this->_componentRegistry, *this->_systems.selectionSystem);
+    this->_ui.colorPanel = std::make_unique<ColorPanel>(this->_componentRegistry, *this->_systems.selectionSystem);
+    this->_ui.instructionsPanel = std::make_unique<InstructionsPanel>();
     this->_ui.eventLogPanel = std::make_unique<EventLogPanel>();
     this->_ui.toolbar = std::make_unique<Toolbar>();
-    this->_ui.skyboxPanel = std::make_unique<SkyboxPanel>(*_systems.renderSystem);
-    this->_ui.instructionsPanel = std::make_unique<InstructionsPanel>();
-    this->_ui.materialPanel = std::make_unique<MaterialPanel>(_componentRegistry, *_systems.selectionSystem);
-    this->_ui.transformPanel = std::make_unique<TranformPanel>(_componentRegistry, *_systems.selectionSystem);
-    this->_ui.colorPanel = std::make_unique<ColorPanel>(_componentRegistry, *_systems.selectionSystem);
-    this->_ui.assetsPanel = std::make_unique<AssetsPanel>(
-        *this->_managers.sceneManager,
-        this->_componentRegistry
-    );
-    this->_ui.assetsPanel->loadAssetsFromDataFolder();
+    this->_ui.assetsPanel = std::make_unique<AssetsPanel>(*this->_managers.sceneManager, this->_componentRegistry);
     this->_ui.exportPanel = std::make_unique<ExportPanel>(*this->_systems.imageExporter, *this->_managers.viewportManager);
-
-    this->_managers.propertiesManager = std::make_unique<PropertiesManager>(
-        *this->_ui.transformPanel,
-        *this->_ui.materialPanel,
-        *this->_ui.colorPanel,
-        *this->_managers.sceneManager,
-        this->_componentRegistry,
-        *this->_systems.selectionSystem
-    );
-
-    this->_managers.uiManager = std::make_unique<UIManager>(
-        *this->_ui.toolbar,
-        *this->_managers.viewportManager,
-        *this->_managers.propertiesManager,
-        *this->_managers.cameraManager,
-        *this->_ui.skyboxPanel,
-        *this->_ui.instructionsPanel,
-        *this->_ui.eventLogPanel,
-        *this->_ui.assetsPanel,
-        *this->_ui.exportPanel,
-        *this->_systems.renderSystem
-    );
 
     return true;
 }
@@ -190,6 +172,25 @@ bool ApplicationBootstrapper::_SetupCallbacks()
             *this->_ui.eventLogPanel
         );
     });
+
+    this->_managers.sceneManager->setSelectionSystem(*this->_systems.selectionSystem);
+    this->_systems.selectionSystem->setupManagers(*this->_managers.cameraManager, *this->_managers.viewportManager);
+    this->_systems.renderSystem->setup(*this->_managers.cameraManager, *this->_systems.selectionSystem);
+    this->_managers.propertiesManager->setupUI(
+        *this->_ui.transformPanel,
+        *this->_ui.materialPanel,
+        *this->_ui.colorPanel
+    );
+    this->_managers.actionManager->registerAllActions();
+    this->_managers.uiManager->setupUI(
+        *this->_ui.toolbar,
+        *this->_ui.skyboxPanel,
+        *this->_ui.instructionsPanel,
+        *this->_ui.eventLogPanel,
+        *this->_ui.assetsPanel,
+        *this->_ui.exportPanel
+    );
+    this->_ui.assetsPanel->loadAssetsFromDataFolder();
 
     this->_ui.toolbar->setToggleProjectionCallback([this]() {
         Viewport* activeViewport = this->_managers.viewportManager->getActiveViewport();
@@ -218,6 +219,14 @@ bool ApplicationBootstrapper::_SetupCallbacks()
             this->_ui.eventLogPanel->addLog("Exported model", ofColor::green);
         } else
             this->_ui.eventLogPanel->addLog("No entity selected for export", ofColor::orange);
+    });
+
+    this->_ui.toolbar->setSelectCallback([this]() {
+        this->_systems.selectionSystem->setSelectMode(true);
+    });
+
+    this->_ui.toolbar->setMoveCallback([this]() {
+        this->_systems.selectionSystem->setSelectMode(false);
     });
 
     return true;

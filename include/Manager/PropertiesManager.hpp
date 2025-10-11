@@ -13,9 +13,6 @@
 class PropertiesManager {
     public:
         PropertiesManager(
-            TranformPanel& tranformPanel,
-            MaterialPanel& materialPanel,
-            ColorPanel& ColorPanel,
             SceneManager& sceneManager,
             ComponentRegistry& componentRegistry,
             SelectionSystem& selectionSystem
@@ -24,14 +21,16 @@ class PropertiesManager {
         ~PropertiesManager() = default;
 
         void render();
+        void setupUI(TranformPanel& tranformPanel, MaterialPanel& materialPanel, ColorPanel& ColorPanel);
 
     private:
-        TranformPanel& _tranformPanel;
-        MaterialPanel& _materialPanel;
-        ColorPanel& _ColorPanel;
         SceneManager& _sceneManager;
         ComponentRegistry& _componentRegistry;
         SelectionSystem& _selectionSystem;
+
+        TranformPanel* _tranformPanel;
+        MaterialPanel* _materialPanel;
+        ColorPanel* _colorPanel;
 
         void _deleteComponnent(std::string componentName);
 };

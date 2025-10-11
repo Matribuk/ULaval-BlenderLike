@@ -9,6 +9,8 @@
 #include "ofxImGui.h"
 #include <functional>
 
+class RenderSystem;
+
 class Viewport {
     public:
         Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, EventManager& eventManager, ViewportID id = INVALID_VIEWPORT);

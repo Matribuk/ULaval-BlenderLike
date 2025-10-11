@@ -63,8 +63,8 @@
 ## 🧱 4. 3D et Géométrie
 
 ### 4.1 Boîte de délimitation
-- [ ] Affichage d’un bounding box autour de chaque modèle 3D
-- [ ] Taille ajustée automatiquement à chaque modèle
+- [x] Affichage d’un bounding box autour de chaque modèle 3D
+- [x] Taille ajustée automatiquement à chaque modèle
 
 ### 4.2 Primitives géométriques
 - [ ] Génération procédurale d’au moins 2 primitives 3D (ex: cube, sphère, cylindre, cône)

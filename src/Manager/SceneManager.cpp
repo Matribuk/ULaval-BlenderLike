@@ -1,4 +1,6 @@
 #include "Manager/SceneManager.hpp"
+#include "Events/EventTypes/SelectionEvent.hpp"
+#include "Systems/SelectionSystem.hpp"
 
 SceneManager::SceneManager(
     EntityManager& entityManager, ComponentRegistry& componentRegistry, EventManager& eventManager, TransformSystem& transformSystem )
@@ -85,14 +87,9 @@ void SceneManager::removeParent(EntityID child)
     this->_transformSystem.removeParent(child);
 }
 
-void SceneManager::selectEntity(EntityID id)
-{
-    this->_selectedEntity = id;
-    this->_eventManager.emit(SelectionEvent(id, true));
-}
-
 void SceneManager::render()
 {
+    EntityID selectedEntity = this->_selectionSystem->getSelectedEntity();
     ImGui::Spacing();
 
     ImGui::Separator();
@@ -101,7 +98,7 @@ void SceneManager::render()
     ImGui::SameLine();
 
     if (ImGui::Button("create Entity")) {
-        if (_selectedEntity != INVALID_ENTITY) {
+        if (selectedEntity != INVALID_ENTITY) {
             // do noting for now
             std::cout << "nice try man" << std::endl;
         }
@@ -109,11 +106,10 @@ void SceneManager::render()
     ImGui::SameLine();
 
     if (ImGui::Button("Delete Selected")) {
-        if (this->_selectedEntity != INVALID_ENTITY) {
-
-            this->_entityManager.destroyEntity(this->_selectedEntity);
-            unregisterEntity(this->_selectedEntity);
-            this->_selectedEntity = INVALID_ENTITY;
+        if (selectedEntity != INVALID_ENTITY) {
+            this->_entityManager.destroyEntity(selectedEntity);
+            unregisterEntity(selectedEntity);
+            this->_selectionSystem->setSelectedEntity(INVALID_ENTITY);
         }
     }
 
@@ -146,6 +142,7 @@ bool SceneManager::_isDescendant(EntityID entityId, EntityID targetId) const
 
 void SceneManager::_renderEntityNode(EntityID id, int depth)
 {
+    EntityID selectedEntity = this->_selectionSystem->getSelectedEntity();
     auto it = this->_entities.find(id);
     if (it == this->_entities.end())
         return;
@@ -158,13 +155,13 @@ void SceneManager::_renderEntityNode(EntityID id, int depth)
     if (node.children.empty())
         flags |= ImGuiTreeNodeFlags_Leaf;
 
-    if (id == this->_selectedEntity)
+    if (id == selectedEntity)
         flags |= ImGuiTreeNodeFlags_Selected;
 
     bool opened = ImGui::TreeNodeEx((void*)(intptr_t)id, flags, "%s", node.name.c_str());
 
     if (ImGui::IsItemClicked())
-        selectEntity(id);
+        this->_selectionSystem->setSelectedEntity(id);
 
     if (ImGui::BeginPopupContextItem()) {
         ImGui::Text("Entity: %s", node.name.c_str());
@@ -173,8 +170,8 @@ void SceneManager::_renderEntityNode(EntityID id, int depth)
         if (ImGui::MenuItem("Delete")) {
             this->_entityManager.destroyEntity(id);
             unregisterEntity(id);
-            if (this->_selectedEntity == id)
-                this->_selectedEntity = INVALID_ENTITY;
+            if (selectedEntity == id)
+                this->_selectionSystem->setSelectedEntity(INVALID_ENTITY);
         }
 
         ImGui::Separator();
@@ -220,4 +217,9 @@ void SceneManager::_handleDragDrop(EntityID id)
 std::string SceneManager::_generateDefaultName(EntityID id)
 {
     return std::to_string(id);
+}
+
+void SceneManager::setSelectionSystem(SelectionSystem& selectionSystem)
+{
+    this->_selectionSystem = &selectionSystem;
 }

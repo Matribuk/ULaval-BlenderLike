@@ -1,16 +1,10 @@
 #include "Manager/PropertiesManager.hpp"
 
 PropertiesManager::PropertiesManager(
-    TranformPanel& tranformPanel,
-    MaterialPanel& materialPanel,
-    ColorPanel& ColorPanel,
     SceneManager& sceneManager,
     ComponentRegistry& componentRegistry,
     SelectionSystem& selectionSystem
 ) :
-    _tranformPanel(tranformPanel),
-    _materialPanel(materialPanel),
-    _ColorPanel(ColorPanel),
     _sceneManager(sceneManager),
     _componentRegistry(componentRegistry),
     _selectionSystem(selectionSystem)
@@ -46,7 +40,7 @@ void PropertiesManager::render()
 
         if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Indent(10.0f);
-            this->_tranformPanel.render();
+            this->_tranformPanel->render();
             ImGui::Unindent(10.0f);
         }
 
@@ -61,7 +55,7 @@ void PropertiesManager::render()
 
         if (ImGui::CollapsingHeader("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Indent(10.0f);
-            this->_ColorPanel.render();
+            this->_colorPanel->render();
             ImGui::Unindent(10.0f);
         }
 
@@ -76,7 +70,7 @@ void PropertiesManager::render()
 
         if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Indent(10.0f);
-            this->_materialPanel.render();
+            this->_materialPanel->render();
             ImGui::Unindent(10.0f);
         }
 
@@ -87,9 +81,16 @@ void PropertiesManager::render()
     ImGui::PopStyleColor(1);
 }
 
+void PropertiesManager::setupUI(TranformPanel& tranformPanel, MaterialPanel& materialPanel, ColorPanel& colorPanel)
+{
+    this->_tranformPanel = &tranformPanel;
+    this->_materialPanel = &materialPanel;
+    this->_colorPanel = &colorPanel;
+}
+
 void PropertiesManager::_deleteComponnent(std::string componentName)
 {
-    EntityID selected = this->_sceneManager.getSelectedEntity();
+    EntityID selected = this->_selectionSystem.getSelectedEntity();
     if (selected == INVALID_ENTITY) return;
 
     if (componentName == "Color" && this->_componentRegistry.hasComponent<Renderable>(selected))

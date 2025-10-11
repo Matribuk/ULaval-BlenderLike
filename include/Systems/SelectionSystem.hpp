@@ -26,31 +26,33 @@
 #include <limits>
 #include <iostream>
 
+class ViewportManager;
+
 class SelectionSystem {
     public:
         SelectionSystem(
             ComponentRegistry& componentRegistry,
             EntityManager& entityManager,
-            EventManager& eventManager,
-            CameraManager& cameraManager,
-            ViewportManager& viewportManager
+            EventManager& eventManager
         );
 
         ~SelectionSystem() = default;
 
-        void setup();
+        void setupManagers(CameraManager& cameraManager, ViewportManager& viewportManager);
 
         EntityID getSelectedEntity();
         void setSelectedEntity(EntityID selectedEntity);
+        void setSelectMode(bool activateSelectMode);
 
     private:
         ComponentRegistry& _componentRegistry;
         EntityManager& _entityManager;
         EventManager& _eventManager;
-        CameraManager& _cameraManager;
-        ViewportManager& _viewportManager;
+        CameraManager* _cameraManager = nullptr;
+        ViewportManager* _viewportManager = nullptr;
 
         EntityID _selectedEntity = 0;
+        bool isSelectMode = false;
 
         void _handleMouseEvent(const MouseEvent& e);
         EntityID _performRaycastInActiveViewport(const glm::vec2& mouseGlobalPos);
