@@ -26,6 +26,9 @@
 #include <limits>
 #include <iostream>
 
+class ViewportManager;
+class Viewport;
+
 class SelectionSystem {
     public:
         SelectionSystem(

@@ -2,17 +2,26 @@
 
 ViewportManager::ViewportManager(SceneManager& sceneManager) : _sceneManager(sceneManager) {}
 
-
-ViewportID ViewportManager::createViewport(CameraManager& cameraManager, RenderSystem& renderSystem, glm::vec3 pos)
+ViewportID ViewportManager::createViewport(
+    CameraManager& cameraManager,
+    RenderSystem& renderSystem,
+    GizmosSystem& gizmosSystem,
+    glm::vec3 pos
+)
 {
     ViewportID newId = this->_nextId++;
 
     EntityID cameraId = cameraManager.addCamera(pos);
     this->_sceneManager.registerEntity(cameraId, "Camera " + to_string(cameraId));
-    auto viewport = std::make_unique<Viewport>(cameraManager, renderSystem, newId);
+
+    auto viewport = std::make_unique<Viewport>(
+        cameraManager,
+        renderSystem,
+        &gizmosSystem,
+        newId
+    );
 
     viewport->setCamera(cameraId);
-
     this->_viewports.push_back(std::move(viewport));
 
     return newId;

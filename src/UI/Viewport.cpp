@@ -1,7 +1,8 @@
 #include "UI/Viewport.hpp"
+#include "Systems/GizmosSystem.hpp"
 
-Viewport::Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, ViewportID id)
-    : _cameraManager(cameraManager), _renderSystem(renderSystem), _id(id)
+Viewport::Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, GizmosSystem* gizmosSystem, ViewportID id)
+    : _cameraManager(cameraManager), _renderSystem(renderSystem), _gizmosSystem(gizmosSystem), _id(id)
 {
     this->_rect = ofRectangle((ofGetWindowWidth() - 1075) / 2 , (ofGetWindowHeight() - 605) / 2 , 1075, 605);
     this->_fboInitialized = false;
@@ -31,6 +32,11 @@ void Viewport::renderScene()
 
     this->_cameraManager.update(this->_rect.width, this->_rect.height);
     this->_renderSystem.render();
+
+    if (this->_gizmosSystem) {
+        this->_gizmosSystem->update();
+        this->_gizmosSystem->render();
+    }
 
     if (previousCamera != INVALID_ENTITY)
         this->_cameraManager.setActiveCamera(previousCamera);

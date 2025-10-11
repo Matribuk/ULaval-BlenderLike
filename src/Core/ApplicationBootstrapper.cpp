@@ -120,6 +120,13 @@ bool ApplicationBootstrapper::_InitializeManagers()
     );
     this->_systems.selectionSystem->setup();
 
+    this->_systems.gizmosSystem = std::make_unique<GizmosSystem>(
+        this->_componentRegistry,
+        this->_entityManager,
+        *this->_systems.selectionSystem,
+        *this->_managers.cameraManager
+    );
+
     this->_managers.actionManager = std::make_unique<ActionManager>(
         this->_componentRegistry,
         this->_entityManager,
@@ -160,7 +167,8 @@ bool ApplicationBootstrapper::_InitializeUI()
         *this->_ui.skyboxPanel,
         *this->_ui.instructionsPanel,
         *this->_ui.eventLogPanel,
-        *this->_systems.renderSystem
+        *this->_systems.renderSystem,
+        *this->_systems.gizmosSystem
     );
 
     return true;
@@ -216,6 +224,7 @@ bool ApplicationBootstrapper::_CreateTestScene()
     this->_managers.viewportManager->createViewport(
         *this->_managers.cameraManager,
         *this->_systems.renderSystem,
+        *this->_systems.gizmosSystem,
         glm::vec3{0, 5, 10}
     );
 

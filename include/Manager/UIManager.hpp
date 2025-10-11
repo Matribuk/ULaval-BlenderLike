@@ -10,6 +10,7 @@
 #include "Manager/CameraManager.hpp"
 
 #include "Systems/RenderSystem.hpp"
+#include "Systems/GizmosSystem.hpp"
 
 #include "Events/EventTypes/SelectionEvent.hpp"
 
@@ -26,7 +27,8 @@ class UIManager {
             SkyboxPanel& skyboxPanel,
             InstructionsPanel& instructionsPanel,
             EventLogPanel& eventLogPanel,
-            RenderSystem& renderSystem
+            RenderSystem& renderSystem,
+            GizmosSystem& gizmosSystem
         );
 
         void render();
@@ -44,6 +46,7 @@ class UIManager {
         InstructionsPanel& _instructionsPanel;
         EventLogPanel& _eventLogPanel;
         RenderSystem& _renderSystem;
+        GizmosSystem& _gizmosSystem;
 
         ImGuiID _dockspaceId = 0;
         ImGuiID _dockMainId = 0;

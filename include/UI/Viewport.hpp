@@ -5,11 +5,14 @@
 #include "Systems/CameraSystem.hpp"
 #include "Systems/RenderSystem.hpp"
 
+// Forward declaration
+class GizmosSystem;
+
 #include "ofxImGui.h"
 
 class Viewport {
     public:
-        Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, ViewportID id = INVALID_VIEWPORT);
+        Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, GizmosSystem* gizmosSystem = nullptr, ViewportID id = INVALID_VIEWPORT);
         ~Viewport();
 
         bool render();
@@ -35,6 +38,7 @@ class Viewport {
     private:
         CameraManager& _cameraManager;
         RenderSystem& _renderSystem;
+        GizmosSystem* _gizmosSystem;
         EntityID _cameraId = INVALID_ENTITY;
 
         ViewportID _id;

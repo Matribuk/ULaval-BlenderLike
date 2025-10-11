@@ -182,7 +182,7 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         bool hit = false;
         try {
             hit = this->_intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
-            if (hit) glm::vec3 hitPoint = rayOrigin + rayDir * tHit;
+            if (hit)glm::vec3 hitPoint = rayOrigin + rayDir * tHit;
         } catch(...) {
             hit = false;
         }
@@ -194,8 +194,11 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
     }
 
     if (closest != INVALID_ENTITY) {
+        std::cout << "[SelectionSystem] Entity " << closest << " selected\n";
         this->_eventManager.emit(SelectionEvent(closest, true));
         this->setSelectedEntity(closest);
+    } else {
+        std::cout << "[SelectionSystem] No primitive touched\n";
     }
 
     this->_updateSelection(closest);

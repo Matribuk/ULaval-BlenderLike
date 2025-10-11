@@ -8,7 +8,8 @@ UIManager::UIManager(
     SkyboxPanel& skyboxPanel,
     InstructionsPanel& instructionsPanel,
     EventLogPanel& eventLogPanel,
-    RenderSystem& renderSystem
+    RenderSystem& renderSystem,
+    GizmosSystem& gizmosSystem
 ) :
     _toolbar(toolbar),
     _viewportManager(viewportManager),
@@ -17,7 +18,8 @@ UIManager::UIManager(
     _skyboxPanel(skyboxPanel),
     _instructionsPanel(instructionsPanel),
     _eventLogPanel(eventLogPanel),
-    _renderSystem(renderSystem) {}
+    _renderSystem(renderSystem),
+    _gizmosSystem(gizmosSystem) {}
 
 void UIManager::render()
 {
@@ -84,7 +86,7 @@ void UIManager::renderViewportControls()
         std::vector<EntityID> cameras = this->_getAvailableCameras();
 
         if (ImGui::Button("+ Add Viewport")) {
-            this->_viewportManager.createViewport(this->_cameraManager, this->_renderSystem, glm::vec3{0, 5, 10});
+            this->_viewportManager.createViewport(this->_cameraManager, this->_renderSystem, this->_gizmosSystem, glm::vec3{0, 5, 10});
 
             if (!cameras.empty()) {
                 size_t cameraIndex = (this->_viewportManager.getViewports().size() - 1) % cameras.size();

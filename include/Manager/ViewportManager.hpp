@@ -6,18 +6,22 @@
 
 #include "Systems/CameraSystem.hpp"
 #include "Systems/RenderSystem.hpp"
+#include "Systems/GizmosSystem.hpp"
 
 #include "UI/Viewport.hpp"
 
 #include <ofMain.h>
 #include "ofxImGui.h"
 
+class GizmosSystem;
+class Viewport;
+
 class ViewportManager {
     public:
         ViewportManager(SceneManager& sceneManager);
         ~ViewportManager() = default;
 
-        ViewportID createViewport(CameraManager& cameraManager, RenderSystem& renderSystem, glm::vec3 pos);
+        ViewportID createViewport(CameraManager& cameraManager, RenderSystem& renderSystem, GizmosSystem& gizmosSystem, glm::vec3 pos);
 
         void removeViewport(CameraManager& cameraManager, ViewportID id);
         void renderAll();
