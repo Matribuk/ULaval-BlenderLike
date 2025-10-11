@@ -23,5 +23,9 @@ class ColorPanel {
         ComponentRegistry& _componentRegistry;
         SelectionSystem& _selectionSystem;
 
+        std::set<EntityID> _prevSelectedEntities;
+        ofColor _prevColor;
+
         void _addColorComponent(EntityID entityId);
+        bool _checkAllEntitiesHaveSameColor(const std::set<EntityID>& entities, ofColor& outColor) const;
 };

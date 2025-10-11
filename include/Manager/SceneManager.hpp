@@ -14,9 +14,12 @@
 #include "Components/Camera.hpp"
 #include "Components/Transform.hpp"
 
+#include "Manager/InputManager.hpp"
+
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <set>
 #include "ofxImGui.h"
 
 class SelectionSystem;
@@ -42,6 +45,14 @@ class SceneManager {
         void setParent(EntityID child, EntityID parent);
         void removeParent(EntityID child);
 
+        void selectEntity(EntityID id);
+        EntityID getSelectedEntity() const { return _selectedEntity; }
+
+        const std::set<EntityID>& getSelectedEntities() const { return _selectedEntities; }
+        void toggleEntitySelection(EntityID id);
+        bool isEntitySelected(EntityID id) const;
+        void clearSelection();
+
         const std::vector<EntityID>& getRootEntities() const { return _rootEntities; }
 
         void setSelectionSystem(SelectionSystem& selectionSystem);
@@ -55,6 +66,8 @@ class SceneManager {
 
         std::unordered_map<EntityID, EntityNode> _entities;
         std::vector<EntityID> _rootEntities;
+        EntityID _selectedEntity = INVALID_ENTITY;
+        std::set<EntityID> _selectedEntities;
 
         bool _isDescendant(EntityID entityId, EntityID targetId) const;
         void _renderEntityNode(EntityID id, int depth = 0);

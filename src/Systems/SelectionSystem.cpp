@@ -36,7 +36,7 @@ void SelectionSystem::setSelectedEntity(EntityID selectedEntity)
 void SelectionSystem::_handleMouseEvent(const MouseEvent& e)
 {
     glm::vec2 mousePos(static_cast<float>(e.x), static_cast<float>(e.y));
-    if (this->isSelectMode)
+    if (this->_isSelectMode)
         this->_performRaycastInActiveViewport(mousePos);
 }
 
@@ -187,46 +187,98 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         }
     }
 
-    if (closest != INVALID_ENTITY) {
-        this->_eventManager.emit(SelectionEvent(closest, true));
-        this->setSelectedEntity(closest);
-    }
+    auto& input = InputManager::get();
+    bool isCtrlPressed = input.isKeyPressed(OF_KEY_LEFT_CONTROL) || input.isKeyPressed(OF_KEY_CONTROL);
 
-    this->_updateSelection(closest);
+    if (closest != INVALID_ENTITY) {
+        if (isCtrlPressed) this->toggleSelection(closest);
+        else this->_updateSelection(closest);
+    } else
+        if (!isCtrlPressed) this->_updateSelection(INVALID_ENTITY);
+
+
     return closest;
 }
 
 void SelectionSystem::_updateSelection(EntityID selected)
 {
-    if (selected != INVALID_ENTITY && !this->_entityManager.isEntityValid(selected)) {
+    if (selected != INVALID_ENTITY && !this->_entityManager.isEntityValid(selected))
         selected = INVALID_ENTITY;
-    }
 
-    std::vector<EntityID> changes;
+    this->clearSelection();
 
-    for (EntityID id : this->_entityManager.getAllEntities()) {
-        Selectable* s = this->_componentRegistry.getComponent<Selectable>(id);
-        if (!s) continue;
+    if (selected != INVALID_ENTITY) {
+        this->_selectedEntities.insert(selected);
+        this->_selectedEntity = selected;
 
-        bool nowSelected = (id == selected);
-        if (s->isSelected != nowSelected) {
-            s->isSelected = nowSelected;
-            changes.push_back(id);
-        }
-    }
-
-    for (EntityID id : changes) {
-        try {
-            if (this->_componentRegistry.getComponent<Selectable>(id)->isSelected) {
-                this->_eventManager.emit(SelectionEvent(id, true));
-            } else {
-                this->_eventManager.emit(SelectionEvent(id, false));
-            }
-        } catch (...) {}
-    }
-
-    if (changes.empty() && selected == INVALID_ENTITY) {
+        Selectable* s = this->_componentRegistry.getComponent<Selectable>(selected);
+        if (s) s->isSelected = true;
+        this->_eventManager.emit(SelectionEvent(selected, true));
+    } else {
+        this->_selectedEntity = INVALID_ENTITY;
         this->_eventManager.emit(SelectionEvent(INVALID_ENTITY, false));
+    }
+}
+
+const std::set<EntityID>& SelectionSystem::getSelectedEntities() const
+{
+    return this->_selectedEntities;
+}
+
+bool SelectionSystem::isEntitySelected(EntityID entityId) const
+{
+    return this->_selectedEntities.find(entityId) != this->_selectedEntities.end();
+}
+
+void SelectionSystem::clearSelection()
+{
+    for (EntityID id : this->_selectedEntities) {
+        Selectable* s = this->_componentRegistry.getComponent<Selectable>(id);
+        if (s) s->isSelected = false;
+        this->_eventManager.emit(SelectionEvent(id, false));
+    }
+    this->_selectedEntities.clear();
+    this->_selectedEntity = INVALID_ENTITY;
+}
+
+void SelectionSystem::addToSelection(EntityID entityId)
+{
+    if (entityId == INVALID_ENTITY) return;
+    if (!this->_entityManager.isEntityValid(entityId)) return;
+
+    this->_selectedEntities.insert(entityId);
+    Selectable* s = this->_componentRegistry.getComponent<Selectable>(entityId);
+    if (s) s->isSelected = true;
+
+    this->_eventManager.emit(SelectionEvent(entityId, true));
+    this->_updateMultiSelection();
+}
+
+void SelectionSystem::removeFromSelection(EntityID entityId)
+{
+    if (this->_selectedEntities.erase(entityId) > 0) {
+        Selectable* s = this->_componentRegistry.getComponent<Selectable>(entityId);
+        if (s) s->isSelected = false;
+        this->_eventManager.emit(SelectionEvent(entityId, false));
+        this->_updateMultiSelection();
+    }
+}
+
+void SelectionSystem::toggleSelection(EntityID entityId)
+{
+    if (this->isEntitySelected(entityId)) {
+        this->removeFromSelection(entityId);
+    } else {
+        this->addToSelection(entityId);
+    }
+}
+
+void SelectionSystem::_updateMultiSelection()
+{
+    if (!this->_selectedEntities.empty()) {
+        this->_selectedEntity = *this->_selectedEntities.rbegin();
+    } else {
+        this->_selectedEntity = INVALID_ENTITY;
     }
 }
 
@@ -258,6 +310,5 @@ bool SelectionSystem::_intersectsRayAABB(
 
 void SelectionSystem::setSelectMode(bool activateSelectMode)
 {
-    std::cout << "[Selection system] toggle selection mode" << std::endl;
-    this->isSelectMode = activateSelectMode;
+    this->_isSelectMode = activateSelectMode;
 }

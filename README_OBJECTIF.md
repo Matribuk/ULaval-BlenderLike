@@ -49,14 +49,14 @@
   - [x] L’édition d’attributs.
 
 ### 3.2 Sélection multiple
-- [ ] Sélection de plusieurs éléments visuels simultanément
-- [ ] Modification simultanée des attributs communs
+- [x] Sélection de plusieurs éléments visuels simultanément
+- [x] Modification simultanée des attributs communs
 
 ### 3.3 Transformations interactives
 - [x] Translation
 - [x] Rotation
 - [x] Mise à l’échelle (scale)
-- [ ] Manipulation directe dans la scène (gizmo, handles)
+- [ ] Manipulation directe dans la scène (gizmo, handles) optionnel
 
 ---
 

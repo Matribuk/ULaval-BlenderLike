@@ -87,6 +87,46 @@ void SceneManager::removeParent(EntityID child)
     this->_transformSystem.removeParent(child);
 }
 
+void SceneManager::selectEntity(EntityID id)
+{
+    this->clearSelection();
+    this->_selectedEntity = id;
+    this->_selectedEntities.insert(id);
+    this->_eventManager.emit(SelectionEvent(id, true));
+}
+
+void SceneManager::toggleEntitySelection(EntityID id)
+{
+    if (this->_selectedEntities.find(id) != this->_selectedEntities.end()) {
+        this->_selectedEntities.erase(id);
+        this->_eventManager.emit(SelectionEvent(id, false));
+
+        if (!this->_selectedEntities.empty()) {
+            this->_selectedEntity = *this->_selectedEntities.rbegin();
+        } else {
+            this->_selectedEntity = INVALID_ENTITY;
+        }
+    } else {
+        this->_selectedEntities.insert(id);
+        this->_selectedEntity = id;
+        this->_eventManager.emit(SelectionEvent(id, true));
+    }
+}
+
+bool SceneManager::isEntitySelected(EntityID id) const
+{
+    return this->_selectedEntities.find(id) != this->_selectedEntities.end();
+}
+
+void SceneManager::clearSelection()
+{
+    for (EntityID id : this->_selectedEntities) {
+        this->_eventManager.emit(SelectionEvent(id, false));
+    }
+    this->_selectedEntities.clear();
+    this->_selectedEntity = INVALID_ENTITY;
+}
+
 void SceneManager::render()
 {
     EntityID selectedEntity = this->_selectionSystem->getSelectedEntity();
@@ -99,8 +139,7 @@ void SceneManager::render()
 
     if (ImGui::Button("create Entity")) {
         if (selectedEntity != INVALID_ENTITY) {
-            // do noting for now
-            std::cout << "nice try man" << std::endl;
+            // do nothing for now
         }
     }
     ImGui::SameLine();
@@ -155,13 +194,22 @@ void SceneManager::_renderEntityNode(EntityID id, int depth)
     if (node.children.empty())
         flags |= ImGuiTreeNodeFlags_Leaf;
 
-    if (id == selectedEntity)
+    if (this->isEntitySelected(id))
         flags |= ImGuiTreeNodeFlags_Selected;
 
     bool opened = ImGui::TreeNodeEx((void*)(intptr_t)id, flags, "%s", node.name.c_str());
 
-    if (ImGui::IsItemClicked())
-        this->_selectionSystem->setSelectedEntity(id);
+    if (ImGui::IsItemClicked()) {
+        auto& input = InputManager::get();
+        bool isCtrlPressed = input.isKeyPressed(OF_KEY_LEFT_CONTROL) || input.isKeyPressed(OF_KEY_CONTROL);
+
+        if (isCtrlPressed) {
+            this->_selectionSystem->toggleSelection(id);
+        } else {
+            this->_selectionSystem->clearSelection();
+            this->_selectionSystem->setSelectedEntity(id);
+        }
+    }
 
     if (ImGui::BeginPopupContextItem()) {
         ImGui::Text("Entity: %s", node.name.c_str());

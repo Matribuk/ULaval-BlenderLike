@@ -9,6 +9,7 @@
 
 #include "Manager/CameraManager.hpp"
 #include "Manager/ViewportManager.hpp"
+#include "Manager/InputManager.hpp"
 
 #include "Components/Selectable.hpp"
 #include "Components/Transform.hpp"
@@ -25,6 +26,7 @@
 
 #include <limits>
 #include <iostream>
+#include <set>
 
 class ViewportManager;
 
@@ -44,6 +46,13 @@ class SelectionSystem {
         void setSelectedEntity(EntityID selectedEntity);
         void setSelectMode(bool activateSelectMode);
 
+        const std::set<EntityID>& getSelectedEntities() const;
+        bool isEntitySelected(EntityID entityId) const;
+        void clearSelection();
+        void addToSelection(EntityID entityId);
+        void removeFromSelection(EntityID entityId);
+        void toggleSelection(EntityID entityId);
+
     private:
         ComponentRegistry& _componentRegistry;
         EntityManager& _entityManager;
@@ -51,12 +60,15 @@ class SelectionSystem {
         CameraManager* _cameraManager = nullptr;
         ViewportManager* _viewportManager = nullptr;
 
+        bool _isSelectMode = false;
+
         EntityID _selectedEntity = 0;
-        bool isSelectMode = false;
+        std::set<EntityID> _selectedEntities;
 
         void _handleMouseEvent(const MouseEvent& e);
         EntityID _performRaycastInActiveViewport(const glm::vec2& mouseGlobalPos);
         void _updateSelection(EntityID selected);
+        void _updateMultiSelection();
         bool _intersectsRayAABB(const glm::vec3& rayOrigin, const glm::vec3& rayDir,
                             const glm::vec3& aabbMin, const glm::vec3& aabbMax, float& outT) const;
 
