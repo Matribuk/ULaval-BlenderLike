@@ -8,11 +8,14 @@
 
 #include "Systems/SelectionSystem.hpp"
 
+#include "Manager/ResourceManager.hpp"
+
 #include "ofxImGui.h"
+#include <filesystem>
 
 class MaterialPanel {
     public:
-        MaterialPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem);
+        MaterialPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem, ResourceManager& resourceManager);
         ~MaterialPanel() = default;
 
         void render();
@@ -20,6 +23,7 @@ class MaterialPanel {
     private:
         ComponentRegistry& _componentRegistry;
         SelectionSystem& _selectionSystem;
+        ResourceManager& _resourceManager;
 
         std::set<EntityID> _prevSelectedEntities;
 
