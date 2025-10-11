@@ -146,14 +146,14 @@ ComponentRegistry &CameraManager::getComponentRegistry() const
 Camera *CameraManager::getActiveCamera() const
 {
     if (this->_cameraEntities.empty())
-    return nullptr;
+        return nullptr;
     return this->_componentRegistry.getComponent<Camera>(this->_cameraEntities[this->_activeCameraIndex]);
 }
 
 EntityID CameraManager::getActiveCameraId() const
 {
     if (this->_cameraEntities.empty())
-    return 0;
+        return 0;
     return this->_cameraEntities[this->_activeCameraIndex];
 }
 

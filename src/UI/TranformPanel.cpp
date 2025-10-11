@@ -10,7 +10,7 @@ void TranformPanel::render()
     if (entityId == INVALID_ENTITY)
         return;
 
-        Transform* transform = this->_componentRegistry.getComponent<Transform>(entityId);
+    Transform* transform = this->_componentRegistry.getComponent<Transform>(entityId);
 
     if (!transform) {
         ImGui::Button("Add Color Component");

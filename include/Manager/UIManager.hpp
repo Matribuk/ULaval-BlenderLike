@@ -21,13 +21,9 @@
 class UIManager {
     public:
         UIManager(
-            Toolbar& toolbar,
             ViewportManager& viewportManager,
             PropertiesManager& propertiesManager,
             CameraManager& cameraManager,
-            SkyboxPanel& skyboxPanel,
-            InstructionsPanel& instructionsPanel,
-            EventLogPanel& eventLogPanel,
             AssetsPanel& assetsPanel,
             ExportPanel& exportPanel,
             RenderSystem& renderSystem
@@ -35,21 +31,23 @@ class UIManager {
 
         void render();
         void setupDockspace();
+        void setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, InstructionsPanel& instructionsPanel, EventLogPanel& eventLogPanel);
         void renderViewportControls();
 
         void dockNewViewport(const std::string& viewportName);
 
     private:
-        Toolbar& _toolbar;
         ViewportManager& _viewportManager;
         PropertiesManager& _propertiesManager;
         CameraManager& _cameraManager;
-        SkyboxPanel& _skyboxPanel;
-        InstructionsPanel& _instructionsPanel;
-        EventLogPanel& _eventLogPanel;
         AssetsPanel& _assetsPanel;
         ExportPanel& _exportPanel;
         RenderSystem& _renderSystem;
+
+        Toolbar* _toolbar;
+        SkyboxPanel* _skyboxPanel;
+        InstructionsPanel* _instructionsPanel;
+        EventLogPanel* _eventLogPanel;
 
         ImGuiID _dockspaceId = 0;
         ImGuiID _dockMainId = 0;
