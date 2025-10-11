@@ -103,7 +103,6 @@ void MaterialPanel::render()
                 ImGui::OpenPopup("LoadShadersPopup");
             }
 
-            // Popup menu listing available shader base names (vertex+fragment pairs) from data/shaders
             if (ImGui::BeginPopup("LoadShadersPopup")) {
                 std::filesystem::path shaderDir = std::filesystem::path("data") / "shaders";
                 std::vector<std::string> names;
@@ -150,7 +149,6 @@ void MaterialPanel::render()
                 ImGui::OpenPopup("LoadShadersPopup");
             }
 
-            // Popup menu listing available shader base names (vertex+fragment pairs) from data/shaders
             if (ImGui::BeginPopup("LoadShadersPopup")) {
                 std::filesystem::path shaderDir = std::filesystem::path("data") / "shaders";
                 std::vector<std::string> names;
@@ -232,7 +230,7 @@ void MaterialPanel::render()
                 if (result.bSuccess) {
                     std::string path = result.getPath();
                     ofMesh& newMesh = this->_resourceManager.loadMesh(path);
-                    renderable->mesh = newMesh; // assign the loaded mesh
+                    renderable->mesh = newMesh;
                 }
             }
         } else {
