@@ -29,8 +29,11 @@ void InstructionsPanel::render()
         ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "Test KeyEvent");
 
         ImGui::BulletText("P → Switch camera projection mode");
-        ImGui::BulletText("CTRL+Z → (Reserved for Undo)");
-        ImGui::BulletText("CTRL+Y → (Reserved for Redo)");
+        ImGui::BulletText("Z → Move camera Forward");
+        ImGui::BulletText("Q → Move camera Leftward");
+        ImGui::BulletText("S → Move camera Backward");
+        ImGui::BulletText("D → Move camera Rightward");
+        ImGui::BulletText("CTRL+CLICK → (Multiple selection in Selection mode)");
 
         ImGui::Spacing();
         ImGui::Separator();
