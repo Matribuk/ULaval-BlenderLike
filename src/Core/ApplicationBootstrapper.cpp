@@ -1,4 +1,5 @@
 #include "Core/ApplicationBootstrapper.hpp"
+#include "Events/EventTypes/AssetDropEvent.hpp"
 
 ApplicationBootstrapper::ApplicationBootstrapper(
     EntityManager& entityManager,
@@ -108,7 +109,8 @@ bool ApplicationBootstrapper::_InitializeManagers()
     );
 
     this->_managers.viewportManager = std::make_unique<ViewportManager>(
-        *this->_managers.sceneManager
+        *this->_managers.sceneManager,
+        this->_eventManager
     );
 
     this->_systems.imageExporter = std::make_unique<ImageSequenceExporter>(*this->_managers.viewportManager);
@@ -180,6 +182,15 @@ bool ApplicationBootstrapper::_SetupCallbacks()
 {
     InputManager::get().subscribeToEvents(this->_eventManager);
 
+    this->_eventManager.subscribe<AssetDropEvent>([this](const AssetDropEvent& e) {
+        const AssetInfo* asset = this->_ui.assetsPanel->getAsset(e.assetIndex);
+        this->_managers.fileManager->handleAssetDrop(
+            asset,
+            *this->_managers.sceneManager,
+            *this->_ui.eventLogPanel
+        );
+    });
+
     this->_ui.toolbar->setToggleProjectionCallback([this]() {
         Viewport* activeViewport = this->_managers.viewportManager->getActiveViewport();
         if (activeViewport) {
@@ -190,59 +201,13 @@ bool ApplicationBootstrapper::_SetupCallbacks()
     });
 
     this->_ui.toolbar->setImportCallback([this]() {
-        ofFileDialogResult result = ofSystemLoadDialog("Choisir un fichier à importer (image ou modèle 3D)", false);
-
+        ofFileDialogResult result = ofSystemLoadDialog("Choose a file to import (image or 3D model)", false);
         if (result.bSuccess) {
-            std::string filePath = result.getPath();
-            this->_ui.eventLogPanel->addLog("Fichier sélectionné : " + filePath, ofColor::aqua);
-
-            std::filesystem::path srcPath(filePath);
-            std::string name = srcPath.stem().string();
-            std::string ext = srcPath.extension().string();
-            std::string filename = srcPath.filename().string();
-
-            std::string dataPath = ofToDataPath("", true);
-            if (!dataPath.empty() && dataPath.back() != '/') {
-                dataPath += "/";
-            }
-            std::string destPath = dataPath + filename;
-
-            try {
-                if (std::filesystem::exists(destPath)) {
-                    int counter = 1;
-                    std::string baseName = name;
-                    do {
-                        name = baseName + "_" + std::to_string(counter);
-                        filename = name + ext;
-                        destPath = dataPath + filename;
-                        counter++;
-                    } while (std::filesystem::exists(destPath));
-                }
-
-                std::filesystem::copy_file(srcPath, destPath);
-                this->_ui.eventLogPanel->addLog("Fichier copié dans data/ : " + filename, ofColor::cyan);
-            } catch (const std::exception& e) {
-                this->_ui.eventLogPanel->addLog("Erreur lors de la copie : " + std::string(e.what()), ofColor::red);
-                return;
-            }
-            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-            bool isImage = (ext == ".png" || ext == ".jpg" || ext == ".jpeg" ||
-                          ext == ".bmp" || ext == ".gif" || ext == ".tga");
-            bool isModel = (ext == ".obj" || ext == ".fbx" || ext == ".3ds" ||
-                           ext == ".dae" || ext == ".blend" || ext == ".ply");
-
-            if (isImage) {
-                auto texture = this->_managers.fileManager->importImageTexture(destPath);
-                if (texture) {
-                    this->_ui.assetsPanel->addImageAsset(name, texture);
-                    this->_ui.eventLogPanel->addLog("Image chargée : " + name + " (drag & drop dans la scène)", ofColor::green);
-                }
-            } else if (isModel) {
-                this->_ui.assetsPanel->addModelAsset(name, destPath);
-                this->_ui.eventLogPanel->addLog("Modèle 3D disponible : " + name + " (drag & drop dans la scène)", ofColor::green);
-            } else {
-                this->_ui.eventLogPanel->addLog("Type de fichier non supporté : " + ext, ofColor::red);
-            }
+            this->_managers.fileManager->importAndAddAsset(
+                result.getPath(),
+                *this->_ui.assetsPanel,
+                *this->_ui.eventLogPanel
+            );
         }
     });
 
@@ -265,58 +230,6 @@ bool ApplicationBootstrapper::_CreateTestScene()
         *this->_systems.renderSystem,
         glm::vec3{0, 5, 10}
     );
-
-    for (auto& viewport : this->_managers.viewportManager->getViewports()) {
-        viewport->setAssetDropCallback([this](size_t assetIndex, glm::vec2 dropPos) {
-            const AssetInfo* asset = this->_ui.assetsPanel->getAsset(assetIndex);
-            if (!asset) return;
-
-            if (asset->isImage && asset->texture) {
-                EntityID entityId = this->_managers.fileManager->createImagePlaneEntity(
-                    asset->texture,
-                    asset->name,
-                    glm::vec3(0, 0, 0)
-                );
-
-                if (entityId != INVALID_ENTITY) {
-                    this->_managers.sceneManager->registerEntity(entityId, asset->name);
-                    this->_ui.eventLogPanel->addLog("Plan créé : " + asset->name, ofColor::lime);
-                }
-            } else if (!asset->isImage && !asset->filepath.empty()) {
-                auto result = this->_managers.fileManager->importMesh(asset->filepath);
-                if (result.first != INVALID_ENTITY) {
-                    this->_managers.sceneManager->registerEntity(result.first, asset->name);
-                    this->_ui.eventLogPanel->addLog("Modèle 3D créé : " + asset->name, ofColor::lime);
-                }
-            }
-        });
-    }
-
-    this->_managers.uiManager->setNewViewportCallback([this](Viewport* viewport) {
-        viewport->setAssetDropCallback([this](size_t assetIndex, glm::vec2 dropPos) {
-            const AssetInfo* asset = this->_ui.assetsPanel->getAsset(assetIndex);
-            if (!asset) return;
-
-            if (asset->isImage && asset->texture) {
-                EntityID entityId = this->_managers.fileManager->createImagePlaneEntity(
-                    asset->texture,
-                    asset->name,
-                    glm::vec3(0, 0, 0)
-                );
-
-                if (entityId != INVALID_ENTITY) {
-                    this->_managers.sceneManager->registerEntity(entityId, asset->name);
-                    this->_ui.eventLogPanel->addLog("Plan créé : " + asset->name, ofColor::lime);
-                }
-            } else if (!asset->isImage && !asset->filepath.empty()) {
-                auto result = this->_managers.fileManager->importMesh(asset->filepath);
-                if (result.first != INVALID_ENTITY) {
-                    this->_managers.sceneManager->registerEntity(result.first, asset->name);
-                    this->_ui.eventLogPanel->addLog("Modèle 3D créé : " + asset->name, ofColor::lime);
-                }
-            }
-        });
-    });
 
     Entity boxEntity = this->_entityManager.createEntity();
     this->_componentRegistry.registerComponent(boxEntity.getId(), Transform(glm::vec3(-3, 0, 0)));

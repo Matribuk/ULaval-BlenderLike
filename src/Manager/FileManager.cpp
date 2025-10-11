@@ -1,44 +1,38 @@
 #include "Manager/FileManager.hpp"
+#include "UI/AssetsPanel.hpp"
+#include "UI/EventLogPanel.hpp"
+#include "Manager/SceneManager.hpp"
 
 FileManager::FileManager(ComponentRegistry& componentRegistry, EntityManager& entityManager)
     : _componentRegistry(componentRegistry), _entityManager(entityManager) {}
 
 void FileManager::exportMesh(EntityID entity, const std::string& filename)
 {
-    if (!this->_componentRegistry.hasComponent<Renderable>(entity)) {
-        ofLogError("FileManager") << "Entity #" << entity << " has no Renderable component.";
+    if (!this->_componentRegistry.hasComponent<Renderable>(entity))
         return;
-    }
 
     Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(entity);
-    if (!renderable) {
-        ofLogError("FileManager") << "Renderable component is null for Entity #" << entity;
+    if (!renderable)
         return;
-    }
 
     try {
         renderable->mesh.save(filename);
-        ofLogNotice("FileManager") << "Exported mesh for Entity #" << entity << " to " << filename;
     }
     catch (const std::exception& e) {
-        ofLogError("FileManager") << "Failed to export mesh: " << e.what();
+        return;
     }
 }
 
 
 std::pair<EntityID, std::string> FileManager::importMesh(const std::string& filename)
 {
-    if (this->_isImageFile(filename)) {
-        ofLogWarning("FileManager") << "Use importImageTexture() for images, not importMesh()";
+    if (FileManager::isImageFile(filename))
         return {INVALID_ENTITY, ""};
-    }
 
     this->_model = std::make_unique<ofxAssimpModelLoader>();
 
-    if (!this->_model->load(filename)) {
-        ofLogError("FileManager") << "Failed to load model: " << filename;
+    if (!this->_model->load(filename))
         return {INVALID_ENTITY, ""};
-    }
 
     int numMeshes = this->_model->getMeshCount();
 
@@ -72,27 +66,20 @@ std::pair<EntityID, std::string> FileManager::importMesh(const std::string& file
 std::shared_ptr<ofTexture> FileManager::importImageTexture(const std::string& filename)
 {
     ofImage image;
-    if (!image.load(filename)) {
-        ofLogError("FileManager") << "Failed to load image: " << filename;
+    if (!image.load(filename))
         return nullptr;
-    }
 
     std::filesystem::path path(filename);
     std::string fileName = path.stem().string();
 
-    ofLogNotice("FileManager") << "Imported image texture: " << fileName
-                               << " (" << image.getWidth() << "x" << image.getHeight() << ")";
-
-    auto texture = std::make_shared<ofTexture>(image.getTexture());
+    std::shared_ptr<ofTexture> texture = std::make_shared<ofTexture>(image.getTexture());
     return texture;
 }
 
 EntityID FileManager::createImagePlaneEntity(std::shared_ptr<ofTexture> texture, const std::string& name, const glm::vec3& position)
 {
-    if (!texture) {
-        ofLogError("FileManager") << "Cannot create plane with null texture";
+    if (!texture)
         return INVALID_ENTITY;
-    }
 
     float imgWidth = texture->getWidth();
     float imgHeight = texture->getHeight();
@@ -115,20 +102,122 @@ EntityID FileManager::createImagePlaneEntity(std::shared_ptr<ofTexture> texture,
     this->_componentRegistry.registerComponent(entity.getId(), renderable);
     this->_componentRegistry.registerComponent(entity.getId(), Selectable());
 
-    ofLogNotice("FileManager") << "Created image plane entity: " << name;
-
     return entity.getId();
 }
 
-bool FileManager::_isImageFile(const std::string& filename)
+bool FileManager::isImageFile(const std::string& filename)
 {
     std::filesystem::path path(filename);
     std::string ext = path.extension().string();
 
     std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
-    return (ext == ".png" || ext == ".jpg" || ext == ".jpeg" ||
-            ext == ".bmp" || ext == ".gif" || ext == ".tga");
+    return (ext == ".png" || ext == ".jpg");
+}
+
+bool FileManager::isModelFile(const std::string& filename)
+{
+    std::filesystem::path path(filename);
+    std::string ext = path.extension().string();
+
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+    return (ext == ".obj" || ext == ".ply" || ext == ".stl");
+}
+
+std::pair<std::string, std::string> FileManager::copyFileToDataFolder(const std::string& sourcePath)
+{
+    std::filesystem::path srcPath(sourcePath);
+    std::string name = srcPath.stem().string();
+    std::string ext = srcPath.extension().string();
+    std::string filename = srcPath.filename().string();
+
+    std::string dataPath = ofToDataPath("", true);
+    if (!dataPath.empty() && dataPath.back() != '/') {
+        dataPath += "/";
+    }
+    std::string destPath = dataPath + filename;
+
+    if (std::filesystem::exists(destPath)) {
+        int counter = 1;
+        std::string baseName = name;
+        name = baseName + "_" + std::to_string(counter);
+        filename = name + ext;
+        destPath = dataPath + filename;
+        while (std::filesystem::exists(destPath)) {
+            counter++;
+            name = baseName + "_" + std::to_string(counter);
+            filename = name + ext;
+            destPath = dataPath + filename;
+        }
+    }
+
+    std::filesystem::copy_file(srcPath, destPath);
+
+    return {destPath, name};
+}
+
+bool FileManager::importAndAddAsset(const std::string& filePath, AssetsPanel& assetsPanel, EventLogPanel& eventLog)
+{
+    eventLog.addLog("File selected: " + filePath, ofColor::aqua);
+
+    std::pair<std::string, std::string> copyResult;
+    try {
+        copyResult = this->copyFileToDataFolder(filePath);
+    } catch (const std::exception& e) {
+        eventLog.addLog("Copy error: " + std::string(e.what()), ofColor::red);
+        return false;
+    }
+
+    std::string destPath = copyResult.first;
+    std::string name = copyResult.second;
+
+    std::filesystem::path path(destPath);
+    std::string filename = path.filename().string();
+    eventLog.addLog("File copied to data/: " + filename, ofColor::cyan);
+
+    if (FileManager::isImageFile(destPath)) {
+        std::shared_ptr<ofTexture> texture = this->importImageTexture(destPath);
+        if (texture) {
+            assetsPanel.addImageOrModelAsset(name, texture, "", true);
+            eventLog.addLog("Image loaded: " + name + " (drag & drop into scene)", ofColor::green);
+            return true;
+        }
+    } else if (FileManager::isModelFile(destPath)) {
+        assetsPanel.addImageOrModelAsset(name, nullptr, destPath, false);
+        eventLog.addLog("3D model available: " + name + " (drag & drop into scene)", ofColor::green);
+        return true;
+    } else {
+        std::filesystem::path ext = path.extension();
+        eventLog.addLog("Unsupported file type: " + ext.string(), ofColor::red);
+        return false;
+    }
+
+    return false;
+}
+
+void FileManager::handleAssetDrop(const AssetInfo* asset, SceneManager& sceneManager, EventLogPanel& eventLog)
+{
+    if (!asset) return;
+
+    if (asset->isImage && asset->texture) {
+        EntityID entityId = this->createImagePlaneEntity(
+            asset->texture,
+            asset->name,
+            glm::vec3(0, 0, 0)
+        );
+
+        if (entityId != INVALID_ENTITY) {
+            sceneManager.registerEntity(entityId, asset->name);
+            eventLog.addLog("Plane created: " + asset->name, ofColor::lime);
+        }
+    } else if (!asset->isImage && !asset->filepath.empty()) {
+        std::pair<EntityID, std::string> result = this->importMesh(asset->filepath);
+        if (result.first != INVALID_ENTITY) {
+            sceneManager.registerEntity(result.first, asset->name);
+            eventLog.addLog("3D model created: " + asset->name, ofColor::lime);
+        }
+    }
 }
 
 ofMesh FileManager::_createImagePlane(float width, float height)

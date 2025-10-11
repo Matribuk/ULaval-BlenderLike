@@ -38,7 +38,6 @@ class UIManager {
         void renderViewportControls();
 
         void dockNewViewport(const std::string& viewportName);
-        void setNewViewportCallback(std::function<void(Viewport*)> callback);
 
     private:
         Toolbar& _toolbar;
@@ -57,7 +56,6 @@ class UIManager {
         bool _firstTime = true;
 
         std::vector<std::string> _viewportsToDock;
-        std::function<void(Viewport*)> _newViewportCallback;
         std::vector<EntityID> _getAvailableCameras();
         void _setupInitialLayout();
 };

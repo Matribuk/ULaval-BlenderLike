@@ -10,7 +10,7 @@ void ExportPanel::render()
 {
     if (ImGui::Begin("Export", nullptr, ImGuiWindowFlags_NoCollapse))
     {
-        auto& viewports = _viewportManager.getViewports();
+        std::vector<std::unique_ptr<Viewport>>& viewports = this->_viewportManager.getViewports();
 
         if (viewports.empty()) {
             ImGui::TextDisabled("No viewports available");
@@ -22,7 +22,7 @@ void ExportPanel::render()
         ImGui::Separator();
 
         std::vector<std::string> viewportNames;
-        for (auto& vp : viewports) {
+        for (std::unique_ptr<Viewport>& vp : viewports) {
             viewportNames.push_back("Viewport " + std::to_string(vp->getId()));
         }
 

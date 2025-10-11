@@ -1,4 +1,5 @@
 #include "UI/AssetsPanel.hpp"
+#include "Manager/FileManager.hpp"
 
 AssetsPanel::AssetsPanel(SceneManager& sceneManager, ComponentRegistry& componentRegistry)
     : _sceneManager(sceneManager), _componentRegistry(componentRegistry) {}
@@ -65,27 +66,15 @@ void AssetsPanel::addAsset(const std::string& name, EntityID entityId, bool isIm
     this->_assets.push_back(info);
 }
 
-void AssetsPanel::addImageAsset(const std::string& name, std::shared_ptr<ofTexture> texture)
+void AssetsPanel::addImageOrModelAsset(const std::string& name, std::shared_ptr<ofTexture> texture, const std::string& modelFilepath, bool isImage)
 {
     AssetInfo info;
     info.name = name;
     info.entityId = INVALID_ENTITY;
-    info.isImage = true;
-    info.texture = texture;
-    info.filepath = "";
+    info.isImage = isImage;
 
-    this->_assets.push_back(info);
-}
-
-void AssetsPanel::addModelAsset(const std::string& name, const std::string& filepath)
-{
-    AssetInfo info;
-    info.name = name;
-    info.entityId = INVALID_ENTITY;
-    info.isImage = false;
-    info.texture = nullptr;
-    info.filepath = filepath;
-
+    info.texture = (isImage) ? texture : nullptr;
+    info.filepath = (isImage) ? "" : modelFilepath;
     this->_assets.push_back(info);
 }
 
@@ -105,10 +94,8 @@ void AssetsPanel::loadAssetsFromDataFolder()
     std::string dataPath = ofToDataPath("", true);
     ofDirectory dir(dataPath);
 
-    if (!dir.exists()) {
-        ofLogWarning("AssetsPanel") << "Data folder does not exist: " << dataPath;
+    if (!dir.exists())
         return;
-    }
 
     dir.listDir();
 
@@ -121,34 +108,16 @@ void AssetsPanel::loadAssetsFromDataFolder()
         std::string filepath = file.getAbsolutePath();
         std::string name = file.getBaseName();
 
-        if (this->_isImageFile(filename)) {
+        if (FileManager::isImageFile(filename)) {
             ofImage image;
             if (image.load(filepath)) {
-                auto texture = std::make_shared<ofTexture>(image.getTexture());
-                this->addImageAsset(name, texture);
-                ofLogNotice("AssetsPanel") << "Loaded image: " << name;
+                std::shared_ptr<ofTexture> texture = std::make_shared<ofTexture>(image.getTexture());
+                this->addImageOrModelAsset(name, texture, "", true);
             }
-        } else if (this->_isModelFile(filename)) {
-            this->addModelAsset(name, filepath);
-            ofLogNotice("AssetsPanel") << "Found 3D model: " << name;
+        } else if (FileManager::isModelFile(filename)) {
+            this->addImageOrModelAsset(name, nullptr, filepath, false);
         }
     }
-
-    ofLogNotice("AssetsPanel") << "Loaded " << this->_assets.size() << " assets from data folder";
-}
-
-bool AssetsPanel::_isImageFile(const std::string& filename)
-{
-    std::string ext = ofToLower(ofFilePath::getFileExt(filename));
-    return (ext == "png" || ext == "jpg" || ext == "jpeg" ||
-            ext == "bmp" || ext == "gif" || ext == "tga");
-}
-
-bool AssetsPanel::_isModelFile(const std::string& filename)
-{
-    std::string ext = ofToLower(ofFilePath::getFileExt(filename));
-    return (ext == "obj" || ext == "fbx" || ext == "3ds" ||
-            ext == "dae" || ext == "blend" || ext == "ply");
 }
 
 void AssetsPanel::_renderAssetThumbnail(const AssetInfo& asset)
@@ -198,11 +167,5 @@ void AssetsPanel::_renderAssetThumbnail(const AssetInfo& asset)
         }
 
         ImGui::EndDragDropSource();
-    }
-
-    if (ImGui::IsItemClicked()) {
-        if (asset.entityId != INVALID_ENTITY) {
-            ofLogNotice("AssetsPanel") << "Asset clicked: " << asset.name;
-        }
     }
 }

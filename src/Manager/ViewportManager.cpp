@@ -1,6 +1,7 @@
 #include "Manager/ViewportManager.hpp"
 
-ViewportManager::ViewportManager(SceneManager& sceneManager) : _sceneManager(sceneManager) {}
+ViewportManager::ViewportManager(SceneManager& sceneManager, EventManager& eventManager)
+    : _sceneManager(sceneManager), _eventManager(eventManager) {}
 
 
 ViewportID ViewportManager::createViewport(CameraManager& cameraManager, RenderSystem& renderSystem, glm::vec3 pos)
@@ -9,7 +10,7 @@ ViewportID ViewportManager::createViewport(CameraManager& cameraManager, RenderS
 
     EntityID cameraId = cameraManager.addCamera(pos);
     this->_sceneManager.registerEntity(cameraId, "Camera " + to_string(cameraId));
-    auto viewport = std::make_unique<Viewport>(cameraManager, renderSystem, newId);
+    auto viewport = std::make_unique<Viewport>(cameraManager, renderSystem, this->_eventManager, newId);
 
     viewport->setCamera(cameraId);
 

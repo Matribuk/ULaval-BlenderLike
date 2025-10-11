@@ -24,8 +24,7 @@ class AssetsPanel {
 
         void render();
         void addAsset(const std::string& name, EntityID entityId, bool isImage);
-        void addImageAsset(const std::string& name, std::shared_ptr<ofTexture> texture);
-        void addModelAsset(const std::string& name, const std::string& filepath);
+        void addImageOrModelAsset(const std::string& name, std::shared_ptr<ofTexture> texture, const std::string& filepath, bool isImage);
         void clear();
 
         const AssetInfo* getAsset(size_t index) const;
@@ -37,6 +36,4 @@ class AssetsPanel {
         std::vector<AssetInfo> _assets;
 
         void _renderAssetThumbnail(const AssetInfo& asset);
-        bool _isImageFile(const std::string& filename);
-        bool _isModelFile(const std::string& filename);
 };

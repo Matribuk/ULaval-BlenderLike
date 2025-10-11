@@ -21,7 +21,8 @@ enum class EventType {
     CAMERA,
     MOUSE,
     KEY,
-    WINDOW
+    WINDOW,
+    ASSET_DROP
 };
 
 struct Event {

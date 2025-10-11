@@ -8,78 +8,65 @@ ImageSequenceExporter::ImageSequenceExporter(ViewportManager& viewportManager)
 
 void ImageSequenceExporter::startRecording(ViewportID viewportId, const std::string& folder, int fps, float durationSeconds)
 {
-    if (_isRecording) {
-        ofLogWarning("ImageSequenceExporter") << "Already recording, stop first";
+    if (this->_isRecording)
         return;
-    }
 
-    _viewportId = viewportId;
-    _exportFolder = folder;
-    _fps = fps;
-    _duration = durationSeconds;
-    _elapsedTime = 0.0f;
-    _frameCount = 0;
-    _timeSinceLastCapture = 0.0f;
-    _sessionTimestamp = _getCurrentTimestamp();
+    this->_viewportId = viewportId;
+    this->_exportFolder = folder;
+    this->_fps = fps;
+    this->_duration = durationSeconds;
+    this->_elapsedTime = 0.0f;
+    this->_frameCount = 0;
+    this->_timeSinceLastCapture = 0.0f;
+    this->_sessionTimestamp = this->_getCurrentTimestamp();
 
-    _capturedFrames.clear();
+    this->_capturedFrames.clear();
     int estimatedFrames = static_cast<int>(fps * durationSeconds);
-    _capturedFrames.reserve(estimatedFrames);
+    this->_capturedFrames.reserve(estimatedFrames);
 
-    _isRecording = true;
-
-    ofLogNotice("ImageSequenceExporter") << "Started recording viewport " << viewportId
-                                         << " to " << folder
-                                         << " (fps: " << fps << ", duration: " << durationSeconds << "s)";
+    this->_isRecording = true;
 }
 
 void ImageSequenceExporter::stopRecording()
 {
-    if (!_isRecording) {
-        ofLogWarning("ImageSequenceExporter") << "Not currently recording";
+    if (!this->_isRecording)
         return;
-    }
 
-    _isRecording = false;
-    ofLogNotice("ImageSequenceExporter") << "Stopped recording. Captured " << _frameCount << " frames. Saving to disk...";
-
-    _saveAllFrames();
-
-    ofLogNotice("ImageSequenceExporter") << "All frames saved successfully";
+    this->_isRecording = false;
+    this->_saveAllFrames();
 }
 
 void ImageSequenceExporter::update(float deltaTime)
 {
-    if (!_isRecording) return;
+    if (!this->_isRecording) return;
 
-    _elapsedTime += deltaTime;
-    _timeSinceLastCapture += deltaTime;
+    this->_elapsedTime += deltaTime;
+    this->_timeSinceLastCapture += deltaTime;
 
-    float captureInterval = 1.0f / _fps;
+    float captureInterval = 1.0f / this->_fps;
 
-    if (_timeSinceLastCapture >= captureInterval) {
-        _captureFrame();
-        _timeSinceLastCapture = 0.0f;
+    if (this->_timeSinceLastCapture >= captureInterval) {
+        this->_captureFrame();
+        this->_timeSinceLastCapture = 0.0f;
     }
 
-    if (_elapsedTime >= _duration) {
-        stopRecording();
+    if (this->_elapsedTime >= this->_duration) {
+        this->stopRecording();
     }
 }
 
 void ImageSequenceExporter::_captureFrame()
 {
     Viewport* viewport = nullptr;
-    for (auto& vp : _viewportManager.getViewports()) {
-        if (vp->getId() == _viewportId) {
+    for (std::unique_ptr<Viewport>& vp : this->_viewportManager.getViewports()) {
+        if (vp->getId() == this->_viewportId) {
             viewport = vp.get();
             break;
         }
     }
 
     if (!viewport) {
-        ofLogError("ImageSequenceExporter") << "Viewport " << _viewportId << " not found";
-        stopRecording();
+        this->stopRecording();
         return;
     }
 
@@ -88,28 +75,24 @@ void ImageSequenceExporter::_captureFrame()
     texture.readToPixels(pixels);
     pixels.mirror(true, false);
 
-    _capturedFrames.push_back(pixels);
-    _frameCount++;
+    this->_capturedFrames.push_back(pixels);
+    this->_frameCount++;
 }
 
 void ImageSequenceExporter::_saveAllFrames()
 {
-    for (size_t i = 0; i < _capturedFrames.size(); ++i) {
-        std::string filename = _generateFilename(i);
-        std::string fullPath = _exportFolder + "/" + filename;
-
-        if (!ofSaveImage(_capturedFrames[i], fullPath)) {
-            ofLogError("ImageSequenceExporter") << "Failed to save frame " << i << ": " << fullPath;
-        }
+    for (size_t i = 0; i < this->_capturedFrames.size(); ++i) {
+        std::string filename = this->_generateFilename(i);
+        std::string fullPath = this->_exportFolder + "/" + filename;
     }
 
-    _capturedFrames.clear();
+    this->_capturedFrames.clear();
 }
 
 std::string ImageSequenceExporter::_generateFilename(int frameIndex)
 {
     std::stringstream ss;
-    ss << "capture_" << _sessionTimestamp << "_frame_"
+    ss << "capture_" << this->_sessionTimestamp << "_frame_"
        << std::setfill('0') << std::setw(4) << frameIndex
        << ".png";
     return ss.str();
@@ -123,4 +106,25 @@ std::string ImageSequenceExporter::_getCurrentTimestamp()
     std::stringstream ss;
     ss << std::put_time(&tm, "%Y%m%d_%H%M%S");
     return ss.str();
+}
+
+
+bool ImageSequenceExporter::isRecording() const {
+    return this->_isRecording;
+}
+
+int ImageSequenceExporter::getFrameCount() const {
+    return this->_frameCount;
+}
+
+float ImageSequenceExporter::getElapsedTime() const {
+    return this->_elapsedTime;
+}
+
+float ImageSequenceExporter::getDuration() const {
+    return this->_duration;
+}
+
+std::string ImageSequenceExporter::getExportFolder() const {
+    return this->_exportFolder;
 }

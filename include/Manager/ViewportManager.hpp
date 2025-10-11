@@ -6,6 +6,7 @@
 
 #include "Systems/CameraSystem.hpp"
 #include "Systems/RenderSystem.hpp"
+#include "Events/EventManager.hpp"
 
 #include "UI/Viewport.hpp"
 
@@ -14,7 +15,7 @@
 
 class ViewportManager {
     public:
-        ViewportManager(SceneManager& sceneManager);
+        ViewportManager(SceneManager& sceneManager, EventManager& eventManager);
         ~ViewportManager() = default;
 
         ViewportID createViewport(CameraManager& cameraManager, RenderSystem& renderSystem, glm::vec3 pos);
@@ -29,6 +30,7 @@ class ViewportManager {
     private:
 
         SceneManager& _sceneManager;
+        EventManager& _eventManager;
         std::vector<std::unique_ptr<Viewport>> _viewports;
         ViewportID _activeViewport = INVALID_VIEWPORT;
         ViewportID _nextId = 1;

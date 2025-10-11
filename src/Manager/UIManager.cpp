@@ -94,12 +94,8 @@ void UIManager::renderViewportControls()
 
             if (!cameras.empty()) {
                 size_t cameraIndex = (this->_viewportManager.getViewports().size() - 1) % cameras.size();
-                auto& newViewport = this->_viewportManager.getViewports().back();
+                std::unique_ptr<Viewport>& newViewport = this->_viewportManager.getViewports().back();
                 newViewport->setCamera(cameras[cameraIndex]);
-            }
-
-            if (this->_newViewportCallback) {
-                this->_newViewportCallback(this->_viewportManager.getViewports().back().get());
             }
 
             std::string vpName = "Viewport " + std::to_string(this->_viewportManager.getViewports().back()->getId());
@@ -114,7 +110,7 @@ void UIManager::renderViewportControls()
 
         int toRemove = -1;
         for (size_t i = 0; i < this->_viewportManager.getViewports().size(); ++i) {
-            auto& vp = this->_viewportManager.getViewports()[i];
+            std::unique_ptr<Viewport>& vp = this->_viewportManager.getViewports()[i];
 
             ImGui::PushID(i);
 
@@ -167,11 +163,6 @@ void UIManager::dockNewViewport(const std::string& viewportName)
 {
     if (this->_dockspaceId != 0)
         ImGui::DockBuilderDockWindow(viewportName.c_str(), this->_dockspaceId);
-}
-
-void UIManager::setNewViewportCallback(std::function<void(Viewport*)> callback)
-{
-    this->_newViewportCallback = callback;
 }
 
 std::vector<EntityID> UIManager::_getAvailableCameras()

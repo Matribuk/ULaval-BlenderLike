@@ -1,7 +1,8 @@
 #include "UI/Viewport.hpp"
+#include "Events/EventTypes/AssetDropEvent.hpp"
 
-Viewport::Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, ViewportID id)
-    : _cameraManager(cameraManager), _renderSystem(renderSystem), _id(id)
+Viewport::Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, EventManager& eventManager, ViewportID id)
+    : _cameraManager(cameraManager), _renderSystem(renderSystem), _eventManager(eventManager), _id(id)
 {
     this->_rect = ofRectangle((ofGetWindowWidth() - 1075) / 2 , (ofGetWindowHeight() - 605) / 2 , 1075, 605);
     this->_fboInitialized = false;
@@ -154,9 +155,9 @@ void Viewport::_initializeFbo(int width, int height)
     this->_fboInitialized = true;
 }
 
-void Viewport::setAssetDropCallback(std::function<void(size_t, glm::vec2)> callback)
+bool Viewport::hasDroppedAsset() const
 {
-    this->_assetDropCallback = callback;
+    return this->_hasDroppedAsset;
 }
 
 void Viewport::_handleMouseDrag()
@@ -200,11 +201,8 @@ void Viewport::_handleDropTarget()
 
             this->_hasDroppedAsset = true;
 
-            if (this->_assetDropCallback) {
-                this->_assetDropCallback(assetIndex, dropPos);
-            }
-
-            ofLogNotice("Viewport") << "Image asset dropped at: " << dropPos.x << ", " << dropPos.y;
+            AssetDropEvent event(assetIndex, dropPos, this->_id);
+            this->_eventManager.emit(event);
         }
 
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_MODEL")) {
@@ -215,11 +213,8 @@ void Viewport::_handleDropTarget()
 
             this->_hasDroppedAsset = true;
 
-            if (this->_assetDropCallback) {
-                this->_assetDropCallback(assetIndex, dropPos);
-            }
-
-            ofLogNotice("Viewport") << "3D model asset dropped at: " << dropPos.x << ", " << dropPos.y;
+            AssetDropEvent event(assetIndex, dropPos, this->_id);
+            this->_eventManager.emit(event);
         }
 
         ImGui::EndDragDropTarget();

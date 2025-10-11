@@ -12,6 +12,11 @@
 #include <string>
 #include <filesystem>
 
+class AssetsPanel;
+class EventLogPanel;
+class SceneManager;
+struct AssetInfo;
+
 class FileManager {
     public:
         FileManager(ComponentRegistry& componentRegistry, EntityManager& entityManager);
@@ -22,11 +27,16 @@ class FileManager {
         std::shared_ptr<ofTexture> importImageTexture(const std::string& filename);
         EntityID createImagePlaneEntity(std::shared_ptr<ofTexture> texture, const std::string& name, const glm::vec3& position = glm::vec3(0, 0, 0));
 
+        static bool isImageFile(const std::string& filename);
+        static bool isModelFile(const std::string& filename);
+        std::pair<std::string, std::string> copyFileToDataFolder(const std::string& sourcePath);
+        bool importAndAddAsset(const std::string& filePath, AssetsPanel& assetsPanel, EventLogPanel& eventLog);
+        void handleAssetDrop(const AssetInfo* asset, SceneManager& sceneManager, EventLogPanel& eventLog);
+
     private:
         ComponentRegistry& _componentRegistry;
         EntityManager& _entityManager;
         std::unique_ptr<ofxAssimpModelLoader> _model;
 
-        bool _isImageFile(const std::string& filename);
         ofMesh _createImagePlane(float width, float height);
 };

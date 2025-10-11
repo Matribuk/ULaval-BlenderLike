@@ -13,11 +13,11 @@ class ImageSequenceExporter {
         void stopRecording();
         void update(float deltaTime);
 
-        bool isRecording() const { return _isRecording; }
-        int getFrameCount() const { return _frameCount; }
-        float getElapsedTime() const { return _elapsedTime; }
-        float getDuration() const { return _duration; }
-        std::string getExportFolder() const { return _exportFolder; }
+        bool isRecording() const;
+        int getFrameCount() const;
+        float getElapsedTime() const;
+        float getDuration() const;
+        std::string getExportFolder() const;
 
     private:
         ViewportManager& _viewportManager;
