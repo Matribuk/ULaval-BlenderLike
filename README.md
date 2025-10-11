@@ -126,8 +126,9 @@
 - [x] Émission SelectionEvents
 - [x] S'active seulement en select mode
 - [x] Bounding boxes
-- [ ] Gère tout type de mesh
+- [x] Gère tout type de mesh
 - [ ] Select seulement des objets visibles
+- [ ] Select plusieurs objets simultanément
 
 ### Systems/TransformSystem.h
 
