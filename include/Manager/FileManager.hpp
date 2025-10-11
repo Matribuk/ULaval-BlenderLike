@@ -3,6 +3,7 @@
 #include "Components/Transform.hpp"
 #include "Components/Renderable.hpp"
 #include "Components/Selectable.hpp"
+#include "Components/Primitive/Box.hpp"
 
 #include "Core/ComponentRegistry.hpp"
 #include "Core/EntityManager.hpp"
