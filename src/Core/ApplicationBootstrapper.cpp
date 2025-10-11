@@ -186,9 +186,7 @@ bool ApplicationBootstrapper::_SetupCallbacks()
         *this->_ui.toolbar,
         *this->_ui.skyboxPanel,
         *this->_ui.instructionsPanel,
-        *this->_ui.eventLogPanel,
-        *this->_ui.assetsPanel,
-        *this->_ui.exportPanel
+        *this->_ui.eventLogPanel
     );
     this->_ui.assetsPanel->loadAssetsFromDataFolder();
 
