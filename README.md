@@ -127,8 +127,8 @@
 - [ ] S'active seulement en select mode
 - [x] Bounding boxes
 - [ ] Gère tout type de mesh
->>>>>>> 12041cd ([FIX] update readme tasks)
 - [ ] Select seulement des objets visibles
+- [ ] Select plusieurs objets simultanément
 
 ### Systems/TransformSystem.h
 
