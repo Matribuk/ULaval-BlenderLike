@@ -24,7 +24,7 @@ void FileManager::exportMesh(EntityID entity, const std::string& filename)
 }
 
 
-std::pair<EntityID, std::string> FileManager::importMesh(const std::string& filename)
+std::pair<EntityID, std::string> FileManager::_importMesh(const std::string& filename)
 {
     if (FileManager::isImageFile(filename))
         return {INVALID_ENTITY, ""};
@@ -63,7 +63,7 @@ std::pair<EntityID, std::string> FileManager::importMesh(const std::string& file
     return {entity.getId(), fileName};
 }
 
-std::shared_ptr<ofTexture> FileManager::importImageTexture(const std::string& filename)
+std::shared_ptr<ofTexture> FileManager::_importImageTexture(const std::string& filename)
 {
     ofImage image;
     if (!image.load(filename))
@@ -76,7 +76,7 @@ std::shared_ptr<ofTexture> FileManager::importImageTexture(const std::string& fi
     return texture;
 }
 
-EntityID FileManager::createImagePlaneEntity(std::shared_ptr<ofTexture> texture, const std::string& name, const glm::vec3& position)
+EntityID FileManager::_createImagePlaneEntity(std::shared_ptr<ofTexture> texture, const std::string& name, const glm::vec3& position)
 {
     if (!texture)
         return INVALID_ENTITY;
@@ -125,7 +125,7 @@ bool FileManager::isModelFile(const std::string& filename)
     return (ext == ".obj" || ext == ".ply" || ext == ".stl");
 }
 
-std::pair<std::string, std::string> FileManager::copyFileToDataFolder(const std::string& sourcePath)
+std::pair<std::string, std::string> FileManager::_copyFileToDataFolder(const std::string& sourcePath)
 {
     std::filesystem::path srcPath(sourcePath);
     std::string name = srcPath.stem().string();
@@ -163,7 +163,7 @@ bool FileManager::importAndAddAsset(const std::string& filePath, AssetsPanel& as
 
     std::pair<std::string, std::string> copyResult;
     try {
-        copyResult = this->copyFileToDataFolder(filePath);
+        copyResult = this->_copyFileToDataFolder(filePath);
     } catch (const std::exception& e) {
         eventLog.addLog("Copy error: " + std::string(e.what()), ofColor::red);
         return false;
@@ -177,7 +177,7 @@ bool FileManager::importAndAddAsset(const std::string& filePath, AssetsPanel& as
     eventLog.addLog("File copied to data/: " + filename, ofColor::cyan);
 
     if (FileManager::isImageFile(destPath)) {
-        std::shared_ptr<ofTexture> texture = this->importImageTexture(destPath);
+        std::shared_ptr<ofTexture> texture = this->_importImageTexture(destPath);
         if (texture) {
             assetsPanel.addImageOrModelAsset(name, texture, "", true);
             eventLog.addLog("Image loaded: " + name + " (drag & drop into scene)", ofColor::green);
@@ -201,7 +201,7 @@ void FileManager::handleAssetDrop(const AssetInfo* asset, SceneManager& sceneMan
     if (!asset) return;
 
     if (asset->isImage && asset->texture) {
-        EntityID entityId = this->createImagePlaneEntity(
+        EntityID entityId = this->_createImagePlaneEntity(
             asset->texture,
             asset->name,
             glm::vec3(0, 0, 0)
@@ -212,7 +212,7 @@ void FileManager::handleAssetDrop(const AssetInfo* asset, SceneManager& sceneMan
             eventLog.addLog("Plane created: " + asset->name, ofColor::lime);
         }
     } else if (!asset->isImage && !asset->filepath.empty()) {
-        std::pair<EntityID, std::string> result = this->importMesh(asset->filepath);
+        std::pair<EntityID, std::string> result = this->_importMesh(asset->filepath);
         if (result.first != INVALID_ENTITY) {
             sceneManager.registerEntity(result.first, asset->name);
             eventLog.addLog("3D model created: " + asset->name, ofColor::lime);
