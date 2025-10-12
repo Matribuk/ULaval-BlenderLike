@@ -107,9 +107,9 @@ void MaterialPanel::render()
                 std::filesystem::path shaderDir = std::filesystem::path("data") / "shaders";
                 std::vector<std::string> names;
                 if (std::filesystem::exists(shaderDir) && std::filesystem::is_directory(shaderDir)) {
-                    for (auto &entry : std::filesystem::directory_iterator(shaderDir)) {
+                    for (std::filesystem::directory_entry entry : std::filesystem::directory_iterator(shaderDir)) {
                         if (!entry.is_regular_file()) continue;
-                        auto ext = entry.path().extension().string();
+                        std::string ext = entry.path().extension().string();
                         if (ext == ".vert" || ext == ".frag") {
                             names.push_back(entry.path().stem().string());
                         }
@@ -121,7 +121,7 @@ void MaterialPanel::render()
                 if (names.empty()) {
                     ImGui::TextDisabled("No shaders found in data/shaders");
                 } else {
-                    for (const auto &n : names) {
+                    for (const std::string &n : names) {
                         if (ImGui::Selectable(n.c_str())) {
                             std::filesystem::path vert = shaderDir / (n + ".vert");
                             std::filesystem::path frag = shaderDir / (n + ".frag");
@@ -153,9 +153,9 @@ void MaterialPanel::render()
                 std::filesystem::path shaderDir = std::filesystem::path("data") / "shaders";
                 std::vector<std::string> names;
                 if (std::filesystem::exists(shaderDir) && std::filesystem::is_directory(shaderDir)) {
-                    for (auto &entry : std::filesystem::directory_iterator(shaderDir)) {
+                    for (std::filesystem::directory_entry entry : std::filesystem::directory_iterator(shaderDir)) {
                         if (!entry.is_regular_file()) continue;
-                        auto ext = entry.path().extension().string();
+                        std::string ext = entry.path().extension().string();
                         if (ext == ".vert" || ext == ".frag") {
                             names.push_back(entry.path().stem().string());
                         }
@@ -167,7 +167,7 @@ void MaterialPanel::render()
                 if (names.empty()) {
                     ImGui::TextDisabled("No shaders found in data/shaders");
                 } else {
-                    for (const auto &n : names) {
+                    for (const std::string &n : names) {
                         if (ImGui::Selectable(n.c_str())) {
                             std::filesystem::path vert = shaderDir / (n + ".vert");
                             std::filesystem::path frag = shaderDir / (n + ".frag");
