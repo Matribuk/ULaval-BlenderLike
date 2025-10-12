@@ -45,5 +45,4 @@ class TransformSystem {
         EntityManager& _entityManager;
 
         void updateTransformHierarchy(EntityID entity, const glm::mat4& parentGlobalMatrix);
-        void decomposeMatrix(const glm::mat4& matrix, glm::vec3& outPosition, glm::vec3& outRotation, glm::vec3& outScale);
 };
