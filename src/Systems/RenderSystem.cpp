@@ -101,17 +101,20 @@ ofCamera RenderSystem::_buildCameraFromComponents(Camera& camera, const Transfor
 
 void RenderSystem::_renderEntities()
 {
-    EntityID selectedEntity = this->_selectionSystem->getSelectedEntity();
+    const std::set<EntityID>& selectedEntities = this->_selectionSystem->getSelectedEntities();
+
     for (EntityID id : this->_entityManager.getAllEntities()) {
         Transform* transform = this->_registry.getComponent<Transform>(id);
         Renderable* render   = this->_registry.getComponent<Renderable>(id);
 
         if (!transform || !render || !render->visible) continue;
 
-        bool isSelected = (id == selectedEntity);
+        bool isSelected = (selectedEntities.find(id) != selectedEntities.end());
+
         this->_drawMesh(render->mesh, transform->matrix, render->color, render->material, isSelected);
     }
 }
+
 
 void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material, bool isSelected)
 {

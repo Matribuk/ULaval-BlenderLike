@@ -14,9 +14,12 @@
 #include "Components/Camera.hpp"
 #include "Components/Transform.hpp"
 
+#include "Manager/InputManager.hpp"
+
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <set>
 #include "ofxImGui.h"
 
 class SelectionSystem;

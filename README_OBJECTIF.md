@@ -49,14 +49,14 @@
   - [x] L’édition d’attributs.
 
 ### 3.2 Sélection multiple
-- [ ] Sélection de plusieurs éléments visuels simultanément
-- [ ] Modification simultanée des attributs communs
+- [x] Sélection de plusieurs éléments visuels simultanément
+- [x] Modification simultanée des attributs communs
 
 ### 3.3 Transformations interactives
 - [x] Translation
 - [x] Rotation
 - [x] Mise à l’échelle (scale)
-- [ ] Manipulation directe dans la scène (gizmo, handles)
+- [ ] Manipulation directe dans la scène (gizmo, handles) optionnel
 
 ---
 
@@ -67,8 +67,9 @@
 - [x] Taille ajustée automatiquement à chaque modèle
 
 ### 4.2 Primitives géométriques
-- [ ] Génération procédurale d’au moins 2 primitives 3D (ex: cube, sphère, cylindre, cône)
-- [ ] Aucun fichier externe requis
+- [ ] Génération procédurale d’au moins 2 primitives 3D
+    - [ ] cube
+    - [ ] sphère
 
 ### 4.3 Modèles 3D
 - [x] Importation et affichage d’au moins 3 types de modèles 3D externes (OBJ, PLY, STL, etc.)

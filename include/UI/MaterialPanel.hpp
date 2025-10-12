@@ -21,5 +21,8 @@ class MaterialPanel {
         ComponentRegistry& _componentRegistry;
         SelectionSystem& _selectionSystem;
 
+        std::set<EntityID> _prevSelectedEntities;
+
         void _addMaterialComponent(EntityID entityId);
+        bool _checkAllEntitiesHaveSameVisibility(const std::set<EntityID>& entities, bool& outVisibility) const;
 };

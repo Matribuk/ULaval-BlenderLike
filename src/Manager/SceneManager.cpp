@@ -89,18 +89,18 @@ void SceneManager::removeParent(EntityID child)
 
 void SceneManager::render()
 {
-    EntityID selectedEntity = this->_selectionSystem->getSelectedEntity();
-    ImGui::Spacing();
+    if (!this->_selectionSystem) return;
 
+    EntityID selectedEntity = this->_selectionSystem->getSelectedEntity();
+
+    ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
-
     ImGui::SameLine();
 
     if (ImGui::Button("create Entity")) {
         if (selectedEntity != INVALID_ENTITY) {
-            // do noting for now
-            std::cout << "nice try man" << std::endl;
+            // do nothing for now
         }
     }
     ImGui::SameLine();
@@ -109,7 +109,7 @@ void SceneManager::render()
         if (selectedEntity != INVALID_ENTITY) {
             this->_entityManager.destroyEntity(selectedEntity);
             unregisterEntity(selectedEntity);
-            this->_selectionSystem->setSelectedEntity(INVALID_ENTITY);
+            this->_selectionSystem->clearSelection();
         }
     }
 
@@ -142,7 +142,8 @@ bool SceneManager::_isDescendant(EntityID entityId, EntityID targetId) const
 
 void SceneManager::_renderEntityNode(EntityID id, int depth)
 {
-    EntityID selectedEntity = this->_selectionSystem->getSelectedEntity();
+    if (!this->_selectionSystem) return;
+
     auto it = this->_entities.find(id);
     if (it == this->_entities.end())
         return;
@@ -155,13 +156,23 @@ void SceneManager::_renderEntityNode(EntityID id, int depth)
     if (node.children.empty())
         flags |= ImGuiTreeNodeFlags_Leaf;
 
-    if (id == selectedEntity)
+    if (this->_selectionSystem->isEntitySelected(id))
         flags |= ImGuiTreeNodeFlags_Selected;
 
     bool opened = ImGui::TreeNodeEx((void*)(intptr_t)id, flags, "%s", node.name.c_str());
 
-    if (ImGui::IsItemClicked())
-        this->_selectionSystem->setSelectedEntity(id);
+    if (ImGui::IsItemClicked()) {
+        InputManager& input = InputManager::get();
+        bool isCtrlPressed = input.isKeyPressed(OF_KEY_LEFT_CONTROL) || input.isKeyPressed(OF_KEY_CONTROL);
+
+        if (isCtrlPressed)
+            this->_selectionSystem->toggleSelection(id);
+        else {
+            this->_selectionSystem->clearSelection();
+            this->_selectionSystem->addToSelection(id);
+            this->_selectionSystem->setSelectedEntity(id);
+        }
+    }
 
     if (ImGui::BeginPopupContextItem()) {
         ImGui::Text("Entity: %s", node.name.c_str());
@@ -170,8 +181,9 @@ void SceneManager::_renderEntityNode(EntityID id, int depth)
         if (ImGui::MenuItem("Delete")) {
             this->_entityManager.destroyEntity(id);
             unregisterEntity(id);
-            if (selectedEntity == id)
-                this->_selectionSystem->setSelectedEntity(INVALID_ENTITY);
+
+            if (this->_selectionSystem->isEntitySelected(id))
+                this->_selectionSystem->removeFromSelection(id);
         }
 
         ImGui::Separator();
