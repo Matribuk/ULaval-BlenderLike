@@ -2,9 +2,13 @@
 
 #include <ofMain.h>
 #include "ofxImGui.h"
+#include "GLFW/glfw3.h"
 #include <vector>
 #include <string>
 #include "ofGraphics.h"
+
+#include "Events/EventManager.hpp"
+#include "Events/EventTypes/MouseEvent.hpp"
 
 enum class ToolMode {
     Select,
@@ -34,11 +38,11 @@ class Toolbar {
         void setExportCallback(std::function<void()> callback);
         void setSelectCallback(std::function<void()> callback);
         void setMoveCallback(std::function<void()> callback);
+        void setCursor(int shape);
 
         ToolMode getActiveToolMode() const;
 
     private:
-        void _applyCursor();
         void _renderToolButton(size_t index, const ImVec2& size);
 
         std::function<void()> _onToggleProjection;
@@ -49,7 +53,7 @@ class Toolbar {
 
         int _selectedTool;
         float _buttonSpacing;
+        int _currentCursor;
 
         std::vector<ToolButton> _tools;
-        ImGuiMouseCursor _currentCursor;
 };

@@ -41,6 +41,7 @@ void ofApp::_setupOpenGL()
     this->_gui.setup();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 }
 
 void ofApp::update()

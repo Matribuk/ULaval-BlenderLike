@@ -1,17 +1,19 @@
 #include "UI/Toolbar.hpp"
 
-Toolbar::Toolbar() : _selectedTool(-1), _buttonSpacing(5.0), _currentCursor(ImGuiMouseCursor_Arrow)
+Toolbar::Toolbar() : _selectedTool(-1), _buttonSpacing(5.0)
 {
     this->_tools.emplace_back(ToolButton{"Select", {
         [this](std::any){
-            this->_currentCursor = ImGuiMouseCursor_Arrow;
+            setCursor(GLFW_ARROW_CURSOR);
+            this->_currentCursor = GLFW_ARROW_CURSOR;
             if (this->_onSelect) this->_onSelect();
         }
     }});
 
     this->_tools.emplace_back(ToolButton{"Move", {
         [this](std::any){
-            this->_currentCursor = ImGuiMouseCursor_Hand;
+            setCursor(GLFW_HAND_CURSOR);
+            this->_currentCursor = GLFW_HAND_CURSOR;
             if (this->_onMove) this->_onMove();
         }
     }});
@@ -56,8 +58,6 @@ void Toolbar::render()
     }
 
     ImGui::End();
-
-    this->_applyCursor();
 }
 
 const ToolButton* Toolbar::getSelectedTool() const
@@ -103,6 +103,17 @@ void Toolbar::setMoveCallback(std::function<void()> callback)
     this->_onMove = callback;
 }
 
+void Toolbar::setCursor(int shape)
+{
+    GLFWwindow* window = static_cast<GLFWwindow*>(ofGetWindowPtr()->getWindowContext());
+    static GLFWcursor* currentCursor = nullptr;
+    if (currentCursor)
+        glfwDestroyCursor(currentCursor);
+
+    currentCursor = glfwCreateStandardCursor(shape);
+    glfwSetCursor(window, currentCursor);
+}
+
 ToolMode Toolbar::getActiveToolMode() const
 {
     if (this->_selectedTool < 0 || this->_selectedTool >= static_cast<int>(this->_tools.size()))
@@ -113,11 +124,6 @@ ToolMode Toolbar::getActiveToolMode() const
         case 1: return ToolMode::Move;
         default: return ToolMode::Select;
     }
-}
-
-void Toolbar::_applyCursor()
-{
-    ImGui::SetMouseCursor(this->_currentCursor);
 }
 
 void Toolbar::_renderToolButton(size_t i, const ImVec2& size)
