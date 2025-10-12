@@ -1,7 +1,8 @@
 #include "UI/MaterialPanel.hpp"
 
-MaterialPanel::MaterialPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem)
-    : _componentRegistry(componentRegistry), _selectionSystem(selectionSystem){}
+
+MaterialPanel::MaterialPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem, ResourceManager& resourceManager)
+    : _componentRegistry(componentRegistry), _selectionSystem(selectionSystem), _resourceManager(resourceManager){}
 
 bool MaterialPanel::_checkAllEntitiesHaveSameVisibility(const std::set<EntityID>& entities, bool& outVisibility) const
 {
@@ -93,17 +94,57 @@ void MaterialPanel::render()
     if (primaryRenderable->material) {
         ImGui::Text("Material:");
 
-        if (primaryRenderable->material->shader) ImGui::Text(" - Shader: Set");
-        else ImGui::Text(" - Shader: None");
+        if (primaryRenderable->material->shader) {
+            ofShader* shader = primaryRenderable->material->shader;
+            std::string shaderName = this->_resourceManager.getShaderPath(*shader);
+            ImGui::Text(" - Shader: Set");
+
+            this->_loadShaders(primaryRenderable);
+
+            ImGui::SameLine();
+            if (ImGui::Button("Clear Shader")) {
+                primaryRenderable->material->shader = nullptr;
+            }
+        }
+        else {
+            ImGui::Text(" - Shader: None");
+            ImGui::SameLine();
+            this->_loadShaders(primaryRenderable);
+        }
 
         if (primaryRenderable->material->texture) {
             ofTexture* tex = primaryRenderable->material->texture;
-            ImGui::Text(" - Texture: Set");
+            std::string texName = this->_resourceManager.getTexturePath(*tex);
+            ImGui::Text(" - Texture: Set %s", texName.c_str());
             ImVec2 thumbSize = ImVec2(24, 24);
             GLuint texID = tex->getTextureData().textureID;
             ImGui::Image((ImTextureID)(uintptr_t)texID, thumbSize, ImVec2(0,1), ImVec2(1,0));
-        } else
+
+            ImGui::SameLine();
+            this->_loadFile(primaryRenderable, "TEX");
+
+            ImGui::SameLine();
+            if (ImGui::Button("Clear Texture")) {
+                primaryRenderable->material->texture = nullptr;
+            }
+        } else {
             ImGui::Text(" - Texture: None");
+            ImGui::SameLine();
+            this->_loadFile(primaryRenderable, "TEX");
+
+        }
+
+        if (primaryRenderable->mesh.getNumVertices() > 0) {
+            ofMesh mesh = primaryRenderable->mesh;
+            std::string meshName = this->_resourceManager.getMeshPath(mesh);
+            ImGui::Text(" - Mesh: %s", meshName.c_str());
+            ImGui::SameLine();
+            this->_loadFile(primaryRenderable, "MESH");
+        } else {
+            ImGui::Text(" - Mesh: None");
+            ImGui::SameLine();
+            this->_loadFile(primaryRenderable, "MESH");
+        }
 
         ImGui::Separator();
 
@@ -115,4 +156,62 @@ void MaterialPanel::_addMaterialComponent(EntityID entityId)
     if (entityId == INVALID_ENTITY) return;
 
     this->_componentRegistry.registerComponent<Renderable>(entityId, Renderable(ofMesh(), ofColor::white));
+}
+
+void MaterialPanel::_loadShaders(Renderable* primaryRenderable) {
+    if (ImGui::Button("Load Shaders")) {
+                ImGui::OpenPopup("LoadShadersPopup");
+            }
+
+            if (ImGui::BeginPopup("LoadShadersPopup")) {
+                std::filesystem::path shaderDir = std::filesystem::path("data") / "shaders";
+                std::vector<std::string> names;
+                if (std::filesystem::exists(shaderDir) && std::filesystem::is_directory(shaderDir)) {
+                    for (std::filesystem::directory_entry entry : std::filesystem::directory_iterator(shaderDir)) {
+                        if (!entry.is_regular_file()) continue;
+                        std::string ext = entry.path().extension().string();
+                        if (ext == ".vert" || ext == ".frag") {
+                            names.push_back(entry.path().stem().string());
+                        }
+                    }
+                }
+                std::sort(names.begin(), names.end());
+                names.erase(std::unique(names.begin(), names.end()), names.end());
+
+                if (names.empty()) {
+                    ImGui::TextDisabled("No shaders found in data/shaders");
+                } else {
+                    for (const std::string &n : names) {
+                        if (ImGui::Selectable(n.c_str())) {
+                            std::filesystem::path vert = shaderDir / (n + ".vert");
+                            std::filesystem::path frag = shaderDir / (n + ".frag");
+                            if (std::filesystem::exists(vert) && std::filesystem::exists(frag)) {
+                                ofShader& loaded = this->_resourceManager.loadShader(vert.string(), frag.string());
+                                primaryRenderable->material->shader = &loaded;
+                            }
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
+                }
+
+                ImGui::EndPopup();
+            }
+}
+
+void MaterialPanel::_loadFile(Renderable* primaryRenderable, std::string type) {
+    std::string title = type.compare("MESH") ? "Load mesh" : "Load texture";
+    if (ImGui::Button(title.c_str())) {
+        ofFileDialogResult result = ofSystemLoadDialog("Choose a file to load", false);
+        if (result.bSuccess) {
+            std::string path = result.getPath();
+            if (type.compare("MESH") ) {
+                ofMesh& newMesh = this->_resourceManager.loadMesh(path);
+                primaryRenderable->mesh = newMesh;
+            } else {
+                ofTexture& newTex = this->_resourceManager.loadTexture(path);
+                primaryRenderable->material->texture = &newTex;
+
+            }
+        }
+    }
 }

@@ -148,7 +148,7 @@ bool ApplicationBootstrapper::_InitializeManagers()
 bool ApplicationBootstrapper::_InitializeUI()
 {
     this->_ui.skyboxPanel = std::make_unique<SkyboxPanel>(*this->_systems.renderSystem);
-    this->_ui.materialPanel = std::make_unique<MaterialPanel>(this->_componentRegistry, *this->_systems.selectionSystem);
+    this->_ui.materialPanel = std::make_unique<MaterialPanel>(this->_componentRegistry, *this->_systems.selectionSystem, *this->_managers.resourceManager);
     this->_ui.transformPanel = std::make_unique<TranformPanel>(this->_componentRegistry, *this->_systems.selectionSystem);
     this->_ui.colorPanel = std::make_unique<ColorPanel>(this->_componentRegistry, *this->_systems.selectionSystem);
     this->_ui.instructionsPanel = std::make_unique<InstructionsPanel>();

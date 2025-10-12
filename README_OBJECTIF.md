@@ -3,8 +3,8 @@
 ## 🎨 1. Import / Export & Couleur
 
 ### 1.1 Importation d’images
-- [ ] En cours d’exécution, possibilité d’importer des fichiers images de manière interactive
-- [ ] Affichage de ces images dans la scène sous une forme visuelle (sprite, texture, plan, etc.)
+- [x] En cours d’exécution, possibilité d’importer des fichiers images de manière interactive
+- [x] Affichage de ces images dans la scène sous une forme visuelle (sprite, texture, plan, etc.)
 
 ### 1.2 Exportation d’images
 - [ ] En cours d’exécution, export interactif de séquences d’images correspondant au rendu de la scène
