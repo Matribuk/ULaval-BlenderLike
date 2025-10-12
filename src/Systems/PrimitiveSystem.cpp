@@ -66,7 +66,6 @@ ofMesh PrimitiveSystem::_generateBoxMesh(const glm::vec3& dims)
     for (int i = 0; i < 4; i++)
         mesh.addNormal(glm::vec3(0, 1, 0));
 
-
     mesh.addVertex(glm::vec3(-halfWidth, -halfHeight, -halfDeep));
     mesh.addVertex(glm::vec3( halfWidth, -halfHeight, -halfDeep));
     mesh.addVertex(glm::vec3( halfWidth, -halfHeight, halfDeep));
@@ -83,6 +82,7 @@ ofMesh PrimitiveSystem::_generateBoxMesh(const glm::vec3& dims)
         mesh.addIndex(offset + 2);
         mesh.addIndex(offset + 3);
     }
+    this->_generateDefaultTexCoords(mesh, "box");
 
     return mesh;
 }
@@ -130,10 +130,57 @@ ofMesh PrimitiveSystem::_generateSphereMesh(float radius)
         }
     }
 
+    this->_generateDefaultTexCoords(mesh, "sphere");
+
     return mesh;
 }
 
 ofMesh PrimitiveSystem::_generatePlaneMesh(const glm::vec2& size)
 {
-    return ofMesh::plane(size.x, size.y, 2, 2);
+    ofMesh mesh = ofMesh::plane(size.x, size.y, 2, 2);
+    this->_generateDefaultTexCoords(mesh, "box");
+    return mesh;
+}
+
+void PrimitiveSystem::_generateDefaultTexCoords(ofMesh& mesh, const std::string& mode)
+{
+    const float pi_f = 3.14159265359f;
+    auto verts = mesh.getVertices();
+    if (verts.empty()) return;
+
+    mesh.clearTexCoords();
+
+    if (mode == "sphere") {
+        for (auto &v : verts) {
+            glm::vec3 n = glm::normalize(v);
+            float u = 0.5f + (std::atan2(n.z, n.x) / (2.0f * pi_f));
+            float vcoord = 0.5f - (std::asin(n.y) / pi_f);
+            mesh.addTexCoord(glm::vec2(u, vcoord));
+        }
+        return;
+    }
+
+    if (mode == "box") {
+        glm::vec3 minb(FLT_MAX, FLT_MAX, FLT_MAX), maxb(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+        for (auto &v : verts) {
+            minb.x = std::min(minb.x, v.x);
+            minb.y = std::min(minb.y, v.y);
+            minb.z = std::min(minb.z, v.z);
+            maxb.x = std::max(maxb.x, v.x);
+            maxb.y = std::max(maxb.y, v.y);
+            maxb.z = std::max(maxb.z, v.z);
+        }
+    
+        float spanX = maxb.x - minb.x;
+        float spanZ = maxb.z - minb.z;
+        if (spanX <= 0.f) spanX = 1.f;
+        if (spanZ <= 0.f) spanZ = 1.f;
+    
+        for (auto &v : verts) {
+            float u = (v.x - minb.x) / spanX;
+            float vcoord = (v.z - minb.z) / spanZ;
+            mesh.addTexCoord(ofVec2f(u, vcoord));
+        }
+        return;
+    }
 }
