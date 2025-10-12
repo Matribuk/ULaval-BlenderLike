@@ -138,12 +138,19 @@ void TransformSystem::setParent(EntityID child, EntityID parent)
 
     if (!childTransform || !parentTransform || child == parent) return;
 
+    glm::mat4 childGlobalMatrix = childTransform->globalMatrix;
+
     if (childTransform->parent != INVALID_ENTITY) {
         removeParent(child);
     }
 
     childTransform->parent = parent;
     parentTransform->children.push_back(child);
+
+    glm::mat4 parentInverse = glm::inverse(parentTransform->globalMatrix);
+    glm::mat4 newLocalMatrix = parentInverse * childGlobalMatrix;
+
+    decomposeMatrix(newLocalMatrix, childTransform->position, childTransform->rotation, childTransform->scale);
 
     markDirty(child, true);
 }
@@ -153,6 +160,8 @@ void TransformSystem::removeParent(EntityID child)
     Transform* childTransform = this->_registry.getComponent<Transform>(child);
     if (!childTransform || childTransform->parent == INVALID_ENTITY) return;
 
+    glm::mat4 childGlobalMatrix = childTransform->globalMatrix;
+
     Transform* parentTransform = this->_registry.getComponent<Transform>(childTransform->parent);
     if (parentTransform) {
         auto& children = parentTransform->children;
@@ -160,6 +169,9 @@ void TransformSystem::removeParent(EntityID child)
     }
 
     childTransform->parent = INVALID_ENTITY;
+
+    decomposeMatrix(childGlobalMatrix, childTransform->position, childTransform->rotation, childTransform->scale);
+
     markDirty(child, true);
 }
 
@@ -194,4 +206,25 @@ glm::mat4 TransformSystem::getGlobalMatrix(EntityID entity) const
 {
     Transform* transform = this->_registry.getComponent<Transform>(entity);
     return transform ? transform->globalMatrix : glm::mat4(1.0f);
+}
+
+void TransformSystem::decomposeMatrix(const glm::mat4& matrix, glm::vec3& outPosition, glm::vec3& outRotation, glm::vec3& outScale)
+{
+    outPosition = glm::vec3(matrix[3]);
+
+    outScale.x = glm::length(glm::vec3(matrix[0]));
+    outScale.y = glm::length(glm::vec3(matrix[1]));
+    outScale.z = glm::length(glm::vec3(matrix[2]));
+
+    glm::mat3 rotationMatrix;
+    rotationMatrix[0] = glm::vec3(matrix[0]) / outScale.x;
+    rotationMatrix[1] = glm::vec3(matrix[1]) / outScale.y;
+    rotationMatrix[2] = glm::vec3(matrix[2]) / outScale.z;
+
+    outRotation.y = glm::atan(rotationMatrix[0][2], rotationMatrix[2][2]);
+    outRotation.x = glm::atan(
+        -rotationMatrix[1][2],
+        glm::sqrt(rotationMatrix[0][2] * rotationMatrix[0][2] + rotationMatrix[2][2] * rotationMatrix[2][2])
+    );
+    outRotation.z = glm::atan(rotationMatrix[1][0], rotationMatrix[1][1]);
 }
