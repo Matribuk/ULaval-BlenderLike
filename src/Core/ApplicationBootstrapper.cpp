@@ -156,6 +156,12 @@ bool ApplicationBootstrapper::_InitializeUI()
     this->_ui.toolbar = std::make_unique<Toolbar>();
     this->_ui.assetsPanel = std::make_unique<AssetsPanel>(*this->_managers.sceneManager, this->_componentRegistry);
     this->_ui.exportPanel = std::make_unique<ExportPanel>(*this->_systems.imageExporter, *this->_managers.viewportManager);
+    this->_ui.primitivesPanel = std::make_unique<PrimitivesPanel>(
+        this->_entityManager,
+        this->_componentRegistry,
+        *this->_managers.sceneManager,
+        *this->_systems.primitiveSystem
+    );
 
     return true;
 }
@@ -188,8 +194,10 @@ bool ApplicationBootstrapper::_SetupCallbacks()
         *this->_ui.instructionsPanel,
         *this->_ui.eventLogPanel,
         *this->_ui.assetsPanel,
-        *this->_ui.exportPanel
+        *this->_ui.exportPanel,
+        *this->_ui.primitivesPanel
     );
+    this->_ui.primitivesPanel->setEventLogPanel(this->_ui.eventLogPanel.get());
     this->_ui.assetsPanel->loadAssetsFromDataFolder();
 
     this->_ui.toolbar->setToggleProjectionCallback([this]() {
