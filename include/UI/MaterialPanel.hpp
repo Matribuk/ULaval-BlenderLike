@@ -29,4 +29,7 @@ class MaterialPanel {
 
         void _addMaterialComponent(EntityID entityId);
         bool _checkAllEntitiesHaveSameVisibility(const std::set<EntityID>& entities, bool& outVisibility) const;
+        void _loadShaders(Renderable* primaryRenderable);
+        void _loadTextures(Renderable* primaryRenderable);
+        void _loadMeshes(Renderable* primaryRenderable);
 };

@@ -99,43 +99,7 @@ void MaterialPanel::render()
             std::string shaderName = this->_resourceManager.getShaderPath(*shader);
             ImGui::Text(" - Shader: Set");
 
-            if (ImGui::Button("Load Shaders")) {
-                ImGui::OpenPopup("LoadShadersPopup");
-            }
-
-            if (ImGui::BeginPopup("LoadShadersPopup")) {
-                std::filesystem::path shaderDir = std::filesystem::path("data") / "shaders";
-                std::vector<std::string> names;
-                if (std::filesystem::exists(shaderDir) && std::filesystem::is_directory(shaderDir)) {
-                    for (std::filesystem::directory_entry entry : std::filesystem::directory_iterator(shaderDir)) {
-                        if (!entry.is_regular_file()) continue;
-                        std::string ext = entry.path().extension().string();
-                        if (ext == ".vert" || ext == ".frag") {
-                            names.push_back(entry.path().stem().string());
-                        }
-                    }
-                }
-                std::sort(names.begin(), names.end());
-                names.erase(std::unique(names.begin(), names.end()), names.end());
-
-                if (names.empty()) {
-                    ImGui::TextDisabled("No shaders found in data/shaders");
-                } else {
-                    for (const std::string &n : names) {
-                        if (ImGui::Selectable(n.c_str())) {
-                            std::filesystem::path vert = shaderDir / (n + ".vert");
-                            std::filesystem::path frag = shaderDir / (n + ".frag");
-                            if (std::filesystem::exists(vert) && std::filesystem::exists(frag)) {
-                                ofShader& loaded = this->_resourceManager.loadShader(vert.string(), frag.string());
-                                primaryRenderable->material->shader = &loaded;
-                            }
-                            ImGui::CloseCurrentPopup();
-                        }
-                    }
-                }
-
-                ImGui::EndPopup();
-            }
+            this->_loadShaders(primaryRenderable);
 
             ImGui::SameLine();
             if (ImGui::Button("Clear Shader")) {
@@ -145,43 +109,7 @@ void MaterialPanel::render()
         else {
             ImGui::Text(" - Shader: None");
             ImGui::SameLine();
-            if (ImGui::Button("Load Shaders")) {
-                ImGui::OpenPopup("LoadShadersPopup");
-            }
-
-            if (ImGui::BeginPopup("LoadShadersPopup")) {
-                std::filesystem::path shaderDir = std::filesystem::path("data") / "shaders";
-                std::vector<std::string> names;
-                if (std::filesystem::exists(shaderDir) && std::filesystem::is_directory(shaderDir)) {
-                    for (std::filesystem::directory_entry entry : std::filesystem::directory_iterator(shaderDir)) {
-                        if (!entry.is_regular_file()) continue;
-                        std::string ext = entry.path().extension().string();
-                        if (ext == ".vert" || ext == ".frag") {
-                            names.push_back(entry.path().stem().string());
-                        }
-                    }
-                }
-                std::sort(names.begin(), names.end());
-                names.erase(std::unique(names.begin(), names.end()), names.end());
-
-                if (names.empty()) {
-                    ImGui::TextDisabled("No shaders found in data/shaders");
-                } else {
-                    for (const std::string &n : names) {
-                        if (ImGui::Selectable(n.c_str())) {
-                            std::filesystem::path vert = shaderDir / (n + ".vert");
-                            std::filesystem::path frag = shaderDir / (n + ".frag");
-                            if (std::filesystem::exists(vert) && std::filesystem::exists(frag)) {
-                                ofShader& loaded = this->_resourceManager.loadShader(vert.string(), frag.string());
-                                primaryRenderable->material->shader = &loaded;
-                            }
-                            ImGui::CloseCurrentPopup();
-                        }
-                    }
-                }
-
-                ImGui::EndPopup();
-            }
+            this->_loadShaders(primaryRenderable);
         }
 
         if (primaryRenderable->material->texture) {
@@ -193,14 +121,7 @@ void MaterialPanel::render()
             ImGui::Image((ImTextureID)(uintptr_t)texID, thumbSize, ImVec2(0,1), ImVec2(1,0));
 
             ImGui::SameLine();
-            if (ImGui::Button("Load Texture")) {
-                ofFileDialogResult result = ofSystemLoadDialog("Choose texture to load", false);
-                if (result.bSuccess) {
-                    std::string path = result.getPath();
-                    ofTexture& newTex = this->_resourceManager.loadTexture(path);
-                    primaryRenderable->material->texture = &newTex;
-                }
-            }
+            this->_loadTextures(primaryRenderable);
 
             ImGui::SameLine();
             if (ImGui::Button("Clear Texture")) {
@@ -209,14 +130,7 @@ void MaterialPanel::render()
         } else {
             ImGui::Text(" - Texture: None");
             ImGui::SameLine();
-            if (ImGui::Button("Load Texture")) {
-                ofFileDialogResult result = ofSystemLoadDialog("Choose texture to load", false);
-                if (result.bSuccess) {
-                    std::string path = result.getPath();
-                    ofTexture& newTex = this->_resourceManager.loadTexture(path);
-                    primaryRenderable->material->texture = &newTex;
-                }
-            }
+            this->_loadTextures(primaryRenderable);
 
         }
 
@@ -225,25 +139,11 @@ void MaterialPanel::render()
             std::string meshName = this->_resourceManager.getMeshPath(mesh);
             ImGui::Text(" - Mesh: %s", meshName.c_str());
             ImGui::SameLine();
-            if (ImGui::Button("Load Mesh")) {
-                ofFileDialogResult result = ofSystemLoadDialog("Choose mesh to load", false);
-                if (result.bSuccess) {
-                    std::string path = result.getPath();
-                    ofMesh& newMesh = this->_resourceManager.loadMesh(path);
-                    primaryRenderable->mesh = newMesh;
-                }
-            }
+            this->_loadMeshes(primaryRenderable);
         } else {
             ImGui::Text(" - Mesh: None");
             ImGui::SameLine();
-            if (ImGui::Button("Load Mesh")) {
-                ofFileDialogResult result = ofSystemLoadDialog("Choose mesh to load", false);
-                if (result.bSuccess) {
-                    std::string path = result.getPath();
-                    ofMesh& newMesh = this->_resourceManager.loadMesh(path);
-                    primaryRenderable->mesh = newMesh;
-                }
-            }
+            this->_loadMeshes(primaryRenderable);
         }
 
         ImGui::Separator();
@@ -256,4 +156,66 @@ void MaterialPanel::_addMaterialComponent(EntityID entityId)
     if (entityId == INVALID_ENTITY) return;
 
     this->_componentRegistry.registerComponent<Renderable>(entityId, Renderable(ofMesh(), ofColor::white));
+}
+
+void MaterialPanel::_loadShaders(Renderable* primaryRenderable) {
+    if (ImGui::Button("Load Shaders")) {
+                ImGui::OpenPopup("LoadShadersPopup");
+            }
+
+            if (ImGui::BeginPopup("LoadShadersPopup")) {
+                std::filesystem::path shaderDir = std::filesystem::path("data") / "shaders";
+                std::vector<std::string> names;
+                if (std::filesystem::exists(shaderDir) && std::filesystem::is_directory(shaderDir)) {
+                    for (std::filesystem::directory_entry entry : std::filesystem::directory_iterator(shaderDir)) {
+                        if (!entry.is_regular_file()) continue;
+                        std::string ext = entry.path().extension().string();
+                        if (ext == ".vert" || ext == ".frag") {
+                            names.push_back(entry.path().stem().string());
+                        }
+                    }
+                }
+                std::sort(names.begin(), names.end());
+                names.erase(std::unique(names.begin(), names.end()), names.end());
+
+                if (names.empty()) {
+                    ImGui::TextDisabled("No shaders found in data/shaders");
+                } else {
+                    for (const std::string &n : names) {
+                        if (ImGui::Selectable(n.c_str())) {
+                            std::filesystem::path vert = shaderDir / (n + ".vert");
+                            std::filesystem::path frag = shaderDir / (n + ".frag");
+                            if (std::filesystem::exists(vert) && std::filesystem::exists(frag)) {
+                                ofShader& loaded = this->_resourceManager.loadShader(vert.string(), frag.string());
+                                primaryRenderable->material->shader = &loaded;
+                            }
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
+                }
+
+                ImGui::EndPopup();
+            }
+}
+
+void MaterialPanel::_loadTextures(Renderable* primaryRenderable) {
+    if (ImGui::Button("Load Texture")) {
+        ofFileDialogResult result = ofSystemLoadDialog("Choose texture to load", false);
+        if (result.bSuccess) {
+            std::string path = result.getPath();
+            ofTexture& newTex = this->_resourceManager.loadTexture(path);
+            primaryRenderable->material->texture = &newTex;
+        }
+    }
+}
+
+void MaterialPanel::_loadMeshes(Renderable* primaryRenderable) {
+    if (ImGui::Button("Load Mesh")) {
+        ofFileDialogResult result = ofSystemLoadDialog("Choose mesh to load", false);
+        if (result.bSuccess) {
+            std::string path = result.getPath();
+            ofMesh& newMesh = this->_resourceManager.loadMesh(path);
+            primaryRenderable->mesh = newMesh;
+        }
+    }
 }
