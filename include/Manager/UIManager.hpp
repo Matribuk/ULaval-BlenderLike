@@ -6,6 +6,7 @@
 #include "UI/EventLogPanel.hpp"
 #include "UI/ExportPanel.hpp"
 #include "UI/AssetsPanel.hpp"
+#include "UI/PrimitivesPanel.hpp"
 
 #include "Manager/ViewportManager.hpp"
 #include "Manager/PropertiesManager.hpp"
@@ -35,7 +36,8 @@ class UIManager {
             InstructionsPanel& instructionsPanel,
             EventLogPanel& eventLogPanel,
             AssetsPanel& assetsPanel,
-            ExportPanel& exportPanel
+            ExportPanel& exportPanel,
+            PrimitivesPanel& primitivesPanel
         );
         void renderViewportControls();
 
@@ -53,6 +55,7 @@ class UIManager {
         EventLogPanel* _eventLogPanel;
         AssetsPanel* _assetsPanel;
         ExportPanel* _exportPanel;
+        PrimitivesPanel* _primitivesPanel;
 
         ImGuiID _dockspaceId = 0;
         ImGuiID _dockMainId = 0;
