@@ -109,7 +109,7 @@ void RenderSystem::_renderEntities()
 
         if (!transform || !render || !render->visible) continue;
 
-        bool isSelected = (id == selectedEntity);
+        bool isSelected = (selectedEntities.find(id) != selectedEntities.end());
         this->_drawMesh(render->mesh, transform->matrix, render->color, render->material, isSelected);
     }
 }

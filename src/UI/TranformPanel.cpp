@@ -6,16 +6,7 @@ TranformPanel::TranformPanel(ComponentRegistry& componentRegistry, SelectionSyst
 
 void TranformPanel::render()
 {
-    EntityID entityId = this->_selectionSystem.getSelectedEntity();
-
-    if (entityId == INVALID_ENTITY)
-        return;
-
-    Transform* transform = this->_componentRegistry.getComponent<Transform>(entityId);
-
-    if (!transform) {
-        ImGui::Button("Add Color Component");
-        if (ImGui::IsItemClicked()) _addTransformComponent(entityId);
+    const std::set<EntityID>& selectedEntities = this->_selectionSystem.getSelectedEntities();
 
     if (selectedEntities.empty()) {
         this->_hasStoredValues = false;

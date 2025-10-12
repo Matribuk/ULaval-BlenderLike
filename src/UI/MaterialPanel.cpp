@@ -94,8 +94,8 @@ void MaterialPanel::render()
     if (primaryRenderable->material) {
         ImGui::Text("Material:");
 
-        if (renderable->material->shader) {
-            ofShader* shader = renderable->material->shader;
+        if (primaryRenderable->material->shader) {
+            ofShader* shader = primaryRenderable->material->shader;
             std::string shaderName = this->_resourceManager.getShaderPath(*shader);
             ImGui::Text(" - Shader: Set");
 
@@ -127,7 +127,7 @@ void MaterialPanel::render()
                             std::filesystem::path frag = shaderDir / (n + ".frag");
                             if (std::filesystem::exists(vert) && std::filesystem::exists(frag)) {
                                 ofShader& loaded = this->_resourceManager.loadShader(vert.string(), frag.string());
-                                renderable->material->shader = &loaded;
+                                primaryRenderable->material->shader = &loaded;
                             }
                             ImGui::CloseCurrentPopup();
                         }
@@ -139,7 +139,7 @@ void MaterialPanel::render()
 
             ImGui::SameLine();
             if (ImGui::Button("Clear Shader")) {
-                renderable->material->shader = nullptr;
+                primaryRenderable->material->shader = nullptr;
             }
         }
         else {
@@ -173,7 +173,7 @@ void MaterialPanel::render()
                             std::filesystem::path frag = shaderDir / (n + ".frag");
                             if (std::filesystem::exists(vert) && std::filesystem::exists(frag)) {
                                 ofShader& loaded = this->_resourceManager.loadShader(vert.string(), frag.string());
-                                renderable->material->shader = &loaded;
+                                primaryRenderable->material->shader = &loaded;
                             }
                             ImGui::CloseCurrentPopup();
                         }
@@ -184,8 +184,8 @@ void MaterialPanel::render()
             }
         }
 
-        if (renderable->material->texture) {
-            ofTexture* tex = renderable->material->texture;
+        if (primaryRenderable->material->texture) {
+            ofTexture* tex = primaryRenderable->material->texture;
             std::string texName = this->_resourceManager.getTexturePath(*tex);
             ImGui::Text(" - Texture: Set %s", texName.c_str());
             ImVec2 thumbSize = ImVec2(24, 24);
@@ -198,13 +198,13 @@ void MaterialPanel::render()
                 if (result.bSuccess) {
                     std::string path = result.getPath();
                     ofTexture& newTex = this->_resourceManager.loadTexture(path);
-                    renderable->material->texture = &newTex;
+                    primaryRenderable->material->texture = &newTex;
                 }
             }
 
             ImGui::SameLine();
             if (ImGui::Button("Clear Texture")) {
-                renderable->material->texture = nullptr;
+                primaryRenderable->material->texture = nullptr;
             }
         } else {
             ImGui::Text(" - Texture: None");
@@ -214,14 +214,14 @@ void MaterialPanel::render()
                 if (result.bSuccess) {
                     std::string path = result.getPath();
                     ofTexture& newTex = this->_resourceManager.loadTexture(path);
-                    renderable->material->texture = &newTex;
+                    primaryRenderable->material->texture = &newTex;
                 }
             }
 
         }
 
-        if (renderable->mesh.getNumVertices() > 0) {
-            ofMesh mesh = renderable->mesh;
+        if (primaryRenderable->mesh.getNumVertices() > 0) {
+            ofMesh mesh = primaryRenderable->mesh;
             std::string meshName = this->_resourceManager.getMeshPath(mesh);
             ImGui::Text(" - Mesh: %s", meshName.c_str());
             ImGui::SameLine();
@@ -230,7 +230,7 @@ void MaterialPanel::render()
                 if (result.bSuccess) {
                     std::string path = result.getPath();
                     ofMesh& newMesh = this->_resourceManager.loadMesh(path);
-                    renderable->mesh = newMesh;
+                    primaryRenderable->mesh = newMesh;
                 }
             }
         } else {
@@ -241,7 +241,7 @@ void MaterialPanel::render()
                 if (result.bSuccess) {
                     std::string path = result.getPath();
                     ofMesh& newMesh = this->_resourceManager.loadMesh(path);
-                    renderable->mesh = newMesh;
+                    primaryRenderable->mesh = newMesh;
                 }
             }
         }
