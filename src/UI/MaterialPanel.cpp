@@ -121,7 +121,7 @@ void MaterialPanel::render()
             ImGui::Image((ImTextureID)(uintptr_t)texID, thumbSize, ImVec2(0,1), ImVec2(1,0));
 
             ImGui::SameLine();
-            this->_loadTextures(primaryRenderable);
+            this->_loadFile(primaryRenderable, "TEX");
 
             ImGui::SameLine();
             if (ImGui::Button("Clear Texture")) {
@@ -130,7 +130,7 @@ void MaterialPanel::render()
         } else {
             ImGui::Text(" - Texture: None");
             ImGui::SameLine();
-            this->_loadTextures(primaryRenderable);
+            this->_loadFile(primaryRenderable, "TEX");
 
         }
 
@@ -139,11 +139,11 @@ void MaterialPanel::render()
             std::string meshName = this->_resourceManager.getMeshPath(mesh);
             ImGui::Text(" - Mesh: %s", meshName.c_str());
             ImGui::SameLine();
-            this->_loadMeshes(primaryRenderable);
+            this->_loadFile(primaryRenderable, "MESH");
         } else {
             ImGui::Text(" - Mesh: None");
             ImGui::SameLine();
-            this->_loadMeshes(primaryRenderable);
+            this->_loadFile(primaryRenderable, "MESH");
         }
 
         ImGui::Separator();
@@ -198,24 +198,20 @@ void MaterialPanel::_loadShaders(Renderable* primaryRenderable) {
             }
 }
 
-void MaterialPanel::_loadTextures(Renderable* primaryRenderable) {
-    if (ImGui::Button("Load Texture")) {
-        ofFileDialogResult result = ofSystemLoadDialog("Choose texture to load", false);
+void MaterialPanel::_loadFile(Renderable* primaryRenderable, std::string type) {
+    std::string title = type.compare("MESH") ? "Load mesh" : "Load texture";
+    if (ImGui::Button(title.c_str())) {
+        ofFileDialogResult result = ofSystemLoadDialog("Choose a file to load", false);
         if (result.bSuccess) {
             std::string path = result.getPath();
-            ofTexture& newTex = this->_resourceManager.loadTexture(path);
-            primaryRenderable->material->texture = &newTex;
-        }
-    }
-}
+            if (type.compare("MESH") ) {
+                ofMesh& newMesh = this->_resourceManager.loadMesh(path);
+                primaryRenderable->mesh = newMesh;
+            } else {
+                ofTexture& newTex = this->_resourceManager.loadTexture(path);
+                primaryRenderable->material->texture = &newTex;
 
-void MaterialPanel::_loadMeshes(Renderable* primaryRenderable) {
-    if (ImGui::Button("Load Mesh")) {
-        ofFileDialogResult result = ofSystemLoadDialog("Choose mesh to load", false);
-        if (result.bSuccess) {
-            std::string path = result.getPath();
-            ofMesh& newMesh = this->_resourceManager.loadMesh(path);
-            primaryRenderable->mesh = newMesh;
+            }
         }
     }
 }
