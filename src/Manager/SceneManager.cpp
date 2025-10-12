@@ -87,54 +87,15 @@ void SceneManager::removeParent(EntityID child)
     this->_transformSystem.removeParent(child);
 }
 
-void SceneManager::selectEntity(EntityID id)
-{
-    this->clearSelection();
-    this->_selectedEntity = id;
-    this->_selectedEntities.insert(id);
-    this->_eventManager.emit(SelectionEvent(id, true));
-}
-
-void SceneManager::toggleEntitySelection(EntityID id)
-{
-    if (this->_selectedEntities.find(id) != this->_selectedEntities.end()) {
-        this->_selectedEntities.erase(id);
-        this->_eventManager.emit(SelectionEvent(id, false));
-
-        if (!this->_selectedEntities.empty()) {
-            this->_selectedEntity = *this->_selectedEntities.rbegin();
-        } else {
-            this->_selectedEntity = INVALID_ENTITY;
-        }
-    } else {
-        this->_selectedEntities.insert(id);
-        this->_selectedEntity = id;
-        this->_eventManager.emit(SelectionEvent(id, true));
-    }
-}
-
-bool SceneManager::isEntitySelected(EntityID id) const
-{
-    return this->_selectedEntities.find(id) != this->_selectedEntities.end();
-}
-
-void SceneManager::clearSelection()
-{
-    for (EntityID id : this->_selectedEntities) {
-        this->_eventManager.emit(SelectionEvent(id, false));
-    }
-    this->_selectedEntities.clear();
-    this->_selectedEntity = INVALID_ENTITY;
-}
-
 void SceneManager::render()
 {
-    EntityID selectedEntity = this->_selectionSystem->getSelectedEntity();
-    ImGui::Spacing();
+    if (!this->_selectionSystem) return;
 
+    EntityID selectedEntity = this->_selectionSystem->getSelectedEntity();
+
+    ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
-
     ImGui::SameLine();
 
     if (ImGui::Button("create Entity")) {
@@ -148,7 +109,7 @@ void SceneManager::render()
         if (selectedEntity != INVALID_ENTITY) {
             this->_entityManager.destroyEntity(selectedEntity);
             unregisterEntity(selectedEntity);
-            this->_selectionSystem->setSelectedEntity(INVALID_ENTITY);
+            this->_selectionSystem->clearSelection();
         }
     }
 
@@ -181,7 +142,8 @@ bool SceneManager::_isDescendant(EntityID entityId, EntityID targetId) const
 
 void SceneManager::_renderEntityNode(EntityID id, int depth)
 {
-    EntityID selectedEntity = this->_selectionSystem->getSelectedEntity();
+    if (!this->_selectionSystem) return;
+
     auto it = this->_entities.find(id);
     if (it == this->_entities.end())
         return;
@@ -194,19 +156,20 @@ void SceneManager::_renderEntityNode(EntityID id, int depth)
     if (node.children.empty())
         flags |= ImGuiTreeNodeFlags_Leaf;
 
-    if (this->isEntitySelected(id))
+    if (this->_selectionSystem->isEntitySelected(id))
         flags |= ImGuiTreeNodeFlags_Selected;
 
     bool opened = ImGui::TreeNodeEx((void*)(intptr_t)id, flags, "%s", node.name.c_str());
 
     if (ImGui::IsItemClicked()) {
-        auto& input = InputManager::get();
+        InputManager& input = InputManager::get();
         bool isCtrlPressed = input.isKeyPressed(OF_KEY_LEFT_CONTROL) || input.isKeyPressed(OF_KEY_CONTROL);
 
-        if (isCtrlPressed) {
+        if (isCtrlPressed)
             this->_selectionSystem->toggleSelection(id);
-        } else {
+        else {
             this->_selectionSystem->clearSelection();
+            this->_selectionSystem->addToSelection(id);
             this->_selectionSystem->setSelectedEntity(id);
         }
     }
@@ -218,8 +181,9 @@ void SceneManager::_renderEntityNode(EntityID id, int depth)
         if (ImGui::MenuItem("Delete")) {
             this->_entityManager.destroyEntity(id);
             unregisterEntity(id);
-            if (selectedEntity == id)
-                this->_selectionSystem->setSelectedEntity(INVALID_ENTITY);
+
+            if (this->_selectionSystem->isEntitySelected(id))
+                this->_selectionSystem->removeFromSelection(id);
         }
 
         ImGui::Separator();

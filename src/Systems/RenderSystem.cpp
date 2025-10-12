@@ -101,7 +101,7 @@ ofCamera RenderSystem::_buildCameraFromComponents(Camera& camera, const Transfor
 
 void RenderSystem::_renderEntities()
 {
-    const auto& selectedEntities = this->_selectionSystem->getSelectedEntities();
+    const std::set<EntityID>& selectedEntities = this->_selectionSystem->getSelectedEntities();
 
     for (EntityID id : this->_entityManager.getAllEntities()) {
         Transform* transform = this->_registry.getComponent<Transform>(id);

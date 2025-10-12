@@ -60,8 +60,7 @@ class SelectionSystem {
         CameraManager* _cameraManager = nullptr;
         ViewportManager* _viewportManager = nullptr;
 
-        bool _isSelectMode = false;
-
+        bool _isSelectMode = true;
         EntityID _selectedEntity = 0;
         std::set<EntityID> _selectedEntities;
 

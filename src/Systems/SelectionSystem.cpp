@@ -187,7 +187,7 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         }
     }
 
-    auto& input = InputManager::get();
+    InputManager& input = InputManager::get();
     bool isCtrlPressed = input.isKeyPressed(OF_KEY_LEFT_CONTROL) || input.isKeyPressed(OF_KEY_CONTROL);
 
     if (closest != INVALID_ENTITY) {
