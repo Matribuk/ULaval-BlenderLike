@@ -183,6 +183,7 @@ bool ApplicationBootstrapper::_SetupCallbacks()
         this->_managers.fileManager->handleAssetDrop(
             asset,
             *this->_managers.sceneManager,
+            *this->_managers.resourceManager,
             *this->_ui.eventLogPanel
         );
     });

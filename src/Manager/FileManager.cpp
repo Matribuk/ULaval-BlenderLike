@@ -2,6 +2,7 @@
 #include "UI/AssetsPanel.hpp"
 #include "UI/EventLogPanel.hpp"
 #include "Manager/SceneManager.hpp"
+#include "Manager/ResourceManager.hpp"
 
 FileManager::FileManager(ComponentRegistry& componentRegistry, EntityManager& entityManager)
     : _componentRegistry(componentRegistry), _entityManager(entityManager) {}
@@ -85,29 +86,24 @@ std::shared_ptr<ofTexture> FileManager::_importImageTexture(const std::string& f
     return texture;
 }
 
-EntityID FileManager::_createImagePlaneEntity(std::shared_ptr<ofTexture> texture, const std::string& name, const glm::vec3& position)
+EntityID FileManager::_createImagePlaneEntity(ofTexture& texture, const std::string& name, const glm::vec3& position)
 {
-    if (!texture)
+    if (!texture.isAllocated())
         return INVALID_ENTITY;
 
-    float imgWidth = texture->getWidth();
-    float imgHeight = texture->getHeight();
+    float imgWidth = texture.getWidth();
+    float imgHeight = texture.getHeight();
     float aspectRatio = imgWidth / imgHeight;
     float targetHeight = 3.0f;
     float targetWidth = targetHeight * aspectRatio;
 
     ofMesh planeMesh = this->_createImagePlane(targetWidth, targetHeight);
-
     Entity entity = this->_entityManager.createEntity();
     this->_componentRegistry.registerComponent(entity.getId(), Transform(
         position, glm::vec3(1.0f)
     ));
 
-    Material* material = new Material();
-    material->texture = new ofTexture(*texture);
-
-    Renderable renderable(planeMesh, ofColor::white);
-    renderable.material = material;
+    Renderable renderable(planeMesh, ofColor::white, true, nullptr, &texture);
     this->_componentRegistry.registerComponent(entity.getId(), renderable);
     this->_componentRegistry.registerComponent(entity.getId(), Selectable());
 
@@ -186,14 +182,11 @@ bool FileManager::importAndAddAsset(const std::string& filePath, AssetsPanel& as
     eventLog.addLog("File copied to data/: " + filename, ofColor::cyan);
 
     if (FileManager::isImageFile(destPath)) {
-        std::shared_ptr<ofTexture> texture = this->_importImageTexture(destPath);
-        if (texture) {
-            assetsPanel.addImageOrModelAsset(name, texture, "", true);
-            eventLog.addLog("Image loaded: " + name + " (drag & drop into scene)", ofColor::green);
-            return true;
-        }
+        assetsPanel.addImageOrModelAsset(name, "", true);
+        eventLog.addLog("Image loaded: " + name + " (drag & drop into scene)", ofColor::green);
+        return true;
     } else if (FileManager::isModelFile(destPath)) {
-        assetsPanel.addImageOrModelAsset(name, nullptr, destPath, false);
+        assetsPanel.addImageOrModelAsset(name, destPath, false);
         eventLog.addLog("3D model available: " + name + " (drag & drop into scene)", ofColor::green);
         return true;
     } else {
@@ -205,13 +198,14 @@ bool FileManager::importAndAddAsset(const std::string& filePath, AssetsPanel& as
     return false;
 }
 
-void FileManager::handleAssetDrop(const AssetInfo* asset, SceneManager& sceneManager, EventLogPanel& eventLog)
+void FileManager::handleAssetDrop(const AssetInfo* asset, SceneManager& sceneManager, ResourceManager& resourceManager, EventLogPanel& eventLog)
 {
     if (!asset) return;
 
-    if (asset->isImage && asset->texture) {
+    if (asset->isImage) {
+        ofTexture& entityTexture = resourceManager.loadTexture(asset->filepath);
         EntityID entityId = this->_createImagePlaneEntity(
-            asset->texture,
+            entityTexture,
             asset->name,
             glm::vec3(0, 0, 0)
         );

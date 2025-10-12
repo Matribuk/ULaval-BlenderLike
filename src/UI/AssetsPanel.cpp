@@ -58,21 +58,20 @@ void AssetsPanel::addAsset(const std::string& name, EntityID entityId, bool isIm
     info.name = name;
     info.entityId = entityId;
     info.isImage = isImage;
-    info.texture = nullptr;
     info.filepath = "";
 
     this->_assets.push_back(info);
 }
 
-void AssetsPanel::addImageOrModelAsset(const std::string& name, std::shared_ptr<ofTexture> texture, const std::string& modelFilepath, bool isImage)
+void AssetsPanel::addImageOrModelAsset(const std::string& name, const std::string& filepath, bool isImage)
 {
+    if (name.empty() || filepath.empty() || (isImage && !ofImage().load(filepath)))
+        return;
     AssetInfo info;
     info.name = name;
     info.entityId = INVALID_ENTITY;
     info.isImage = isImage;
-
-    info.texture = (isImage) ? texture : nullptr;
-    info.filepath = (isImage) ? "" : modelFilepath;
+    info.filepath = filepath;
     this->_assets.push_back(info);
 }
 
@@ -105,16 +104,7 @@ void AssetsPanel::loadAssetsFromDataFolder()
         std::string filename = file.getFileName();
         std::string filepath = file.getAbsolutePath();
         std::string name = file.getBaseName();
-
-        if (FileManager::isImageFile(filename)) {
-            ofImage image;
-            if (image.load(filepath)) {
-                std::shared_ptr<ofTexture> texture = std::make_shared<ofTexture>(image.getTexture());
-                this->addImageOrModelAsset(name, texture, "", true);
-            }
-        } else if (FileManager::isModelFile(filename)) {
-            this->addImageOrModelAsset(name, nullptr, filepath, false);
-        }
+        this->addImageOrModelAsset(name, filepath, FileManager::isImageFile(filename));
     }
 }
 
