@@ -4,8 +4,6 @@ ifndef OF_ROOT
 endif
 
 # --- Include path for headers ---
-# PROJECT_INCLUDE_PATHS += $(abspath $(PROJECT_ROOT)/include)
-# USER_CFLAGS += -I$(abspath $(PROJECT_ROOT)/include)
 PROJECT_INCLUDE_PATHS += $(shell find $(PROJECT_ROOT)/include -type d)
 USER_CFLAGS += $(addprefix -I, $(shell find $(PROJECT_ROOT)/include -type d))
 
