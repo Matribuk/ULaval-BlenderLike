@@ -33,7 +33,7 @@ bool ApplicationBootstrapper::bootstrap()
         return false;
     }
 
-    if (!this->_CreateTestScene()) {
+    if (!this->_CreateScene()) {
         this->_logError("Failed to create test scene");
         return false;
     }
@@ -162,6 +162,11 @@ bool ApplicationBootstrapper::_InitializeUI()
         *this->_managers.sceneManager,
         *this->_systems.primitiveSystem
     );
+    this->_ui.viewportPanel = std::make_unique<ViewportPanel>(
+        *this->_managers.viewportManager,
+        *this->_managers.cameraManager,
+        *this->_systems.renderSystem
+    );
 
     return true;
 }
@@ -195,7 +200,8 @@ bool ApplicationBootstrapper::_SetupCallbacks()
         *this->_ui.eventLogPanel,
         *this->_ui.assetsPanel,
         *this->_ui.exportPanel,
-        *this->_ui.primitivesPanel
+        *this->_ui.primitivesPanel,
+        *this->_ui.viewportPanel
     );
     this->_ui.primitivesPanel->setEventLogPanel(this->_ui.eventLogPanel.get());
     this->_ui.assetsPanel->loadAssetsFromDataFolder();
@@ -240,37 +246,13 @@ bool ApplicationBootstrapper::_SetupCallbacks()
     return true;
 }
 
-bool ApplicationBootstrapper::_CreateTestScene()
+bool ApplicationBootstrapper::_CreateScene()
 {
     this->_managers.viewportManager->createViewport(
         *this->_managers.cameraManager,
         *this->_systems.renderSystem,
         glm::vec3{0, 5, 10}
     );
-
-    Entity boxEntity = this->_entityManager.createEntity();
-    this->_componentRegistry.registerComponent(boxEntity.getId(), Transform(glm::vec3(-3, 0, 0)));
-    this->_componentRegistry.registerComponent(boxEntity.getId(), Box(glm::vec3(1.5f, 1.5f, 1.5f)));
-    this->_componentRegistry.registerComponent(boxEntity.getId(), Renderable(ofMesh(), ofColor::red));
-    this->_componentRegistry.registerComponent(boxEntity.getId(), Selectable());
-    this->_managers.sceneManager->registerEntity(boxEntity.getId(), "Box");
-    this->_testEntities.push_back(boxEntity.getId());
-
-    Entity sphereEntity = this->_entityManager.createEntity();
-    this->_componentRegistry.registerComponent(sphereEntity.getId(), Transform(glm::vec3(0, 0, 0)));
-    this->_componentRegistry.registerComponent(sphereEntity.getId(), Sphere(1.2f));
-    this->_componentRegistry.registerComponent(sphereEntity.getId(), Renderable(ofMesh(), ofColor::green));
-    this->_componentRegistry.registerComponent(sphereEntity.getId(), Selectable());
-    this->_managers.sceneManager->registerEntity(sphereEntity.getId(), "Sphere");
-    this->_testEntities.push_back(sphereEntity.getId());
-
-    Entity planeEntity = this->_entityManager.createEntity();
-    this->_componentRegistry.registerComponent(planeEntity.getId(), Transform(glm::vec3(3, 0, 0)));
-    this->_componentRegistry.registerComponent(planeEntity.getId(), Plane(glm::vec2(2.0f, 2.0f)));
-    this->_componentRegistry.registerComponent(planeEntity.getId(), Renderable(ofMesh(), ofColor::blue));
-    this->_componentRegistry.registerComponent(planeEntity.getId(), Selectable());
-    this->_managers.sceneManager->registerEntity(planeEntity.getId(), "Plane");
-    this->_testEntities.push_back(planeEntity.getId());
 
     this->_systems.primitiveSystem->generateMeshes();
 

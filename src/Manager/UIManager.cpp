@@ -17,20 +17,25 @@ void UIManager::render()
 
     this->_toolbar->render();
     this->_propertiesManager.render();
+    this->_primitivesPanel->render();
     this->_viewportManager.renderAll();
     this->_assetsPanel->render();
     this->_exportPanel->render();
     this->_instructionsPanel->render();
     this->_eventLogPanel->render();
     this->_skyboxPanel->render();
-    this->_primitivesPanel->render();
+    this->_viewportPanel->render();
 
-    renderViewportControls();
+    if (this->_shouldFocusPrimitives) {
+        ImGui::SetWindowFocus("Primitives");
+        this->_shouldFocusPrimitives = false;
+    }
 
-    if (!this->_viewportsToDock.empty() &&this-> _dockMainId != 0) {
-        for (const auto& vpName : this->_viewportsToDock)
+    std::vector<std::string> VTP = this->_viewportPanel->getViewportsToDock();
+    if (!VTP.empty() && this->_dockMainId != 0) {
+        for (const std::string & vpName : VTP)
             ImGui::DockBuilderDockWindow(vpName.c_str(), this->_dockMainId);
-        this->_viewportsToDock.clear();
+        VTP.clear();
     }
 }
 
@@ -63,6 +68,7 @@ void UIManager::setupDockspace()
         if (this->_firstTime) {
             this->_setupInitialLayout();
             this->_firstTime = false;
+            this->_shouldFocusPrimitives = true;
         }
         ImGui::End();
     }
@@ -70,7 +76,7 @@ void UIManager::setupDockspace()
     ImGui::PopStyleVar(3);
 }
 
-void UIManager::setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, InstructionsPanel& instructionsPanel, EventLogPanel& eventLogPanel, AssetsPanel& assetsPanel, ExportPanel& exportPanel, PrimitivesPanel& primitivesPanel)
+void UIManager::setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, InstructionsPanel& instructionsPanel, EventLogPanel& eventLogPanel, AssetsPanel& assetsPanel, ExportPanel& exportPanel, PrimitivesPanel& primitivesPanel, ViewportPanel& viewportPanel)
 {
     this->_toolbar = &toolbar;
     this->_skyboxPanel = &skyboxPanel;
@@ -79,102 +85,7 @@ void UIManager::setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, Instructions
     this->_assetsPanel = &assetsPanel;
     this->_exportPanel = &exportPanel;
     this->_primitivesPanel = &primitivesPanel;
-}
-
-void UIManager::renderViewportControls()
-{
-    if (ImGui::Begin("Viewport Manager", nullptr, ImGuiWindowFlags_NoCollapse)) {
-        ImGui::Text("Active Viewports: %zu", this->_viewportManager.getViewports().size());
-        ImGui::Separator();
-
-        std::vector<EntityID> cameras = this->_getAvailableCameras();
-
-        if (ImGui::Button("+ Add Viewport")) {
-            this->_viewportManager.createViewport(this->_cameraManager, this->_renderSystem, glm::vec3{0, 5, 10});
-
-            if (!cameras.empty()) {
-                size_t cameraIndex = (this->_viewportManager.getViewports().size() - 1) % cameras.size();
-                std::unique_ptr<Viewport>& newViewport = this->_viewportManager.getViewports().back();
-                newViewport->setCamera(cameras[cameraIndex]);
-            }
-
-            std::string vpName = "Viewport " + std::to_string(this->_viewportManager.getViewports().back()->getId());
-            this->_viewportsToDock.push_back(vpName);
-        }
-
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        ImGui::Text("Viewports:");
-
-        int toRemove = -1;
-        for (size_t i = 0; i < this->_viewportManager.getViewports().size(); ++i) {
-            std::unique_ptr<Viewport>& vp = this->_viewportManager.getViewports()[i];
-
-            ImGui::PushID(i);
-
-            ImGui::Text("Viewport %d", vp->getId());
-            ImGui::SameLine();
-
-            if (ImGui::SmallButton("X")) {
-                toRemove = vp->getId();
-            }
-
-            if (!cameras.empty()) {
-                EntityID currentCamera = vp->getCamera();
-
-                int currentCameraIndex = 0;
-                for (size_t c = 0; c < cameras.size(); ++c) {
-                    if (cameras[c] == currentCamera) {
-                        currentCameraIndex = c;
-                        break;
-                    }
-                }
-
-                std::vector<std::string> cameraLabels;
-                for (EntityID camId : cameras)
-                    cameraLabels.push_back("Camera " + std::to_string(camId));
-
-                if (ImGui::BeginCombo("##camera", cameraLabels[currentCameraIndex].c_str())) {
-                    for (size_t c = 0; c < cameras.size(); ++c) {
-                        bool isSelected = (static_cast<int>(c) == currentCameraIndex);
-                        if (ImGui::Selectable(cameraLabels[c].c_str(), isSelected))
-                            vp->setCamera(cameras[c]);
-                        if (isSelected)
-                            ImGui::SetItemDefaultFocus();
-                    }
-                    ImGui::EndCombo();
-                }
-            } else
-                ImGui::TextDisabled("No cameras available");
-
-            ImGui::PopID();
-            ImGui::Spacing();
-        }
-
-        if (toRemove >= 0)
-            this->_viewportManager.removeViewport(this->_cameraManager, toRemove);
-    }
-    ImGui::End();
-}
-
-void UIManager::dockNewViewport(const std::string& viewportName)
-{
-    if (this->_dockspaceId != 0)
-        ImGui::DockBuilderDockWindow(viewportName.c_str(), this->_dockspaceId);
-}
-
-std::vector<EntityID> UIManager::_getAvailableCameras()
-{
-    std::vector<EntityID> cameras;
-
-    for (EntityID id : this->_cameraManager.getEntityManager().getAllEntities()) {
-        if (this->_cameraManager.getComponentRegistry().hasComponent<Camera>(id))
-            cameras.push_back(id);
-    }
-
-    return cameras;
+    this->_viewportPanel = &viewportPanel;
 }
 
 void UIManager::_setupInitialLayout()
@@ -191,16 +102,16 @@ void UIManager::_setupInitialLayout()
 
     this->_dockMainId = dockMain;
 
+    ImGui::DockBuilderDockWindow("Primitives", dockRight);
+    ImGui::DockBuilderDockWindow("Assets", dockRight);
+    ImGui::DockBuilderDockWindow("Viewport Manager", dockRight);
     ImGui::DockBuilderDockWindow("Toolbar", dockUp);
     ImGui::DockBuilderDockWindow("Inspector", dockLeft);
+    ImGui::DockBuilderDockWindow("Viewport 1", dockMain);
     ImGui::DockBuilderDockWindow("Event Log", dockDown);
     ImGui::DockBuilderDockWindow("Instructions", dockDown);
     ImGui::DockBuilderDockWindow("Skybox Settings", dockDown);
-    ImGui::DockBuilderDockWindow("Assets", dockRight);
     ImGui::DockBuilderDockWindow("Export", dockDown);
-    ImGui::DockBuilderDockWindow("Primitives", dockRight);
-    ImGui::DockBuilderDockWindow("Viewport 1", dockMain);
-    ImGui::DockBuilderDockWindow("Viewport Manager", dockRight);
 
     ImGui::DockBuilderFinish(this->_dockspaceId);
 }

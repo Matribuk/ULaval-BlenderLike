@@ -7,6 +7,7 @@
 #include "UI/ExportPanel.hpp"
 #include "UI/AssetsPanel.hpp"
 #include "UI/PrimitivesPanel.hpp"
+#include "UI/ViewportPanel.hpp"
 
 #include "Manager/ViewportManager.hpp"
 #include "Manager/PropertiesManager.hpp"
@@ -37,11 +38,9 @@ class UIManager {
             EventLogPanel& eventLogPanel,
             AssetsPanel& assetsPanel,
             ExportPanel& exportPanel,
-            PrimitivesPanel& primitivesPanel
+            PrimitivesPanel& primitivesPanel,
+            ViewportPanel& viewportPanel
         );
-        void renderViewportControls();
-
-        void dockNewViewport(const std::string& viewportName);
 
     private:
         ViewportManager& _viewportManager;
@@ -56,12 +55,13 @@ class UIManager {
         AssetsPanel* _assetsPanel;
         ExportPanel* _exportPanel;
         PrimitivesPanel* _primitivesPanel;
+        ViewportPanel* _viewportPanel;
 
         ImGuiID _dockspaceId = 0;
         ImGuiID _dockMainId = 0;
         bool _firstTime = true;
+        bool _shouldFocusPrimitives = false;
 
         std::vector<std::string> _viewportsToDock;
-        std::vector<EntityID> _getAvailableCameras();
         void _setupInitialLayout();
 };

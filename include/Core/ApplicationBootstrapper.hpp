@@ -32,6 +32,7 @@
 #include "UI/AssetsPanel.hpp"
 #include "UI/ExportPanel.hpp"
 #include "UI/PrimitivesPanel.hpp"
+#include "UI/ViewportPanel.hpp"
 
 #include "Components/Transform.hpp"
 #include "Components/Renderable.hpp"
@@ -75,6 +76,7 @@ struct UIContext {
     std::unique_ptr<AssetsPanel> assetsPanel;
     std::unique_ptr<ExportPanel> exportPanel;
     std::unique_ptr<PrimitivesPanel> primitivesPanel;
+    std::unique_ptr<ViewportPanel> viewportPanel;
 };
 
 class ApplicationBootstrapper {
@@ -106,7 +108,7 @@ class ApplicationBootstrapper {
         bool _InitializeManagers();
         bool _InitializeUI();
         bool _SetupCallbacks();
-        bool _CreateTestScene();
+        bool _CreateScene();
 
         void _logError(const std::string& message);
 };
