@@ -199,12 +199,12 @@ void MaterialPanel::_loadShaders(Renderable* primaryRenderable) {
 }
 
 void MaterialPanel::_loadFile(Renderable* primaryRenderable, std::string type) {
-    std::string title = type.compare("MESH") ? "Load mesh" : "Load texture";
+    std::string title = type.compare("MESH") == 0 ? "Load mesh" : "Load texture";
     if (ImGui::Button(title.c_str())) {
         ofFileDialogResult result = ofSystemLoadDialog("Choose a file to load", false);
         if (result.bSuccess) {
             std::string path = result.getPath();
-            if (type.compare("MESH") ) {
+            if (type.compare("MESH") == 0 ) {
                 ofMesh& newMesh = this->_resourceManager.loadMesh(path);
                 primaryRenderable->mesh = newMesh;
             } else {
