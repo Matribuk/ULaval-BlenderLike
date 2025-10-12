@@ -122,6 +122,29 @@ void SceneManager::render()
     for (EntityID rootId : this->_rootEntities)
         this->_renderEntityNode(rootId);
 
+    ImGui::InvisibleButton("##RootDropZone", ImVec2(-1, 50));
+    if (ImGui::BeginDragDropTarget()) {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY_NODE")) {
+            EntityID draggedId = *(const EntityID*)payload->Data;
+            auto it = this->_entities.find(draggedId);
+            if (it != this->_entities.end() && it->second.parent != INVALID_ENTITY) {
+                removeParent(draggedId);
+            }
+        }
+        ImGui::EndDragDropTarget();
+    }
+
+    if (ImGui::IsItemHovered()) {
+        ImGui::GetWindowDrawList()->AddRect(
+            ImGui::GetItemRectMin(),
+            ImGui::GetItemRectMax(),
+            ImGui::GetColorU32(ImGuiCol_DragDropTarget),
+            0.0f,
+            0,
+            2.0f
+        );
+    }
+
     ImGui::EndChild();
 }
 
@@ -177,6 +200,12 @@ void SceneManager::_renderEntityNode(EntityID id, int depth)
     if (ImGui::BeginPopupContextItem()) {
         ImGui::Text("Entity: %s", node.name.c_str());
         ImGui::Separator();
+
+        if (node.parent != INVALID_ENTITY) {
+            if (ImGui::MenuItem("Remove Parent"))
+                removeParent(id);
+            ImGui::Separator();
+        }
 
         if (ImGui::MenuItem("Delete")) {
             this->_entityManager.destroyEntity(id);
