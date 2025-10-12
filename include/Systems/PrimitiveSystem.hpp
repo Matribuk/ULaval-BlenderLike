@@ -22,4 +22,5 @@ class PrimitiveSystem {
         ofMesh _generateBoxMesh(const glm::vec3& dims);
         ofMesh _generateSphereMesh(float radius);
         ofMesh _generatePlaneMesh(const glm::vec2& size);
+        void _generateDefaultTexCoords(ofMesh& mesh, const std::string& mode = "box");
 };
