@@ -2,8 +2,6 @@
 
 #include "Core/ApplicationBootstrapper.hpp"
 
-#include "Manager/InputManager.hpp"
-
 #include "Events/EventBridge.hpp"
 #include "Events/EventTypes/KeyEvent.hpp"
 #include "Events/EventTypes/MouseEvent.hpp"

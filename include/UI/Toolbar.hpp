@@ -7,6 +7,8 @@
 #include <string>
 #include "ofGraphics.h"
 
+#include "Manager/CursorManager.hpp"
+
 #include "Events/EventManager.hpp"
 #include "Events/EventTypes/MouseEvent.hpp"
 
@@ -25,7 +27,7 @@ struct ToolButton {
 
 class Toolbar {
     public:
-        Toolbar();
+        Toolbar(CursorManager& cursorManager);
 
         void render();
 
@@ -38,11 +40,12 @@ class Toolbar {
         void setExportCallback(std::function<void()> callback);
         void setSelectCallback(std::function<void()> callback);
         void setMoveCallback(std::function<void()> callback);
-        void setCursor(int shape);
 
         ToolMode getActiveToolMode() const;
 
     private:
+        CursorManager& _cursorManager;
+
         void _renderToolButton(size_t index, const ImVec2& size);
 
         std::function<void()> _onToggleProjection;

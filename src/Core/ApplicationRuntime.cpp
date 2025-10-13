@@ -32,6 +32,12 @@ void ApplicationRuntime::initialize()
 void ApplicationRuntime::update(int windowWidth, int windowHeight)
 {
     auto& input = InputManager::get();
+    ImGuiMouseCursor imguiCursor = ImGui::GetMouseCursor();
+
+    if (ImGui::GetMouseCursor() == ImGuiMouseCursor_TextInput)
+        this->_managers.cursorManager->requestCursor(CursorLayer::TextInput, GLFW_IBEAM_CURSOR);
+    else
+        this->_managers.cursorManager->resetCursor(CursorLayer::TextInput);
 
     for (EntityID id : this->_testEntities) {
         if (id == this->_systems.selectionSystem->getSelectedEntity()) continue;

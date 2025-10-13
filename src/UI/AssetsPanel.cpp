@@ -1,8 +1,8 @@
 #include "UI/AssetsPanel.hpp"
 #include "Manager/FileManager.hpp"
 
-AssetsPanel::AssetsPanel(SceneManager& sceneManager, ComponentRegistry& componentRegistry)
-    : _sceneManager(sceneManager), _componentRegistry(componentRegistry) {}
+AssetsPanel::AssetsPanel(SceneManager& sceneManager, ComponentRegistry& componentRegistry, CursorManager& cursorManager)
+    : _sceneManager(sceneManager), _componentRegistry(componentRegistry), _cursorManager(cursorManager) {}
 
 void AssetsPanel::render()
 {
@@ -15,9 +15,7 @@ void AssetsPanel::render()
             ImGui::TextDisabled("No assets imported yet");
             ImGui::Text("Use the Import button to add images or 3D models");
         } else {
-            float thumbnailSize = 80.0f;
             float cardWidth = 100.0f;
-            float cardHeight = 120.0f;
             float spacing = 10.0f;
             float windowWidth = ImGui::GetContentRegionAvail().x;
             int columns = std::max(1, (int)(windowWidth / (cardWidth + spacing)));
@@ -151,6 +149,7 @@ void AssetsPanel::_renderAssetThumbnail(const AssetInfo& asset)
     ImGui::InvisibleButton("##thumbnail", ImVec2(thumbnailSize, thumbnailSize));
 
     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+        this->_cursorManager.requestCursor(CursorLayer::Drag, GLFW_CROSSHAIR_CURSOR);
         size_t assetIndex = &asset - &this->_assets[0];
 
         if (asset.isImage) {

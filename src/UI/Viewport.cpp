@@ -1,8 +1,8 @@
 #include "UI/Viewport.hpp"
 #include "Events/EventTypes/AssetDropEvent.hpp"
 
-Viewport::Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, EventManager& eventManager, ViewportID id)
-    : _cameraManager(cameraManager), _renderSystem(renderSystem), _eventManager(eventManager), _id(id)
+Viewport::Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, EventManager& eventManager, CursorManager& cursorManager, ViewportID id)
+    : _cameraManager(cameraManager), _renderSystem(renderSystem), _eventManager(eventManager), _cursorManager(cursorManager), _id(id)
 {
     this->_rect = ofRectangle((ofGetWindowWidth() - 1075) / 2 , (ofGetWindowHeight() - 605) / 2 , 1075, 605);
     this->_fboInitialized = false;
@@ -171,6 +171,7 @@ void Viewport::_handleMouseDrag()
             this->_isDragging = true;
             this->_lastMousePos = glm::vec2(mousePos.x, mousePos.y);
             this->_dragDelta = glm::vec2(0, 0);
+            this->_cursorManager.requestCursor(CursorLayer::Resize, GLFW_HRESIZE_CURSOR);
         }
     }
 
@@ -186,6 +187,7 @@ void Viewport::_handleMouseDrag()
         } else {
             this->_isDragging = false;
             this->_dragDelta = glm::vec2(0, 0);
+            this->_cursorManager.resetCursor(CursorLayer::Resize);
         }
     }
 }
@@ -203,6 +205,7 @@ void Viewport::_handleDropTarget()
 
             AssetDropEvent event(assetIndex, dropPos, this->_id);
             this->_eventManager.emit(event);
+            this->_cursorManager.resetCursor(CursorLayer::Drag);
         }
 
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_MODEL")) {
@@ -215,6 +218,7 @@ void Viewport::_handleDropTarget()
 
             AssetDropEvent event(assetIndex, dropPos, this->_id);
             this->_eventManager.emit(event);
+            this->_cursorManager.resetCursor(CursorLayer::Drag);
         }
 
         ImGui::EndDragDropTarget();
