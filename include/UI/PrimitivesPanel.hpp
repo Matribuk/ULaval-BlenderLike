@@ -19,7 +19,8 @@
 
 enum class PrimitiveType {
     Cube,
-    Sphere
+    Sphere,
+    Plane
 };
 
 class PrimitivesPanel {

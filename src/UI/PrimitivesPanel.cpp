@@ -21,7 +21,7 @@ PrimitivesPanel::PrimitivesPanel(
 void PrimitivesPanel::render()
 {
     if (ImGui::Begin("Primitives", nullptr, ImGuiWindowFlags_NoCollapse)) {
-        ImGui::Text("Add a Primitive");
+        ImGui::Text("Add a Geometric Primitive");
         ImGui::Separator();
         ImGui::Spacing();
 
@@ -31,8 +31,15 @@ void PrimitivesPanel::render()
         if (ImGui::Button("Sphere", ImVec2(-1, 60)))
             this->_createPrimitive(PrimitiveType::Sphere);
 
-        ImGui::Columns(1);
+
         ImGui::Spacing();
+        ImGui::Text("Add a Vector Primitive");
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        if (ImGui::Button("Plane", ImVec2(-1, 60)))
+            this->_createPrimitive(PrimitiveType::Plane);
+
     }
     ImGui::End();
 }
@@ -58,9 +65,12 @@ void PrimitivesPanel::_createPrimitive(PrimitiveType type)
     if (type == PrimitiveType::Cube) {
         this->_componentRegistry.registerComponent(entity.getId(), Box(defaultCubeSize));
         primitiveName = "Cube " + std::to_string(entity.getId());
-    } else {
+    } else if (type == PrimitiveType::Sphere) {
         this->_componentRegistry.registerComponent(entity.getId(), Sphere(defaultSphereRadius));
         primitiveName = "Sphere " + std::to_string(entity.getId());
+    } else {
+        this-> _componentRegistry.registerComponent(entity.getId(), Plane(defaultCubeSize));
+        primitiveName = "Plane " + std::to_string(entity.getId());
     }
 
     this->_componentRegistry.registerComponent(entity.getId(), Renderable(ofMesh(), defaultColor));
