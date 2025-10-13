@@ -41,7 +41,7 @@ void CursorManager::apply() {
 
     int chosen = GLFW_ARROW_CURSOR;
     for (auto layer : priority) {
-        int s = _requested[(int)layer];
+        int s = this->_requested[(int)layer];
         if (s != GLFW_ARROW_CURSOR) {
             chosen = s;
             break;
