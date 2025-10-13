@@ -10,7 +10,6 @@
 ################################################################################
 OF_ROOT = ../../../../Tools/of_v0.12.1_linux64_gcc6_release/
 
-
 ################################################################################
 # PROJECT ROOT
 #   The location of the project - a starting place for searching for files
