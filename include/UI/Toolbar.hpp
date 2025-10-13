@@ -2,9 +2,15 @@
 
 #include <ofMain.h>
 #include "ofxImGui.h"
+#include "GLFW/glfw3.h"
 #include <vector>
 #include <string>
 #include "ofGraphics.h"
+
+#include "Manager/CursorManager.hpp"
+
+#include "Events/EventManager.hpp"
+#include "Events/EventTypes/MouseEvent.hpp"
 
 enum class ToolMode {
     Select,
@@ -21,7 +27,7 @@ struct ToolButton {
 
 class Toolbar {
     public:
-        Toolbar();
+        Toolbar(CursorManager& cursorManager);
 
         void render();
 
@@ -38,7 +44,8 @@ class Toolbar {
         ToolMode getActiveToolMode() const;
 
     private:
-        void _applyCursor();
+        CursorManager& _cursorManager;
+
         void _renderToolButton(size_t index, const ImVec2& size);
 
         std::function<void()> _onToggleProjection;
@@ -49,7 +56,7 @@ class Toolbar {
 
         int _selectedTool;
         float _buttonSpacing;
+        int _currentCursor;
 
         std::vector<ToolButton> _tools;
-        ImGuiMouseCursor _currentCursor;
 };

@@ -102,9 +102,12 @@ bool ApplicationBootstrapper::_InitializeManagers()
         *this->_systems.transformSystem
     );
 
+    this->_managers.cursorManager = std::make_unique<CursorManager>();
+
     this->_managers.viewportManager = std::make_unique<ViewportManager>(
         *this->_managers.sceneManager,
-        this->_eventManager
+        this->_eventManager,
+        *this->_managers.cursorManager
     );
 
     this->_systems.imageExporter = std::make_unique<ImageSequenceExporter>(*this->_managers.viewportManager);
@@ -153,8 +156,8 @@ bool ApplicationBootstrapper::_InitializeUI()
     this->_ui.colorPanel = std::make_unique<ColorPanel>(this->_componentRegistry, *this->_systems.selectionSystem);
     this->_ui.instructionsPanel = std::make_unique<InstructionsPanel>();
     this->_ui.eventLogPanel = std::make_unique<EventLogPanel>();
-    this->_ui.toolbar = std::make_unique<Toolbar>();
-    this->_ui.assetsPanel = std::make_unique<AssetsPanel>(*this->_managers.sceneManager, this->_componentRegistry);
+    this->_ui.toolbar = std::make_unique<Toolbar>(*this->_managers.cursorManager);
+    this->_ui.assetsPanel = std::make_unique<AssetsPanel>(*this->_managers.sceneManager, this->_componentRegistry, *this->_managers.cursorManager);
     this->_ui.exportPanel = std::make_unique<ExportPanel>(*this->_systems.imageExporter, *this->_managers.viewportManager);
     this->_ui.primitivesPanel = std::make_unique<PrimitivesPanel>(
         this->_entityManager,
@@ -205,6 +208,7 @@ bool ApplicationBootstrapper::_SetupCallbacks()
     );
     this->_ui.primitivesPanel->setEventLogPanel(this->_ui.eventLogPanel.get());
     this->_ui.assetsPanel->loadAssetsFromDataFolder();
+    this->_managers.cursorManager->init(static_cast<GLFWwindow*>(ofGetWindowPtr()->getWindowContext()));
 
     this->_ui.toolbar->setToggleProjectionCallback([this]() {
         Viewport* activeViewport = this->_managers.viewportManager->getActiveViewport();

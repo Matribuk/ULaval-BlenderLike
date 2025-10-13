@@ -13,7 +13,7 @@ class RenderSystem;
 
 class Viewport {
     public:
-        Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, EventManager& eventManager, ViewportID id = INVALID_VIEWPORT);
+        Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, EventManager& eventManager, CursorManager& cursorManager, ViewportID id = INVALID_VIEWPORT);
         ~Viewport();
 
         bool render();
@@ -42,6 +42,7 @@ class Viewport {
         CameraManager& _cameraManager;
         RenderSystem& _renderSystem;
         EventManager& _eventManager;
+        CursorManager& _cursorManager;
         EntityID _cameraId = INVALID_ENTITY;
 
         ViewportID _id;

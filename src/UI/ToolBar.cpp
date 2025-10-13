@@ -1,17 +1,17 @@
 #include "UI/Toolbar.hpp"
 
-Toolbar::Toolbar() : _selectedTool(-1), _buttonSpacing(5.0), _currentCursor(ImGuiMouseCursor_Arrow)
+Toolbar::Toolbar(CursorManager& cursorManager) : _cursorManager(cursorManager), _selectedTool(-1), _buttonSpacing(5.0)
 {
     this->_tools.emplace_back(ToolButton{"Select", {
         [this](std::any){
-            this->_currentCursor = ImGuiMouseCursor_Arrow;
+            this->_cursorManager.requestCursor(CursorLayer::Tool, GLFW_ARROW_CURSOR);
             if (this->_onSelect) this->_onSelect();
         }
     }});
 
     this->_tools.emplace_back(ToolButton{"Move", {
         [this](std::any){
-            this->_currentCursor = ImGuiMouseCursor_Hand;
+            this->_cursorManager.requestCursor(CursorLayer::Tool, GLFW_HAND_CURSOR);
             if (this->_onMove) this->_onMove();
         }
     }});
@@ -53,11 +53,10 @@ void Toolbar::render()
             if (i > 0) ImGui::SameLine();
             this->_renderToolButton(i, buttonSize);
         }
+        this->_cursorManager.apply();
     }
 
     ImGui::End();
-
-    this->_applyCursor();
 }
 
 const ToolButton* Toolbar::getSelectedTool() const
@@ -113,11 +112,6 @@ ToolMode Toolbar::getActiveToolMode() const
         case 1: return ToolMode::Move;
         default: return ToolMode::Select;
     }
-}
-
-void Toolbar::_applyCursor()
-{
-    ImGui::SetMouseCursor(this->_currentCursor);
 }
 
 void Toolbar::_renderToolButton(size_t i, const ImVec2& size)

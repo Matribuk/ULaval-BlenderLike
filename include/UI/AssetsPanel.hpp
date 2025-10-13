@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Manager/SceneManager.hpp"
+#include "Manager/CursorManager.hpp"
+
 #include "Core/EntityManager.hpp"
 #include "Core/ComponentRegistry.hpp"
 #include "Components/Renderable.hpp"
@@ -19,7 +21,7 @@ struct AssetInfo {
 
 class AssetsPanel {
     public:
-        AssetsPanel(SceneManager& sceneManager, ComponentRegistry& componentRegistry);
+        AssetsPanel(SceneManager& sceneManager, ComponentRegistry& componentRegistry, CursorManager& cursorManager);
         ~AssetsPanel() = default;
 
         void render();
@@ -33,6 +35,7 @@ class AssetsPanel {
     private:
         SceneManager& _sceneManager;
         ComponentRegistry& _componentRegistry;
+        CursorManager& _cursorManager;
         std::vector<AssetInfo> _assets;
 
         void _renderAssetThumbnail(const AssetInfo& asset);

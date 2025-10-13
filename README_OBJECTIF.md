@@ -21,8 +21,8 @@
 ## 🖱️ 2. Outils et Interaction
 
 ### 2.1 Curseur dynamique
-- [ ] Minimum 5 représentations visuelles du curseur
-- [ ] Changement du curseur selon l’état de l’application (dessin, sélection, transformation, etc.)
+- [x] Minimum 5 représentations visuelles du curseur
+- [x] Changement du curseur selon l’état de l’application (dessin, sélection, transformation, etc.)
 
 ### 2.3 Primitives vectorielles
 - [ ] Création interactive d’au moins **6 types de primitives** :

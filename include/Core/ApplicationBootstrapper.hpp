@@ -21,6 +21,7 @@
 #include "Manager/ActionManager.hpp"
 #include "Manager/InputManager.hpp"
 #include "Manager/ResourceManager.hpp"
+#include "Manager/CursorManager.hpp"
 
 #include "UI/Toolbar.hpp"
 #include "UI/TranformPanel.hpp"
@@ -63,6 +64,7 @@ struct ManagersContext {
     std::unique_ptr<UIManager> uiManager;
     std::unique_ptr<ActionManager> actionManager;
     std::unique_ptr<ResourceManager> resourceManager;
+    std::unique_ptr<CursorManager> cursorManager;
 };
 
 struct UIContext {
