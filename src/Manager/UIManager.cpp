@@ -31,11 +31,11 @@ void UIManager::render()
         this->_shouldFocusPrimitives = false;
     }
 
-    std::vector<std::string> VTP = this->_viewportPanel->getViewportsToDock();
-    if (!VTP.empty() && this->_dockMainId != 0) {
-        for (const std::string & vpName : VTP)
+    std::vector<std::string> vtp = this->_viewportPanel->getViewportsToDock();
+    if (!vtp.empty() && this->_dockMainId != 0) {
+        for (const std::string & vpName : vtp)
             ImGui::DockBuilderDockWindow(vpName.c_str(), this->_dockMainId);
-        VTP.clear();
+        vtp.clear();
     }
 }
 
