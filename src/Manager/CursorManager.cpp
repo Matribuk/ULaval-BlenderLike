@@ -14,20 +14,20 @@ static int shapeToIndex(int shape) {
 }
 
 void CursorManager::init(GLFWwindow* window) {
-    _window = window;
-    _cursors[0] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-    _cursors[1] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
-    _cursors[2] = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
-    _cursors[3] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
-    _cursors[4] = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
-    _cursors[5] = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
+    this->_window = window;
+    this->_cursors[0] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+    this->_cursors[1] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+    this->_cursors[2] = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
+    this->_cursors[3] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+    this->_cursors[4] = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
+    this->_cursors[5] = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
 }
 void CursorManager::requestCursor(CursorLayer layer, int shape) {
-    _requested[(int)layer] = shape;
+    this->_requested[(int)layer] = shape;
 }
 
 void CursorManager::resetCursor(CursorLayer layer) {
-    _requested[(int)layer] = GLFW_ARROW_CURSOR;
+    this->_requested[(int)layer] = GLFW_ARROW_CURSOR;
 }
 
 void CursorManager::apply() {
@@ -48,9 +48,9 @@ void CursorManager::apply() {
         }
     }
 
-    if (chosen != _currentShape) {
-        _currentShape = chosen;
-        int idx = shapeToIndex(_currentShape);
-        glfwSetCursor(_window, _cursors[idx]);
+    if (chosen != this->_currentShape) {
+        this->_currentShape = chosen;
+        int idx = shapeToIndex(this->_currentShape);
+        glfwSetCursor(this->_window, this->_cursors[idx]);
     }
 }
