@@ -26,6 +26,12 @@ class ColorPanel {
         std::set<EntityID> _prevSelectedEntities;
         ofColor _prevColor;
 
+        std::vector<ofColor> _savedColors;
+        int _selectedSavedColorIndex;
+
         void _addColorComponent(EntityID entityId);
         bool _checkAllEntitiesHaveSameColor(const std::set<EntityID>& entities, ofColor& outColor) const;
+        void _renderSavedColorsPalette();
+        void _addCurrentColorToPalette();
+        void _removeSelectedColor();
 };

@@ -55,7 +55,9 @@ void PropertiesManager::render()
 
         if (ImGui::CollapsingHeader("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Indent(10.0f);
+            ImGui::BeginChild("ColorPanelContent", ImVec2(0, 400), false);
             this->_colorPanel->render();
+            ImGui::EndChild();
             ImGui::Unindent(10.0f);
         }
 
