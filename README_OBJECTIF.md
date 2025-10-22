@@ -7,14 +7,14 @@
 - [x] Affichage de ces images dans la scène sous une forme visuelle (sprite, texture, plan, etc.)
 
 ### 1.2 Exportation d’images
-- [ ] En cours d’exécution, export interactif de séquences d’images correspondant au rendu de la scène
-- [ ] Définir un intervalle de temps pour la séquence
-- [ ] Sauvegarde automatique dans un dossier défini par l’utilisateur
+- [x] En cours d’exécution, export interactif de séquences d’images correspondant au rendu de la scène
+- [x] Définir un intervalle de temps pour la séquence
+- [x] Sauvegarde automatique dans un dossier défini par l’utilisateur
 
 ### 1.4 Palette de couleur
-- [ ] Création d’une palette personnalisée d’au moins 4 couleurs
-- [ ] Possibilité de réutiliser ces couleurs pour colorer des éléments visuels
-- [ ] Interface de sélection et modification des couleurs
+- [x] Création d’une palette personnalisée d’au moins 4 couleurs
+- [x] Possibilité de réutiliser ces couleurs pour colorer des éléments visuels
+- [x] Interface de sélection et modification des couleurs
 
 ---
 
