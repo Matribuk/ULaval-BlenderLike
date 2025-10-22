@@ -200,7 +200,7 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
 
     if (!rect.inside(mouseGlobalPos.x, mouseGlobalPos.y)) return INVALID_ENTITY;
 
-    auto selectableFilter = [](EntityID id, Transform* t, ComponentRegistry& reg) -> bool {
+    EntityFilter selectableFilter = [](EntityID id, Transform* t, ComponentRegistry& reg) -> bool {
         return reg.getComponent<Selectable>(id) != nullptr;
     };
 

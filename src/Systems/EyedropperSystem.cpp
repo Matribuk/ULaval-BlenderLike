@@ -36,7 +36,7 @@ void EyedropperSystem::_handleMouseMove(const MouseEvent& e)
 {
     if (!this->_isEyedropperMode) return;
 
-    auto renderableFilter = [](EntityID id, Transform* t, ComponentRegistry& reg) -> bool {
+    EntityFilter renderableFilter = [](EntityID id, Transform* t, ComponentRegistry& reg) -> bool {
         return reg.getComponent<Renderable>(id) != nullptr;
     };
 
@@ -58,7 +58,7 @@ void EyedropperSystem::_handleMousePressed(const MouseEvent& e)
 {
     if (!this->_isEyedropperMode) return;
 
-    auto renderableFilter = [](EntityID id, Transform* t, ComponentRegistry& reg) -> bool {
+    EntityFilter renderableFilter = [](EntityID id, Transform* t, ComponentRegistry& reg) -> bool {
         return reg.getComponent<Renderable>(id) != nullptr;
     };
 
