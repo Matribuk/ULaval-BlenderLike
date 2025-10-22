@@ -80,7 +80,7 @@ void SelectionSystem::transformAABB(const glm::vec3& localMin, const glm::vec3& 
     }
 }
 
-EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouseGlobalPos)
+EntityID SelectionSystem::performRaycast(const glm::vec2& mouseGlobalPos, EntityFilter filter)
 {
     Viewport* vp = nullptr;
     try { vp = this->_viewportManager->getActiveViewport(); } catch(...) { vp = nullptr; }
@@ -151,8 +151,7 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         if (id == INVALID_ENTITY || this->_componentRegistry.hasComponent<Camera>(id)) continue;
 
         Transform* t = this->_componentRegistry.getComponent<Transform>(id);
-        Selectable* s = this->_componentRegistry.getComponent<Selectable>(id);
-        if (!t || !s) continue;
+        if (!t || !filter(id, t, this->_componentRegistry)) continue;
 
         glm::mat4 transformMatrix = getOrComputeTransformMatrix(t);
         glm::vec3 localMin, localMax;
@@ -187,6 +186,26 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         }
     }
 
+    return closest;
+}
+
+EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouseGlobalPos)
+{
+    Viewport* vp = nullptr;
+    try { vp = this->_viewportManager->getActiveViewport(); } catch(...) { vp = nullptr; }
+    if (!vp) return INVALID_ENTITY;
+
+    ofRectangle rect;
+    try { rect = vp->getRect(); } catch(...) { return INVALID_ENTITY; }
+
+    if (!rect.inside(mouseGlobalPos.x, mouseGlobalPos.y)) return INVALID_ENTITY;
+
+    auto selectableFilter = [](EntityID id, Transform* t, ComponentRegistry& reg) -> bool {
+        return reg.getComponent<Selectable>(id) != nullptr;
+    };
+
+    EntityID closest = this->performRaycast(mouseGlobalPos, selectableFilter);
+
     InputManager& input = InputManager::get();
     bool isCtrlPressed = input.isKeyPressed(OF_KEY_LEFT_CONTROL) || input.isKeyPressed(OF_KEY_CONTROL);
 
@@ -195,7 +214,6 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         else this->_updateSelection(closest);
     } else
         if (!isCtrlPressed) this->_updateSelection(INVALID_ENTITY);
-
 
     return closest;
 }

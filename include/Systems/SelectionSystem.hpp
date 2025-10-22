@@ -27,8 +27,11 @@
 #include <limits>
 #include <iostream>
 #include <set>
+#include <functional>
 
 class ViewportManager;
+
+using EntityFilter = std::function<bool(EntityID, Transform*, ComponentRegistry&)>;
 
 class SelectionSystem {
     public:
@@ -60,6 +63,8 @@ class SelectionSystem {
         static bool intersectsRayAABB(const glm::vec3& rayOrigin, const glm::vec3& rayDir,
                                      const glm::vec3& aabbMin, const glm::vec3& aabbMax,
                                      float& outT);
+
+        EntityID performRaycast(const glm::vec2& mouseGlobalPos, EntityFilter filter);
 
     private:
         ComponentRegistry& _componentRegistry;

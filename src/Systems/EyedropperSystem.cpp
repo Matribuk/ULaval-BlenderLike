@@ -1,17 +1,15 @@
 #include "Systems/EyedropperSystem.hpp"
-#include "Systems/SelectionSystem.hpp"
-#include "Manager/ViewportManager.hpp"
-#include "UI/Viewport.hpp"
-#include "Events/EventTypes/EyedropperCancelledEvent.hpp"
 
 EyedropperSystem::EyedropperSystem(
     ComponentRegistry& registry,
     EntityManager& entityManager,
-    EventManager& eventManager
+    EventManager& eventManager,
+    SelectionSystem& selectionSystem
 )
     : _componentRegistry(registry),
       _entityManager(entityManager),
-      _eventManager(eventManager)
+      _eventManager(eventManager),
+      _selectionSystem(selectionSystem)
 {
 }
 
@@ -38,8 +36,12 @@ void EyedropperSystem::_handleMouseMove(const MouseEvent& e)
 {
     if (!this->_isEyedropperMode) return;
 
+    auto renderableFilter = [](EntityID id, Transform* t, ComponentRegistry& reg) -> bool {
+        return reg.getComponent<Renderable>(id) != nullptr;
+    };
+
     glm::vec2 mousePos(static_cast<float>(e.x), static_cast<float>(e.y));
-    EntityID entity = this->_performRaycast(mousePos);
+    EntityID entity = this->_selectionSystem.performRaycast(mousePos, renderableFilter);
 
     if (entity != INVALID_ENTITY) {
         Renderable* r = this->_componentRegistry.getComponent<Renderable>(entity);
@@ -56,8 +58,12 @@ void EyedropperSystem::_handleMousePressed(const MouseEvent& e)
 {
     if (!this->_isEyedropperMode) return;
 
+    auto renderableFilter = [](EntityID id, Transform* t, ComponentRegistry& reg) -> bool {
+        return reg.getComponent<Renderable>(id) != nullptr;
+    };
+
     glm::vec2 mousePos(static_cast<float>(e.x), static_cast<float>(e.y));
-    EntityID entity = this->_performRaycast(mousePos);
+    EntityID entity = this->_selectionSystem.performRaycast(mousePos, renderableFilter);
 
     if (entity != INVALID_ENTITY) {
         Renderable* r = this->_componentRegistry.getComponent<Renderable>(entity);
@@ -68,114 +74,4 @@ void EyedropperSystem::_handleMousePressed(const MouseEvent& e)
         this->_isEyedropperMode = false;
         this->_eventManager.emit(EyedropperCancelledEvent());
     }
-}
-
-EntityID EyedropperSystem::_performRaycast(const glm::vec2& mouseGlobalPos)
-{
-    Viewport* vp = nullptr;
-    try { vp = this->_viewportManager->getActiveViewport(); } catch(...) { vp = nullptr; }
-    if (!vp) return INVALID_ENTITY;
-
-    ofRectangle rect;
-    try { rect = vp->getRect(); } catch(...) { return INVALID_ENTITY; }
-
-    if (!rect.inside(mouseGlobalPos.x, mouseGlobalPos.y)) return INVALID_ENTITY;
-
-    float localX = mouseGlobalPos.x - rect.x;
-    float localY = mouseGlobalPos.y - rect.y;
-    int vpWidth = static_cast<int>(rect.getWidth());
-    int vpHeight = static_cast<int>(rect.getHeight());
-
-    if (vpWidth <= 0 || vpHeight <= 0) return INVALID_ENTITY;
-
-    EntityID camEntityId = vp->getCamera();
-    if (camEntityId == INVALID_ENTITY) camEntityId = this->_cameraManager->getActiveCameraId();
-    if (camEntityId == INVALID_ENTITY) return INVALID_ENTITY;
-
-    Camera* cam = this->_componentRegistry.getComponent<Camera>(camEntityId);
-    Transform* camTransform = this->_componentRegistry.getComponent<Transform>(camEntityId);
-    if (!cam || !camTransform) return INVALID_ENTITY;
-
-    glm::mat4 proj;
-    if (fabs(glm::determinant(cam->projMatrix)) > 1e-8f) {
-        proj = cam->projMatrix;
-    } else {
-        float viewportAspect = static_cast<float>(vpWidth) / static_cast<float>(vpHeight);
-        if (cam->isOrtho) {
-            float halfWidth = cam->orthoScale * viewportAspect;
-            float halfHeight = cam->orthoScale;
-            proj = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, cam->nearClip, cam->farClip);
-        } else {
-            proj = glm::perspective(glm::radians(cam->fov), viewportAspect, cam->nearClip, cam->farClip);
-        }
-    }
-
-    glm::vec3 camPos = camTransform->position;
-    glm::vec3 forward = glm::normalize(cam->forward);
-    glm::vec3 upVec = glm::normalize(-cam->up);
-    glm::mat4 view = glm::lookAt(camPos, camPos + forward, upVec);
-
-    if (fabs(glm::determinant(proj * view)) < 1e-8f) return INVALID_ENTITY;
-
-    glm::mat4 invVP;
-    try { invVP = glm::inverse(proj * view); } catch(...) { return INVALID_ENTITY; }
-
-    float ndcX = 1.0f - (localX / static_cast<float>(vpWidth)) * 2.0f;
-    float ndcY = (localY / static_cast<float>(vpHeight)) * 2.0f - 1.0f;
-
-    glm::vec4 clipNear(ndcX, ndcY, -1.0f, 1.0f);
-    glm::vec4 clipFar(ndcX, ndcY, 1.0f, 1.0f);
-
-    glm::vec4 worldNear4 = invVP * clipNear;
-    glm::vec4 worldFar4  = invVP * clipFar;
-
-    if (fabs(worldNear4.w) < 1e-8f || fabs(worldFar4.w) < 1e-8f) return INVALID_ENTITY;
-
-    glm::vec3 rayOrigin = glm::vec3(worldNear4) / worldNear4.w;
-    glm::vec3 rayDir    = glm::normalize(glm::vec3(worldFar4) / worldFar4.w - rayOrigin);
-
-    EntityID closest = INVALID_ENTITY;
-    float closestT = std::numeric_limits<float>::max();
-
-    for (EntityID id : this->_entityManager.getAllEntities()) {
-        if (id == INVALID_ENTITY || this->_componentRegistry.hasComponent<Camera>(id)) continue;
-
-        Transform* t = this->_componentRegistry.getComponent<Transform>(id);
-        Renderable* r = this->_componentRegistry.getComponent<Renderable>(id);
-        if (!t || !r) continue;
-
-        glm::mat4 transformMatrix = SelectionSystem::getOrComputeTransformMatrix(t);
-        glm::vec3 localMin, localMax;
-
-        if (Box* box = this->_componentRegistry.getComponent<Box>(id)) {
-            glm::vec3 half = box->dimensions * 0.5f;
-            localMin = -half;
-            localMax = half;
-        } else if (Sphere* sphere = this->_componentRegistry.getComponent<Sphere>(id)) {
-            glm::vec3 half(sphere->radius);
-            localMin = -half;
-            localMax = half;
-        } else if (Plane* plane = this->_componentRegistry.getComponent<Plane>(id)) {
-            glm::vec3 half(plane->size.x*0.5f, 0.5f, plane->size.y*0.5f);
-            localMin = -half;
-            localMax = half;
-        } else {
-            glm::vec3 half = glm::max(t->scale * 0.5f, glm::vec3(0.1f));
-            localMin = -half;
-            localMax = half;
-        }
-
-        glm::vec3 worldMin, worldMax;
-        SelectionSystem::transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
-
-        float tHit = 0.0f;
-        bool hit = SelectionSystem::intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
-
-        if (hit && tHit < closestT) {
-            closestT = tHit;
-            closest = id;
-        }
-    }
-
-    return closest;
 }

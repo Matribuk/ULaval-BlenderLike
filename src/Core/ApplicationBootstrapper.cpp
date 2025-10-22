@@ -81,7 +81,8 @@ bool ApplicationBootstrapper::_InitializeSystems()
     this->_systems.eyedropperSystem = std::make_unique<EyedropperSystem>(
         this->_componentRegistry,
         this->_entityManager,
-        this->_eventManager
+        this->_eventManager,
+        *this->_systems.selectionSystem
     );
 
     this->_systems.cameraSystem = std::make_unique<CameraSystem>(

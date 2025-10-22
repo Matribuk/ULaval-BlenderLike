@@ -7,15 +7,20 @@
 #include "Events/EventTypes/MouseEvent.hpp"
 #include "Events/EventTypes/ColorPreviewEvent.hpp"
 #include "Events/EventTypes/ColorPickedEvent.hpp"
+#include "Events/EventTypes/EyedropperCancelledEvent.hpp"
 
 #include "Manager/CameraManager.hpp"
 #include "Manager/ViewportManager.hpp"
+
+#include "Systems/SelectionSystem.hpp"
 
 #include "Components/Renderable.hpp"
 #include "Components/Transform.hpp"
 #include "Components/Primitive/Sphere.hpp"
 #include "Components/Primitive/Plane.hpp"
 #include "Components/Primitive/Box.hpp"
+
+#include "UI/Viewport.hpp"
 
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -31,7 +36,8 @@ class EyedropperSystem {
         EyedropperSystem(
             ComponentRegistry& componentRegistry,
             EntityManager& entityManager,
-            EventManager& eventManager
+            EventManager& eventManager,
+            SelectionSystem& selectionSystem
         );
 
         ~EyedropperSystem() = default;
@@ -43,6 +49,7 @@ class EyedropperSystem {
         ComponentRegistry& _componentRegistry;
         EntityManager& _entityManager;
         EventManager& _eventManager;
+        SelectionSystem& _selectionSystem;
         CameraManager* _cameraManager = nullptr;
         ViewportManager* _viewportManager = nullptr;
 
@@ -50,5 +57,4 @@ class EyedropperSystem {
 
         void _handleMouseMove(const MouseEvent& e);
         void _handleMousePressed(const MouseEvent& e);
-        EntityID _performRaycast(const glm::vec2& mouseGlobalPos);
 };
