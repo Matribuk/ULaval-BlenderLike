@@ -22,7 +22,10 @@ enum class EventType {
     MOUSE,
     KEY,
     WINDOW,
-    ASSET_DROP
+    ASSET_DROP,
+    COLOR_PREVIEW,
+    COLOR_PICKED,
+    EYEDROPPER_CANCELLED
 };
 
 struct Event {

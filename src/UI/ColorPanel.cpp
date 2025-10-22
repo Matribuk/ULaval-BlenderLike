@@ -1,8 +1,12 @@
 #include "UI/ColorPanel.hpp"
+#include "Events/EventTypes/ColorPreviewEvent.hpp"
+#include "Events/EventTypes/ColorPickedEvent.hpp"
+#include "Events/EventTypes/EyedropperCancelledEvent.hpp"
 
-ColorPanel::ColorPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem)
+ColorPanel::ColorPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem, EventManager& eventManager)
     : _color(ofColor::white), _componentRegistry(componentRegistry), _selectionSystem(selectionSystem),
-      _prevColor(ofColor::white), _selectedSavedColorIndex(-1)
+      _eventManager(eventManager), _prevColor(ofColor::white), _selectedSavedColorIndex(-1),
+      _isPreviewingColor(false), _previewColor(ofColor::white), _isEyedropperButtonActive(false)
 {
     if (this->_componentRegistry.hasComponent<Renderable>(selectionSystem.getSelectedEntity())) {
         Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(selectionSystem.getSelectedEntity());
@@ -12,6 +16,40 @@ ColorPanel::ColorPanel(ComponentRegistry& componentRegistry, SelectionSystem& se
             this->_color = ofColor::white;
     } else
         this->_color = ofColor::white;
+
+    this->_eventManager.subscribe<ColorPreviewEvent>([this](const ColorPreviewEvent& e) {
+        if (e.hasColor) {
+            this->_isPreviewingColor = true;
+            this->_previewColor = e.previewColor;
+        } else {
+            this->_isPreviewingColor = false;
+        }
+    });
+
+    this->_eventManager.subscribe<ColorPickedEvent>([this](const ColorPickedEvent& e) {
+        this->_color = e.pickedColor;
+        this->_isPreviewingColor = false;
+        this->_isEyedropperButtonActive = false;
+
+        if (this->_onEyedropperModeChange) {
+            this->_onEyedropperModeChange(false);
+        }
+
+        const std::set<EntityID>& selectedEntities = this->_selectionSystem.getSelectedEntities();
+        for (EntityID id : selectedEntities) {
+            Renderable* r = this->_componentRegistry.getComponent<Renderable>(id);
+            if (r) r->color = this->_color;
+        }
+    });
+
+    this->_eventManager.subscribe<EyedropperCancelledEvent>([this](const EyedropperCancelledEvent& e) {
+        this->_isPreviewingColor = false;
+        this->_isEyedropperButtonActive = false;
+
+        if (this->_onEyedropperModeChange) {
+            this->_onEyedropperModeChange(false);
+        }
+    });
 }
 
 bool ColorPanel::_checkAllEntitiesHaveSameColor(const std::set<EntityID>& entities, ofColor& outColor) const
@@ -81,13 +119,38 @@ void ColorPanel::render()
     ofColor commonColor;
     bool colorSame = this->_checkAllEntitiesHaveSameColor(selectedEntities, commonColor);
 
-    ImVec4 color = colorSame ? ImVec4(commonColor) : ImVec4(primaryRenderable->color);
+    ofColor displayColor = this->_isPreviewingColor ? this->_previewColor : (colorSame ? commonColor : primaryRenderable->color);
+    ImVec4 color = ImVec4(displayColor);
 
     bool edited = false;
     if (selectedEntities.size() > 1) ImGui::Text("Color (%zu entities selected)", selectedEntities.size());
     else ImGui::Text("Color");
 
-    ImGui::BeginDisabled(!colorSame);
+    ImGui::SameLine();
+
+    ImVec4 buttonColor = this->_isEyedropperButtonActive ? ImVec4(0.3f, 0.5f, 0.8f, 1.0f) : ImVec4(0.26f, 0.26f, 0.26f, 1.0f);
+    ImVec4 buttonHovered = this->_isEyedropperButtonActive ? ImVec4(0.4f, 0.6f, 0.9f, 1.0f) : ImVec4(0.36f, 0.36f, 0.36f, 1.0f);
+    ImVec4 buttonActive = this->_isEyedropperButtonActive ? ImVec4(0.2f, 0.4f, 0.7f, 1.0f) : ImVec4(0.16f, 0.16f, 0.16f, 1.0f);
+
+    ImGui::PushStyleColor(ImGuiCol_Button, buttonColor);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, buttonHovered);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, buttonActive);
+
+    if (ImGui::Button("Eyedropper")) {
+        this->_isEyedropperButtonActive = !this->_isEyedropperButtonActive;
+        if (this->_onEyedropperModeChange) {
+            this->_onEyedropperModeChange(this->_isEyedropperButtonActive);
+        }
+    }
+
+    ImGui::PopStyleColor(3);
+
+    if (this->_isPreviewingColor) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "[Click to apply]");
+    }
+
+    ImGui::BeginDisabled(!colorSame && !this->_isPreviewingColor);
     edited |= ImGui::ColorEdit4("RGBA", (float*)&color);
 
     ImGui::Spacing();
@@ -140,6 +203,11 @@ void ColorPanel::setSelectedColor(ofColor color, Renderable* renderable)
 const ofColor& ColorPanel::getSelectedColor() const
 {
     return this->_color;
+}
+
+void ColorPanel::setEyedropperModeCallback(std::function<void(bool)> callback)
+{
+    this->_onEyedropperModeChange = callback;
 }
 
 void ColorPanel::_addColorComponent(EntityID entityId)

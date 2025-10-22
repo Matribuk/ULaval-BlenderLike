@@ -78,6 +78,12 @@ bool ApplicationBootstrapper::_InitializeSystems()
         this->_eventManager
     );
 
+    this->_systems.eyedropperSystem = std::make_unique<EyedropperSystem>(
+        this->_componentRegistry,
+        this->_entityManager,
+        this->_eventManager
+    );
+
     this->_systems.cameraSystem = std::make_unique<CameraSystem>(
         this->_componentRegistry,
         *this->_systems.transformSystem
@@ -153,7 +159,7 @@ bool ApplicationBootstrapper::_InitializeUI()
     this->_ui.skyboxPanel = std::make_unique<SkyboxPanel>(*this->_systems.renderSystem);
     this->_ui.materialPanel = std::make_unique<MaterialPanel>(this->_componentRegistry, *this->_systems.selectionSystem, *this->_managers.resourceManager);
     this->_ui.transformPanel = std::make_unique<TranformPanel>(this->_componentRegistry, *this->_systems.selectionSystem);
-    this->_ui.colorPanel = std::make_unique<ColorPanel>(this->_componentRegistry, *this->_systems.selectionSystem);
+    this->_ui.colorPanel = std::make_unique<ColorPanel>(this->_componentRegistry, *this->_systems.selectionSystem, this->_eventManager);
     this->_ui.instructionsPanel = std::make_unique<InstructionsPanel>();
     this->_ui.eventLogPanel = std::make_unique<EventLogPanel>();
     this->_ui.toolbar = std::make_unique<Toolbar>(*this->_managers.cursorManager);
@@ -190,12 +196,19 @@ bool ApplicationBootstrapper::_SetupCallbacks()
 
     this->_managers.sceneManager->setSelectionSystem(*this->_systems.selectionSystem);
     this->_systems.selectionSystem->setupManagers(*this->_managers.cameraManager, *this->_managers.viewportManager);
+    this->_systems.eyedropperSystem->setupManagers(*this->_managers.cameraManager, *this->_managers.viewportManager);
     this->_systems.renderSystem->setup(*this->_managers.cameraManager, *this->_systems.selectionSystem);
     this->_managers.propertiesManager->setupUI(
         *this->_ui.transformPanel,
         *this->_ui.materialPanel,
         *this->_ui.colorPanel
     );
+
+    this->_ui.colorPanel->setEyedropperModeCallback([this](bool active) {
+        this->_systems.selectionSystem->setSelectMode(!active);
+        this->_systems.eyedropperSystem->setEyedropperMode(active);
+    });
+
     this->_managers.actionManager->registerAllActions();
     this->_managers.uiManager->setupUI(
         *this->_ui.toolbar,

@@ -10,6 +10,7 @@
 #include "Systems/CameraSystem.hpp"
 #include "Systems/RenderSystem.hpp"
 #include "Systems/SelectionSystem.hpp"
+#include "Systems/EyedropperSystem.hpp"
 #include "Systems/ImageSequenceExporter.hpp"
 
 #include "Manager/CameraManager.hpp"
@@ -52,6 +53,7 @@ struct SystemsContext {
     std::unique_ptr<CameraSystem> cameraSystem;
     std::unique_ptr<RenderSystem> renderSystem;
     std::unique_ptr<SelectionSystem> selectionSystem;
+    std::unique_ptr<EyedropperSystem> eyedropperSystem;
     std::unique_ptr<ImageSequenceExporter> imageExporter;
 };
 
