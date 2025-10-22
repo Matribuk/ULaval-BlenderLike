@@ -154,7 +154,7 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         Selectable* s = this->_componentRegistry.getComponent<Selectable>(id);
         if (!t || !s) continue;
 
-        glm::mat4 transformMatrix = SelectionSystem::getOrComputeTransformMatrix(t);
+        glm::mat4 transformMatrix = getOrComputeTransformMatrix(t);
         glm::vec3 localMin, localMax;
 
         if (Box* box = this->_componentRegistry.getComponent<Box>(id)) {
@@ -176,10 +176,10 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         }
 
         glm::vec3 worldMin, worldMax;
-        SelectionSystem::transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
+        transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
 
         float tHit = 0.0f;
-        bool hit = SelectionSystem::intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
+        bool hit = intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
 
         if (hit && tHit < closestT) {
             closestT = tHit;
