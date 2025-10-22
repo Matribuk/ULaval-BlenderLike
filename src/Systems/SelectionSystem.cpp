@@ -40,7 +40,7 @@ void SelectionSystem::_handleMouseEvent(const MouseEvent& e)
         this->_performRaycastInActiveViewport(mousePos);
 }
 
-glm::mat4 SelectionSystem::_getOrComputeTransformMatrix(Transform* t) const
+glm::mat4 SelectionSystem::getOrComputeTransformMatrix(Transform* t)
 {
     if (!t->isDirty && glm::determinant(t->matrix) != 0.0f) {
         return t->matrix;
@@ -53,9 +53,9 @@ glm::mat4 SelectionSystem::_getOrComputeTransformMatrix(Transform* t) const
     return matrice;
 }
 
-void SelectionSystem::_transformAABB(const glm::vec3& localMin, const glm::vec3& localMax,
-                                     const glm::mat4& transform,
-                                     glm::vec3& outMin, glm::vec3& outMax) const
+void SelectionSystem::transformAABB(const glm::vec3& localMin, const glm::vec3& localMax,
+                                   const glm::mat4& transform,
+                                   glm::vec3& outMin, glm::vec3& outMax)
 {
     glm::vec3 corners[8] = {
         glm::vec3(localMin.x, localMin.y, localMin.z),
@@ -154,7 +154,7 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         Selectable* s = this->_componentRegistry.getComponent<Selectable>(id);
         if (!t || !s) continue;
 
-        glm::mat4 transformMatrix = _getOrComputeTransformMatrix(t);
+        glm::mat4 transformMatrix = SelectionSystem::getOrComputeTransformMatrix(t);
         glm::vec3 localMin, localMax;
 
         if (Box* box = this->_componentRegistry.getComponent<Box>(id)) {
@@ -176,10 +176,10 @@ EntityID SelectionSystem::_performRaycastInActiveViewport(const glm::vec2& mouse
         }
 
         glm::vec3 worldMin, worldMax;
-        this->_transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
+        SelectionSystem::transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
 
         float tHit = 0.0f;
-        bool hit = this->_intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
+        bool hit = SelectionSystem::intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
 
         if (hit && tHit < closestT) {
             closestT = tHit;
@@ -282,9 +282,9 @@ void SelectionSystem::_updateMultiSelection()
     }
 }
 
-bool SelectionSystem::_intersectsRayAABB(
+bool SelectionSystem::intersectsRayAABB(
     const glm::vec3& rayOrigin, const glm::vec3& rayDir,
-    const glm::vec3& aabbMin, const glm::vec3& aabbMax, float& outT) const
+    const glm::vec3& aabbMin, const glm::vec3& aabbMax, float& outT)
 {
     float tmin = -std::numeric_limits<float>::infinity();
     float tmax = std::numeric_limits<float>::infinity();

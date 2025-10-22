@@ -1,4 +1,5 @@
 #include "Systems/EyedropperSystem.hpp"
+#include "Systems/SelectionSystem.hpp"
 #include "Manager/ViewportManager.hpp"
 #include "UI/Viewport.hpp"
 #include "Events/EventTypes/EyedropperCancelledEvent.hpp"
@@ -66,46 +67,6 @@ void EyedropperSystem::_handleMousePressed(const MouseEvent& e)
     } else {
         this->_isEyedropperMode = false;
         this->_eventManager.emit(EyedropperCancelledEvent());
-    }
-}
-
-glm::mat4 EyedropperSystem::_getOrComputeTransformMatrix(Transform* t) const
-{
-    if (!t->isDirty && glm::determinant(t->matrix) != 0.0f) {
-        return t->matrix;
-    }
-
-    glm::mat4 matrice = glm::translate(glm::mat4(1.0f), t->position);
-    matrice = matrice * glm::yawPitchRoll(t->rotation.y, t->rotation.x, t->rotation.z);
-    matrice = glm::scale(matrice, t->scale);
-
-    return matrice;
-}
-
-void EyedropperSystem::_transformAABB(const glm::vec3& localMin, const glm::vec3& localMax,
-                                      const glm::mat4& transform,
-                                      glm::vec3& outMin, glm::vec3& outMax) const
-{
-    glm::vec3 corners[8] = {
-        glm::vec3(localMin.x, localMin.y, localMin.z),
-        glm::vec3(localMax.x, localMin.y, localMin.z),
-        glm::vec3(localMin.x, localMax.y, localMin.z),
-        glm::vec3(localMax.x, localMax.y, localMin.z),
-        glm::vec3(localMin.x, localMin.y, localMax.z),
-        glm::vec3(localMax.x, localMin.y, localMax.z),
-        glm::vec3(localMin.x, localMax.y, localMax.z),
-        glm::vec3(localMax.x, localMax.y, localMax.z)
-    };
-
-    outMin = glm::vec3(std::numeric_limits<float>::max());
-    outMax = glm::vec3(std::numeric_limits<float>::lowest());
-
-    for (int i = 0; i < 8; ++i) {
-        glm::vec4 transformed = transform * glm::vec4(corners[i], 1.0f);
-        glm::vec3 point = glm::vec3(transformed) / transformed.w;
-
-        outMin = glm::min(outMin, point);
-        outMax = glm::max(outMax, point);
     }
 }
 
@@ -183,7 +144,7 @@ EntityID EyedropperSystem::_performRaycast(const glm::vec2& mouseGlobalPos)
         Renderable* r = this->_componentRegistry.getComponent<Renderable>(id);
         if (!t || !r) continue;
 
-        glm::mat4 transformMatrix = _getOrComputeTransformMatrix(t);
+        glm::mat4 transformMatrix = SelectionSystem::getOrComputeTransformMatrix(t);
         glm::vec3 localMin, localMax;
 
         if (Box* box = this->_componentRegistry.getComponent<Box>(id)) {
@@ -205,10 +166,10 @@ EntityID EyedropperSystem::_performRaycast(const glm::vec2& mouseGlobalPos)
         }
 
         glm::vec3 worldMin, worldMax;
-        this->_transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
+        SelectionSystem::transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
 
         float tHit = 0.0f;
-        bool hit = this->_intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
+        bool hit = SelectionSystem::intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
 
         if (hit && tHit < closestT) {
             closestT = tHit;
@@ -217,30 +178,4 @@ EntityID EyedropperSystem::_performRaycast(const glm::vec2& mouseGlobalPos)
     }
 
     return closest;
-}
-
-bool EyedropperSystem::_intersectsRayAABB(
-    const glm::vec3& rayOrigin, const glm::vec3& rayDir,
-    const glm::vec3& aabbMin, const glm::vec3& aabbMax, float& outT) const
-{
-    float tmin = -std::numeric_limits<float>::infinity();
-    float tmax = std::numeric_limits<float>::infinity();
-
-    for (int i = 0; i < 3; ++i) {
-        if (fabs(rayDir[i]) < 1e-8f) {
-            if (rayOrigin[i] < aabbMin[i] || rayOrigin[i] > aabbMax[i]) return false;
-        } else {
-            float invD = 1.0f / rayDir[i];
-            float t1 = (aabbMin[i] - rayOrigin[i]) * invD;
-            float t2 = (aabbMax[i] - rayOrigin[i]) * invD;
-            if (t1 > t2) std::swap(t1, t2);
-            tmin = std::max(tmin, t1);
-            tmax = std::min(tmax, t2);
-            if (tmin > tmax) return false;
-        }
-    }
-
-    if (tmax < 0.0f) return false;
-    outT = tmin >= 0.0f ? tmin : tmax;
-    return true;
 }

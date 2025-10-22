@@ -53,6 +53,14 @@ class SelectionSystem {
         void removeFromSelection(EntityID entityId);
         void toggleSelection(EntityID entityId);
 
+        static glm::mat4 getOrComputeTransformMatrix(Transform* t);
+        static void transformAABB(const glm::vec3& localMin, const glm::vec3& localMax,
+                                 const glm::mat4& transform,
+                                 glm::vec3& outMin, glm::vec3& outMax);
+        static bool intersectsRayAABB(const glm::vec3& rayOrigin, const glm::vec3& rayDir,
+                                     const glm::vec3& aabbMin, const glm::vec3& aabbMax,
+                                     float& outT);
+
     private:
         ComponentRegistry& _componentRegistry;
         EntityManager& _entityManager;
@@ -68,11 +76,4 @@ class SelectionSystem {
         EntityID _performRaycastInActiveViewport(const glm::vec2& mouseGlobalPos);
         void _updateSelection(EntityID selected);
         void _updateMultiSelection();
-        bool _intersectsRayAABB(const glm::vec3& rayOrigin, const glm::vec3& rayDir,
-                            const glm::vec3& aabbMin, const glm::vec3& aabbMax, float& outT) const;
-
-        glm::mat4 _getOrComputeTransformMatrix(Transform* t) const;
-        void _transformAABB(const glm::vec3& localMin, const glm::vec3& localMax,
-                           const glm::mat4& transform,
-                           glm::vec3& outMin, glm::vec3& outMax) const;
 };
