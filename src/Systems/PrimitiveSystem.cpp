@@ -157,8 +157,32 @@ ofMesh PrimitiveSystem::_generateSphereMesh(float radius)
 
 ofMesh PrimitiveSystem::_generatePlaneMesh(const glm::vec2& size)
 {
-    ofMesh mesh = ofMesh::plane(size.x, size.y, 2, 2);
+    ofMesh mesh;
+    mesh.setMode(OF_PRIMITIVE_TRIANGLES);
+
+    float halfW = size.x * 0.5f;
+    float halfH = size.y * 0.5f;
+
+    mesh.addVertex(glm::vec3(-halfW, -halfH, 0.0f));
+    mesh.addVertex(glm::vec3(halfW, -halfH, 0.0f));
+    mesh.addVertex(glm::vec3(halfW, halfH, 0.0f));
+    mesh.addVertex(glm::vec3(-halfW, halfH, 0.0f));
+
+    glm::vec3 normal(0.0f, 0.0f, 1.0f);
+    mesh.addNormal(normal);
+    mesh.addNormal(normal);
+    mesh.addNormal(normal);
+    mesh.addNormal(normal);
+
+    mesh.addIndex(0);
+    mesh.addIndex(1);
+    mesh.addIndex(2);
+    mesh.addIndex(0);
+    mesh.addIndex(2);
+    mesh.addIndex(3);
+
     this->_generateDefaultTexCoords(mesh, "box");
+
     return mesh;
 }
 
