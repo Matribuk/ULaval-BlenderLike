@@ -81,7 +81,7 @@ void PrimitivesPanel::_createPrimitive(PrimitiveType type)
     Circle defaultCircle(2.0f, 64);
     Line defaultLine(glm::vec3(-1, 0, 0), glm::vec3(1, 0, 0));
     Rectangle defaultRect(2.0f, 3.0f);
-    Point defaultPoint(2.0f);
+    Point defaultPoint(1.0f);
 
     this->_componentRegistry.registerComponent(entity.getId(), Transform(defaultPos));
 
