@@ -5,6 +5,7 @@
 #include "UI/InstructionsPanel.hpp"
 #include "UI/EventLogPanel.hpp"
 #include "UI/ExportPanel.hpp"
+#include "UI/ImportPanel.hpp"
 #include "UI/AssetsPanel.hpp"
 #include "UI/PrimitivesPanel.hpp"
 #include "UI/ViewportPanel.hpp"
@@ -38,6 +39,7 @@ class UIManager {
             EventLogPanel& eventLogPanel,
             AssetsPanel& assetsPanel,
             ExportPanel& exportPanel,
+            ImportPanel& importPanel,
             PrimitivesPanel& primitivesPanel,
             ViewportPanel& viewportPanel
         );
@@ -54,6 +56,7 @@ class UIManager {
         EventLogPanel* _eventLogPanel;
         AssetsPanel* _assetsPanel;
         ExportPanel* _exportPanel;
+        ImportPanel* _importPanel;
         PrimitivesPanel* _primitivesPanel;
         ViewportPanel* _viewportPanel;
 

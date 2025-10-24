@@ -81,9 +81,16 @@ void ImageSequenceExporter::_captureFrame()
 
 void ImageSequenceExporter::_saveAllFrames()
 {
+    ofDirectory dir(this->_exportFolder);
+    if (!dir.exists()) dir.create(true);
+
     for (size_t i = 0; i < this->_capturedFrames.size(); ++i) {
         std::string filename = this->_generateFilename(i);
         std::string fullPath = this->_exportFolder + "/" + filename;
+
+        ofImage img;
+        img.setFromPixels(this->_capturedFrames[i]);
+        img.save(fullPath);
     }
 
     this->_capturedFrames.clear();

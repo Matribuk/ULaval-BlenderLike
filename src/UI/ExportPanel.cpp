@@ -3,18 +3,37 @@
 ExportPanel::ExportPanel(ImageSequenceExporter& exporter, ViewportManager& viewportManager)
     : _exporter(exporter), _viewportManager(viewportManager)
 {
-    std::strcpy(_folderBuffer, "");
+    _exportFolder = ofToDataPath("exports", true);
+    std::strcpy(_folderBuffer, _exportFolder.c_str());
+}
+
+void ExportPanel::open()
+{
+    _isOpen = true;
+}
+
+void ExportPanel::close()
+{
+    _isOpen = false;
 }
 
 void ExportPanel::render()
 {
-    if (ImGui::Begin("Export", nullptr, ImGuiWindowFlags_NoCollapse))
+    if (!_isOpen) return;
+
+    ImGui::OpenPopup("Export Frame Sequence");
+
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_Appearing);
+
+    if (ImGui::BeginPopupModal("Export Frame Sequence", &_isOpen, ImGuiWindowFlags_NoCollapse))
     {
         std::vector<std::unique_ptr<Viewport>>& viewports = this->_viewportManager.getViewports();
 
         if (viewports.empty()) {
             ImGui::TextDisabled("No viewports available");
-            ImGui::End();
+            ImGui::EndPopup();
             return;
         }
 
@@ -51,9 +70,11 @@ void ExportPanel::render()
 
         ImGui::Separator();
         ImGui::Text("Export Folder:");
-        ImGui::InputText("##folder", _folderBuffer, sizeof(_folderBuffer));
-        ImGui::SameLine();
+        if (ImGui::InputText("##folder", _folderBuffer, sizeof(_folderBuffer))) {
+            _exportFolder = std::string(_folderBuffer);
+        }
 
+        ImGui::SameLine();
         if (ImGui::Button("Browse...")) {
             ofFileDialogResult result = ofSystemLoadDialog("Choose export folder", true);
             if (result.bSuccess) {
@@ -61,6 +82,14 @@ void ExportPanel::render()
                 std::strcpy(_folderBuffer, _exportFolder.c_str());
             }
         }
+
+        ImGui::SameLine();
+        if (ImGui::Button("Default")) {
+            _exportFolder = ofToDataPath("exports", true);
+            std::strcpy(_folderBuffer, _exportFolder.c_str());
+        }
+
+        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Current: %s", _exportFolder.c_str());
 
         ImGui::Separator();
 
@@ -96,6 +125,7 @@ void ExportPanel::render()
         } else {
             ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Stopped");
         }
+
+        ImGui::EndPopup();
     }
-    ImGui::End();
 }

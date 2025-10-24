@@ -11,6 +11,9 @@ class ExportPanel {
         ~ExportPanel() = default;
 
         void render();
+        void open();
+        void close();
+        bool isOpen() const { return _isOpen; }
 
     private:
         ImageSequenceExporter& _exporter;
@@ -21,4 +24,5 @@ class ExportPanel {
         float _durationSeconds = 5.0f;
         std::string _exportFolder = "";
         char _folderBuffer[512] = "";
+        bool _isOpen = false;
 };

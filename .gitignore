@@ -47,3 +47,5 @@ test_*
 *.obj
 *mtl
 *.ply
+*.odt
+*.odt*
