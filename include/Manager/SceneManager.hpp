@@ -23,6 +23,7 @@
 #include "ofxImGui.h"
 
 class SelectionSystem;
+class CameraManager;
 
 struct EntityNode {
     EntityID id;
@@ -48,6 +49,7 @@ class SceneManager {
         const std::vector<EntityID>& getRootEntities() const { return _rootEntities; }
 
         void setSelectionSystem(SelectionSystem& selectionSystem);
+        void setCameraManager(CameraManager& cameraManager);
 
     private:
         EntityManager& _entityManager;
@@ -55,6 +57,7 @@ class SceneManager {
         EventManager& _eventManager;
         TransformSystem& _transformSystem;
         SelectionSystem* _selectionSystem = nullptr;
+        CameraManager* _cameraManager = nullptr;
 
         std::unordered_map<EntityID, EntityNode> _entities;
         std::vector<EntityID> _rootEntities;

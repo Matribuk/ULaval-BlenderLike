@@ -197,6 +197,7 @@ bool ApplicationBootstrapper::_SetupCallbacks()
     });
 
     this->_managers.sceneManager->setSelectionSystem(*this->_systems.selectionSystem);
+    this->_managers.sceneManager->setCameraManager(*this->_managers.cameraManager);
     this->_systems.selectionSystem->setupManagers(*this->_managers.cameraManager, *this->_managers.viewportManager);
     this->_systems.eyedropperSystem->setupManagers(*this->_managers.cameraManager, *this->_managers.viewportManager);
     this->_systems.renderSystem->setup(*this->_managers.cameraManager, *this->_systems.selectionSystem);
