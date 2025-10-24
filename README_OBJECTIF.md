@@ -26,12 +26,12 @@
 
 ### 2.3 Primitives vectorielles
 - [ ] Création interactive d’au moins **6 types de primitives** :
-  - [ ] Point
-  - [ ] Ligne
-  - [ ] Carré
-  - [ ] Rectangle
-  - [ ] Cercle
-  - [ ] Triangle
+  - [x] Point
+  - [x] Ligne
+  - [x] Carré
+  - [x] Rectangle
+  - [x] Cercle
+  - [x] Triangle
 
 ### 2.5 Interface
 - [x] Un ou des éléments d’interface graphique offrent de la rétroaction informative visuelle

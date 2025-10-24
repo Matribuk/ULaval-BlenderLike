@@ -18,6 +18,26 @@ void PrimitiveSystem::generateMeshes() {
             if (Renderable* render = this->_registry.getComponent<Renderable>(id))
                 render->mesh = this->_generatePlaneMesh(plane->size);
         }
+        if (Triangle* triangle = this->_registry.getComponent<Triangle>(id)) {
+            if (Renderable* render = this->_registry.getComponent<Renderable>(id))
+                render->mesh = this->_generateTriangleMesh(triangle->vertex1, triangle->vertex2, triangle->vertex3);
+        }
+        if (Circle* circle = this->_registry.getComponent<Circle>(id)) {
+            if (Renderable* render = this->_registry.getComponent<Renderable>(id))
+                render->mesh = this->_generateCircleMesh(circle->radius, circle->segments);
+        }
+        if (Line* line = this->_registry.getComponent<Line>(id)) {
+            if (Renderable* render = this->_registry.getComponent<Renderable>(id))
+                render->mesh = this->_generateLineMesh(line->start, line->end);
+        }
+        if (Rectangle* rectangle = this->_registry.getComponent<Rectangle>(id)) {
+            if (Renderable* render = this->_registry.getComponent<Renderable>(id))
+                render->mesh = this->_generateRectangleMesh(rectangle->width, rectangle->height);
+        }
+        if (Point* point = this->_registry.getComponent<Point>(id)) {
+            if (Renderable* render = this->_registry.getComponent<Renderable>(id))
+                render->mesh = this->_generatePointMesh(point->size);
+        }
     }
 }
 
@@ -137,8 +157,145 @@ ofMesh PrimitiveSystem::_generateSphereMesh(float radius)
 
 ofMesh PrimitiveSystem::_generatePlaneMesh(const glm::vec2& size)
 {
-    ofMesh mesh = ofMesh::plane(size.x, size.y, 2, 2);
+    ofMesh mesh;
+    mesh.setMode(OF_PRIMITIVE_TRIANGLES);
+
+    float halfW = size.x * 0.5f;
+    float halfH = size.y * 0.5f;
+
+    mesh.addVertex(glm::vec3(-halfW, -halfH, 0.0f));
+    mesh.addVertex(glm::vec3(halfW, -halfH, 0.0f));
+    mesh.addVertex(glm::vec3(halfW, halfH, 0.0f));
+    mesh.addVertex(glm::vec3(-halfW, halfH, 0.0f));
+
+    glm::vec3 normal(0.0f, 0.0f, 1.0f);
+    mesh.addNormal(normal);
+    mesh.addNormal(normal);
+    mesh.addNormal(normal);
+    mesh.addNormal(normal);
+
+    mesh.addIndex(0);
+    mesh.addIndex(1);
+    mesh.addIndex(2);
+    mesh.addIndex(0);
+    mesh.addIndex(2);
+    mesh.addIndex(3);
+
     this->_generateDefaultTexCoords(mesh, "box");
+
+    return mesh;
+}
+
+ofMesh PrimitiveSystem::_generateTriangleMesh(const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3)
+{
+    ofMesh mesh;
+    mesh.setMode(OF_PRIMITIVE_TRIANGLES);
+
+    mesh.addVertex(v1);
+    mesh.addVertex(v2);
+    mesh.addVertex(v3);
+
+    glm::vec3 edge1 = v2 - v1;
+    glm::vec3 edge2 = v3 - v1;
+    glm::vec3 normal = glm::normalize(glm::cross(edge1, edge2));
+
+    mesh.addNormal(normal);
+    mesh.addNormal(normal);
+    mesh.addNormal(normal);
+
+    mesh.addIndex(0);
+    mesh.addIndex(1);
+    mesh.addIndex(2);
+
+    this->_generateDefaultTexCoords(mesh, "box");
+
+    return mesh;
+}
+
+ofMesh PrimitiveSystem::_generateCircleMesh(float radius, int segments)
+{
+    ofMesh mesh;
+    mesh.setMode(OF_PRIMITIVE_TRIANGLE_FAN);
+
+    mesh.addVertex(glm::vec3(0.0f, 0.0f, 0.0f));
+    mesh.addNormal(glm::vec3(0.0f, 0.0f, 1.0f));
+
+    const float pi_f = 3.14159265359f;
+    for (int i = 0; i <= segments; i++) {
+        float angle = (2.0f * pi_f * i) / segments;
+        float x = radius * std::cos(angle);
+        float y = radius * std::sin(angle);
+
+        mesh.addVertex(glm::vec3(x, y, 0.0f));
+        mesh.addNormal(glm::vec3(0.0f, 0.0f, 1.0f));
+        mesh.addIndex(0);
+        if (i > 0) {
+            mesh.addIndex(i);
+            mesh.addIndex(i + 1);
+        }
+    }
+
+    this->_generateDefaultTexCoords(mesh, "box");
+
+    return mesh;
+}
+
+ofMesh PrimitiveSystem::_generateLineMesh(const glm::vec3& start, const glm::vec3& end)
+{
+    ofMesh mesh;
+    mesh.setMode(OF_PRIMITIVE_LINES);
+
+    mesh.addVertex(start);
+    mesh.addVertex(end);
+
+    glm::vec3 direction = glm::normalize(end - start);
+    mesh.addNormal(direction);
+    mesh.addNormal(direction);
+
+    mesh.addIndex(0);
+    mesh.addIndex(1);
+
+    this->_generateDefaultTexCoords(mesh, "box");
+
+    return mesh;
+}
+
+ofMesh PrimitiveSystem::_generateRectangleMesh(float width, float height)
+{
+    ofMesh mesh;
+    mesh.setMode(OF_PRIMITIVE_TRIANGLES);
+
+    float halfW = width * 0.5f;
+    float halfH = height * 0.5f;
+
+    mesh.addVertex(glm::vec3(-halfW, -halfH, 0.0f));
+    mesh.addVertex(glm::vec3(halfW, -halfH, 0.0f));
+    mesh.addVertex(glm::vec3(halfW, halfH, 0.0f));
+    mesh.addVertex(glm::vec3(-halfW, halfH, 0.0f));
+
+    glm::vec3 normal(0.0f, 0.0f, 1.0f);
+    mesh.addNormal(normal);
+    mesh.addNormal(normal);
+    mesh.addNormal(normal);
+    mesh.addNormal(normal);
+
+    mesh.addIndex(0);
+    mesh.addIndex(1);
+    mesh.addIndex(2);
+    mesh.addIndex(0);
+    mesh.addIndex(2);
+    mesh.addIndex(3);
+
+    this->_generateDefaultTexCoords(mesh, "box");
+
+    return mesh;
+}
+
+ofMesh PrimitiveSystem::_generatePointMesh(float size)
+{
+    // Render point as a small sphere for visibility
+    ofMesh mesh = ofMesh::sphere(size * 0.05f, 8);
+    this->_generateDefaultTexCoords(mesh, "sphere");
     return mesh;
 }
 
