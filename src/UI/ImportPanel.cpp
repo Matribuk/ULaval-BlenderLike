@@ -20,7 +20,9 @@ void ImportPanel::render()
 {
     if (!_isOpen) return;
 
-    ImGui::OpenPopup("Import File");
+    if (!ImGui::IsPopupOpen("Import File")) {
+        ImGui::OpenPopup("Import File");
+    }
 
     ImVec2 center = ImGui::GetMainViewport()->GetCenter();
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));

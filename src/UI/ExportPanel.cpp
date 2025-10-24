@@ -21,7 +21,9 @@ void ExportPanel::render()
 {
     if (!_isOpen) return;
 
-    ImGui::OpenPopup("Export Frame Sequence");
+    if (!ImGui::IsPopupOpen("Export Frame Sequence")) {
+        ImGui::OpenPopup("Export Frame Sequence");
+    }
 
     ImVec2 center = ImGui::GetMainViewport()->GetCenter();
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));

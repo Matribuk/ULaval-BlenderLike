@@ -65,8 +65,16 @@ void AssetsPanel::addAsset(const std::string& name, EntityID entityId, bool isIm
 
 void AssetsPanel::addImageOrModelAsset(const std::string& name, const std::string& filepath, bool isImage)
 {
-    if (name.empty() || filepath.empty() || (isImage && !ofImage().load(filepath)))
+    if (name.empty())
         return;
+
+    if (isImage && !filepath.empty()) {
+        ofImage testImage;
+        if (!testImage.load(filepath)) {
+            return;
+        }
+    }
+
     AssetInfo info;
     info.name = name;
     info.entityId = INVALID_ENTITY;
