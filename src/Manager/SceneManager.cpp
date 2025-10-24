@@ -98,6 +98,14 @@ void SceneManager::render()
     ImGui::Separator();
     ImGui::Spacing();
 
+    if (ImGui::Button("Create Entity")) {
+        _showCreateEntityPopup = true;
+        _selectedEntityType = 0;
+        std::strcpy(_entityNameBuffer, "");
+    }
+
+    ImGui::SameLine();
+
     if (ImGui::Button("Delete Selected")) {
         if (selectedEntity != INVALID_ENTITY) {
             bool isCamera = this->_componentRegistry.hasComponent<Camera>(selectedEntity);
@@ -150,6 +158,140 @@ void SceneManager::render()
     }
 
     ImGui::EndChild();
+
+    _renderCreateEntityPopup();
+}
+
+void SceneManager::_renderCreateEntityPopup()
+{
+    if (!_showCreateEntityPopup) return;
+
+    ImGui::OpenPopup("Create Entity");
+
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_Appearing);
+
+    if (ImGui::BeginPopupModal("Create Entity", &_showCreateEntityPopup, ImGuiWindowFlags_NoCollapse))
+    {
+        ImGui::Text("Choose Entity Type");
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        const char* entityTypes[] = {
+            "Empty Entity",
+            "Camera",
+            "Box",
+            "Sphere",
+            "Plane",
+            "Point",
+            "Line",
+            "Triangle",
+            "Rectangle",
+            "Circle"
+        };
+
+        ImGui::Combo("Type", &_selectedEntityType, entityTypes, IM_ARRAYSIZE(entityTypes));
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        ImGui::Text("Entity Name (optional):");
+        ImGui::InputText("##entityname", _entityNameBuffer, sizeof(_entityNameBuffer));
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        if (ImGui::Button("Create", ImVec2(120, 0))) {
+            std::string entityName = std::string(_entityNameBuffer);
+            _createEntity(_selectedEntityType, entityName);
+            _showCreateEntityPopup = false;
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+            _showCreateEntityPopup = false;
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
+void SceneManager::_createEntity(int type, const std::string& name)
+{
+    EntityID newEntityId = this->_entityManager.createEntity().getId();
+    Transform transform(glm::vec3(0, 0, 0));
+    this->_componentRegistry.registerComponent<Transform>(newEntityId, transform);
+
+    std::string entityName = name.empty() ? "" : name;
+
+    switch (type) {
+        case 0:
+            if (entityName.empty()) entityName = "Entity " + std::to_string(newEntityId);
+            break;
+
+        case 1:
+            if (this->_cameraManager) {
+                this->_entityManager.destroyEntity(newEntityId);
+                newEntityId = this->_cameraManager->addCamera(glm::vec3(0, 5, 10));
+                if (entityName.empty()) entityName = "Camera " + std::to_string(newEntityId);
+            }
+            break;
+
+        case 2:
+            this->_componentRegistry.registerComponent<Box>(newEntityId, Box());
+            this->_componentRegistry.registerComponent<Renderable>(newEntityId, Renderable());
+            if (entityName.empty()) entityName = "Box " + std::to_string(newEntityId);
+            break;
+
+        case 3:
+            this->_componentRegistry.registerComponent<Sphere>(newEntityId, Sphere());
+            this->_componentRegistry.registerComponent<Renderable>(newEntityId, Renderable());
+            if (entityName.empty()) entityName = "Sphere " + std::to_string(newEntityId);
+            break;
+
+        case 4:
+            this->_componentRegistry.registerComponent<Plane>(newEntityId, Plane());
+            this->_componentRegistry.registerComponent<Renderable>(newEntityId, Renderable());
+            if (entityName.empty()) entityName = "Plane " + std::to_string(newEntityId);
+            break;
+
+        case 5:
+            this->_componentRegistry.registerComponent<Point>(newEntityId, Point());
+            this->_componentRegistry.registerComponent<Renderable>(newEntityId, Renderable());
+            if (entityName.empty()) entityName = "Point " + std::to_string(newEntityId);
+            break;
+
+        case 6:
+            this->_componentRegistry.registerComponent<Line>(newEntityId, Line());
+            this->_componentRegistry.registerComponent<Renderable>(newEntityId, Renderable());
+            if (entityName.empty()) entityName = "Line " + std::to_string(newEntityId);
+            break;
+
+        case 7:
+            this->_componentRegistry.registerComponent<Triangle>(newEntityId, Triangle());
+            this->_componentRegistry.registerComponent<Renderable>(newEntityId, Renderable());
+            if (entityName.empty()) entityName = "Triangle " + std::to_string(newEntityId);
+            break;
+
+        case 8:
+            this->_componentRegistry.registerComponent<Rectangle>(newEntityId, Rectangle());
+            this->_componentRegistry.registerComponent<Renderable>(newEntityId, Renderable());
+            if (entityName.empty()) entityName = "Rectangle " + std::to_string(newEntityId);
+            break;
+
+        case 9:
+            this->_componentRegistry.registerComponent<Circle>(newEntityId, Circle());
+            this->_componentRegistry.registerComponent<Renderable>(newEntityId, Renderable());
+            if (entityName.empty()) entityName = "Circle " + std::to_string(newEntityId);
+            break;
+    }
+
+    this->registerEntity(newEntityId, entityName);
+    this->_transformSystem.markDirty(newEntityId);
 }
 
 bool SceneManager::_isDescendant(EntityID entityId, EntityID targetId) const
@@ -283,4 +425,13 @@ void SceneManager::setSelectionSystem(SelectionSystem& selectionSystem)
 void SceneManager::setCameraManager(CameraManager& cameraManager)
 {
     this->_cameraManager = &cameraManager;
+}
+
+std::string SceneManager::getEntityName(EntityID id) const
+{
+    auto it = this->_entities.find(id);
+    if (it != this->_entities.end()) {
+        return it->second.name;
+    }
+    return "Unknown Entity";
 }

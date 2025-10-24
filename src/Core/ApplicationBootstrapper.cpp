@@ -176,7 +176,8 @@ bool ApplicationBootstrapper::_InitializeUI()
     this->_ui.viewportPanel = std::make_unique<ViewportPanel>(
         *this->_managers.viewportManager,
         *this->_managers.cameraManager,
-        *this->_systems.renderSystem
+        *this->_systems.renderSystem,
+        *this->_managers.sceneManager
     );
 
     return true;

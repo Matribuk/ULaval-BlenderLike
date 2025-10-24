@@ -11,8 +11,14 @@
 #include "Components/Primitive/Box.hpp"
 #include "Components/Primitive/Sphere.hpp"
 #include "Components/Primitive/Plane.hpp"
+#include "Components/Primitive/Point.hpp"
+#include "Components/Primitive/Line.hpp"
+#include "Components/Primitive/Triangle.hpp"
+#include "Components/Primitive/Rectangle.hpp"
+#include "Components/Primitive/Circle.hpp"
 #include "Components/Camera.hpp"
 #include "Components/Transform.hpp"
+#include "Components/Renderable.hpp"
 
 #include "Manager/InputManager.hpp"
 
@@ -47,6 +53,7 @@ class SceneManager {
         void removeParent(EntityID child);
 
         const std::vector<EntityID>& getRootEntities() const { return _rootEntities; }
+        std::string getEntityName(EntityID id) const;
 
         void setSelectionSystem(SelectionSystem& selectionSystem);
         void setCameraManager(CameraManager& cameraManager);
@@ -62,8 +69,14 @@ class SceneManager {
         std::unordered_map<EntityID, EntityNode> _entities;
         std::vector<EntityID> _rootEntities;
 
+        bool _showCreateEntityPopup = false;
+        int _selectedEntityType = 0;
+        char _entityNameBuffer[256] = "";
+
         bool _isDescendant(EntityID entityId, EntityID targetId) const;
         void _renderEntityNode(EntityID id, int depth = 0);
+        void _renderCreateEntityPopup();
+        void _createEntity(int type, const std::string& name);
         std::string _generateDefaultName(EntityID id);
         void _handleDragDrop(EntityID id);
 };

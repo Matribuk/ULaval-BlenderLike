@@ -2,6 +2,7 @@
 
 #include "Manager/ViewportManager.hpp"
 #include "Manager/CameraManager.hpp"
+#include "Manager/SceneManager.hpp"
 
 #include "Systems/RenderSystem.hpp"
 
@@ -15,7 +16,8 @@ class ViewportPanel {
         ViewportPanel(
             ViewportManager& viewportManager,
             CameraManager& cameraManager,
-            RenderSystem& renderSystem
+            RenderSystem& renderSystem,
+            SceneManager& sceneManager
         );
 
         void render();
@@ -25,6 +27,7 @@ class ViewportPanel {
         ViewportManager& _viewportManager;
         CameraManager& _cameraManager;
         RenderSystem& _renderSystem;
+        SceneManager& _sceneManager;
 
         std::vector<std::string> _viewportsToDock;
 
