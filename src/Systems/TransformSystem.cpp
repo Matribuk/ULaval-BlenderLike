@@ -113,7 +113,27 @@ void TransformSystem::updateTransformHierarchy(EntityID entity, const glm::mat4&
         transform->isDirty = false;
     }
 
-    transform->globalMatrix = parentGlobalMatrix * transform->localMatrix;
+    if (transform->parent != INVALID_ENTITY) {
+        glm::vec3 parentPos, parentRot, parentScale;
+        decomposeMatrix(parentGlobalMatrix, parentPos, parentRot, parentScale);
+
+        glm::vec3 childPos = transform->position;
+        glm::vec3 childRot = transform->rotation;
+        glm::vec3 childScale = transform->scale;
+
+        glm::mat4 parentTR = glm::translate(glm::mat4(1.0f), parentPos);
+        parentTR = parentTR * glm::eulerAngleXYZ(parentRot.x, parentRot.y, parentRot.z);
+
+        glm::mat4 childTR = glm::translate(glm::mat4(1.0f), childPos);
+        childTR = childTR * glm::eulerAngleXYZ(childRot.x, childRot.y, childRot.z);
+
+        glm::vec3 combinedScale = parentScale * childScale;
+        glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), combinedScale);
+
+        transform->globalMatrix = parentTR * childTR * scaleMatrix;
+    } else
+        transform->globalMatrix = transform->localMatrix;
+
     transform->matrix = transform->globalMatrix;
 
     for (EntityID childId : transform->children) {
@@ -124,11 +144,11 @@ void TransformSystem::updateTransformHierarchy(EntityID entity, const glm::mat4&
 inline glm::mat4 TransformSystem::calculateMatrix(
     const glm::vec3 &pos, const glm::vec3 &rot, const glm::vec3 &scale)
 {
-    glm::mat4 matrice = glm::translate(glm::mat4(1.0f), pos);
-    matrice = matrice * glm::yawPitchRoll(rot.y, rot.x, rot.z);
-    matrice = glm::scale(matrice, scale);
+    glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), pos);
+    glm::mat4 rotationMatrix = glm::eulerAngleXYZ(rot.x, rot.y, rot.z);
+    glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), scale);
 
-    return matrice;
+    return translationMatrix * rotationMatrix * scaleMatrix;
 }
 
 void TransformSystem::setParent(EntityID child, EntityID parent)
@@ -142,17 +162,49 @@ void TransformSystem::setParent(EntityID child, EntityID parent)
 
     if (childTransform->parent != INVALID_ENTITY) {
         removeParent(child);
+        childGlobalMatrix = childTransform->globalMatrix;
     }
 
     childTransform->parent = parent;
     parentTransform->children.push_back(child);
 
-    glm::mat4 parentInverse = glm::inverse(parentTransform->globalMatrix);
-    glm::mat4 newLocalMatrix = parentInverse * childGlobalMatrix;
+    glm::vec3 parentPos, parentRot, parentScale;
+    decomposeMatrix(parentTransform->globalMatrix, parentPos, parentRot, parentScale);
 
-    decomposeMatrix(newLocalMatrix, childTransform->position, childTransform->rotation, childTransform->scale);
+    glm::vec3 childGlobalPos, childGlobalRot, childGlobalScale;
+    decomposeMatrix(childGlobalMatrix, childGlobalPos, childGlobalRot, childGlobalScale);
 
-    markDirty(child, true);
+    glm::mat4 parentTR = glm::translate(glm::mat4(1.0f), parentPos);
+    parentTR = parentTR * glm::eulerAngleXYZ(parentRot.x, parentRot.y, parentRot.z);
+
+    glm::mat4 childGlobalTR = glm::translate(glm::mat4(1.0f), childGlobalPos);
+    childGlobalTR = childGlobalTR * glm::eulerAngleXYZ(childGlobalRot.x, childGlobalRot.y, childGlobalRot.z);
+
+    glm::mat4 childLocalTR = glm::inverse(parentTR) * childGlobalTR;
+
+    glm::vec3 localPos, localRot, dummyScale;
+    decomposeMatrix(childLocalTR, localPos, localRot, dummyScale);
+
+    glm::vec3 localScale;
+    localScale.x = (glm::abs(parentScale.x) > 0.0001f) ? (childGlobalScale.x / parentScale.x) : childGlobalScale.x;
+    localScale.y = (glm::abs(parentScale.y) > 0.0001f) ? (childGlobalScale.y / parentScale.y) : childGlobalScale.y;
+    localScale.z = (glm::abs(parentScale.z) > 0.0001f) ? (childGlobalScale.z / parentScale.z) : childGlobalScale.z;
+
+    childTransform->position = localPos;
+    childTransform->rotation = localRot;
+    childTransform->scale = localScale;
+    childTransform->localMatrix = calculateMatrix(localPos, localRot, localScale);
+    childTransform->isDirty = false;
+
+    glm::vec3 combinedScale = parentScale * localScale;
+    glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), combinedScale);
+
+    childTransform->globalMatrix = parentTR * childLocalTR * scaleMatrix;
+    childTransform->matrix = childTransform->globalMatrix;
+
+    for (EntityID grandChild : childTransform->children) {
+        markDirty(grandChild, true);
+    }
 }
 
 void TransformSystem::removeParent(EntityID child)
@@ -170,9 +222,22 @@ void TransformSystem::removeParent(EntityID child)
 
     childTransform->parent = INVALID_ENTITY;
 
-    decomposeMatrix(childGlobalMatrix, childTransform->position, childTransform->rotation, childTransform->scale);
+    glm::vec3 globalPos, globalRot, globalScale;
+    decomposeMatrix(childGlobalMatrix, globalPos, globalRot, globalScale);
 
-    markDirty(child, true);
+    childTransform->position = globalPos;
+    childTransform->rotation = globalRot;
+    childTransform->scale = globalScale;
+
+    childTransform->localMatrix = calculateMatrix(globalPos, globalRot, globalScale);
+    childTransform->isDirty = false;
+
+    childTransform->globalMatrix = childTransform->localMatrix;
+    childTransform->matrix = childTransform->globalMatrix;
+
+    for (EntityID grandChild : childTransform->children) {
+        markDirty(grandChild, true);
+    }
 }
 
 EntityID TransformSystem::getParent(EntityID entity) const
@@ -212,19 +277,45 @@ void TransformSystem::decomposeMatrix(const glm::mat4& matrix, glm::vec3& outPos
 {
     outPosition = glm::vec3(matrix[3]);
 
-    outScale.x = glm::length(glm::vec3(matrix[0]));
-    outScale.y = glm::length(glm::vec3(matrix[1]));
-    outScale.z = glm::length(glm::vec3(matrix[2]));
+    glm::vec3 col0 = glm::vec3(matrix[0]);
+    glm::vec3 col1 = glm::vec3(matrix[1]);
+    glm::vec3 col2 = glm::vec3(matrix[2]);
+
+    float scaleX = glm::length(col0);
+    float scaleY = glm::length(col1);
+    float scaleZ = glm::length(col2);
+
+    glm::mat3 upperLeft(matrix);
+    if (glm::determinant(upperLeft) < 0.0f) {
+        scaleX = -scaleX;
+    }
+
+    outScale.x = scaleX;
+    outScale.y = scaleY;
+    outScale.z = scaleZ;
+
+    float absScaleX = glm::abs(scaleX);
+    float absScaleY = glm::abs(scaleY);
+    float absScaleZ = glm::abs(scaleZ);
+
+    if (absScaleX < 0.0001f) absScaleX = 1.0f;
+    if (absScaleY < 0.0001f) absScaleY = 1.0f;
+    if (absScaleZ < 0.0001f) absScaleZ = 1.0f;
 
     glm::mat3 rotationMatrix;
-    rotationMatrix[0] = glm::vec3(matrix[0]) / outScale.x;
-    rotationMatrix[1] = glm::vec3(matrix[1]) / outScale.y;
-    rotationMatrix[2] = glm::vec3(matrix[2]) / outScale.z;
+    rotationMatrix[0] = col0 / (scaleX >= 0.0f ? absScaleX : -absScaleX);
+    rotationMatrix[1] = col1 / absScaleY;
+    rotationMatrix[2] = col2 / absScaleZ;
 
-    outRotation.y = glm::atan(rotationMatrix[0][2], rotationMatrix[2][2]);
-    outRotation.x = glm::atan(
-        -rotationMatrix[1][2],
-        glm::sqrt(rotationMatrix[0][2] * rotationMatrix[0][2] + rotationMatrix[2][2] * rotationMatrix[2][2])
-    );
-    outRotation.z = glm::atan(rotationMatrix[1][0], rotationMatrix[1][1]);
+    float sy = rotationMatrix[0][2];
+
+    if (glm::abs(sy) >= 0.999f) {
+        outRotation.y = glm::asin(glm::clamp(sy, -1.0f, 1.0f));
+        outRotation.x = 0.0f;
+        outRotation.z = glm::atan2(-rotationMatrix[1][0], rotationMatrix[1][1]);
+    } else {
+        outRotation.y = glm::asin(glm::clamp(sy, -1.0f, 1.0f));
+        outRotation.x = glm::atan2(-rotationMatrix[1][2], rotationMatrix[2][2]);
+        outRotation.z = glm::atan2(-rotationMatrix[0][1], rotationMatrix[0][0]);
+    }
 }

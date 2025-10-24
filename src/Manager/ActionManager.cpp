@@ -70,7 +70,10 @@ void ActionManager::_registerKeyboardActions()
     });
 
     input.registerKeyAction('f', [this]() {
-        EntityID cameraId = this->_cameraManager.getActiveCameraId();
+        Viewport* activeViewport = this->_viewportManager.getActiveViewport();
+        if (!activeViewport) return;
+
+        EntityID cameraId = activeViewport->getCamera();
         EntityID selected = this->_selectionSystem.getSelectedEntity();
 
         Camera* cam = this->_componentRegistry.getComponent<Camera>(cameraId);

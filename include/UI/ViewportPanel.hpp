@@ -22,6 +22,7 @@ class ViewportPanel {
 
         void render();
         std::vector<std::string> getViewportsToDock();
+        void clearViewportsToDock();
 
     private:
         ViewportManager& _viewportManager;
