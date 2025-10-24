@@ -1,29 +1,29 @@
 #include "UI/ImportPanel.hpp"
 
 ImportPanel::ImportPanel(FileManager& fileManager, AssetsPanel& assetsPanel, EventLogPanel& eventLogPanel)
-    : _fileManager(fileManager), _assetsPanel(assetsPanel), _eventLogPanel(eventLogPanel)
+    : this->_fileManager(fileManager), this->_assetsPanel(assetsPanel), this->_eventLogPanel(eventLogPanel)
 {
-    std::strcpy(_filePathBuffer, "");
+    std::strcpy(this->_filePathBuffer, "");
 }
 
 void ImportPanel::open()
 {
-    _isOpen = true;
+    this->_isOpen = true;
 }
 
 void ImportPanel::close()
 {
-    _isOpen = false;
+    this->_isOpen = false;
 }
 
 bool ImportPanel::isOpen() const
 {
-    return _isOpen;
+    return this->_isOpen;
 }
 
 void ImportPanel::render()
 {
-    if (!_isOpen) return;
+    if (!this->_isOpen) return;
 
     if (!ImGui::IsPopupOpen("Import File")) {
         ImGui::OpenPopup("Import File");
@@ -33,22 +33,22 @@ void ImportPanel::render()
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_Appearing);
 
-    if (ImGui::BeginPopupModal("Import File", &_isOpen, ImGuiWindowFlags_NoCollapse))
+    if (ImGui::BeginPopupModal("Import File", &this->_isOpen, ImGuiWindowFlags_NoCollapse))
     {
         ImGui::Text("Import Image or 3D Model");
         ImGui::Separator();
 
         ImGui::Text("File Path:");
-        if (ImGui::InputText("##filepath", _filePathBuffer, sizeof(_filePathBuffer))) {
-            _filePath = std::string(_filePathBuffer);
+        if (ImGui::InputText("##filepath", this->_filePathBuffer, sizeof(this->_filePathBuffer))) {
+            this->_filePath = std::string(this->_filePathBuffer);
         }
 
         ImGui::SameLine();
         if (ImGui::Button("Browse...")) {
             ofFileDialogResult result = ofSystemLoadDialog("Choose a file to import (image or 3D model)", false);
             if (result.bSuccess) {
-                _filePath = result.getPath();
-                std::strcpy(_filePathBuffer, _filePath.c_str());
+                this->_filePath = result.getPath();
+                std::strcpy(this->_filePathBuffer, this->_filePath.c_str());
             }
         }
 
@@ -57,19 +57,19 @@ void ImportPanel::render()
 
         ImGui::Separator();
 
-        bool canImport = !_filePath.empty();
+        bool canImport = !this->_filePath.empty();
         if (!canImport) ImGui::BeginDisabled();
 
         if (ImGui::Button("Import", ImVec2(120, 0))) {
-            std::string fullPath = _filePath;
-            if (_filePath[0] != '/' && _filePath[0] != '~') {
-                fullPath = ofToDataPath(_filePath, true);
+            std::string fullPath = this->_filePath;
+            if (this->_filePath[0] != '/' && this->_filePath[0] != '~') {
+                fullPath = ofToDataPath(this->_filePath, true);
             }
 
-            _fileManager.importAndAddAsset(fullPath, _assetsPanel, _eventLogPanel);
+            this->_fileManager.importAndAddAsset(fullPath, this->_assetsPanel, this->_eventLogPanel);
 
-            std::strcpy(_filePathBuffer, "");
-            _filePath = "";
+            std::strcpy(this->_filePathBuffer, "");
+            this->_filePath = "";
             close();
         }
 
