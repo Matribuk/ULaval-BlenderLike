@@ -282,23 +282,20 @@
 
 ## Criteres TP1 implementes
 
-### Image (4/5)
+### Image (3/5)
 - 1.1 Importation d'images (Killian, Antonin)
 - 1.2 Exportation d'images (Antonin)
-- 1.3 Echantillonnage (Antonin - Eyedropper)
-- 1.4 Palette de couleur (Antonin)
+- 1.4 Palette de couleur (Antonin - Eyedropper)
 
-### Dessin vectoriel (4-5/5)
+### Dessin vectoriel (3/5)
 - 2.1 Curseur dynamique (Clement - 6 types!)
-- 2.2 Outils de dessin (Antonin - ColorPanel)
 - 2.3 Primitives vectorielles (Clement - 8 types!)
 - 2.5 Interface (Antonin - 10 panels)
 
-### Transformation (4/5)
+### Transformation (3/5)
 - 3.1 Graphe de scene (Killian - ECS)
 - 3.2 Selection multiple (Clement)
 - 3.3 Transformations interactives (Antonin)
-- 3.4 Historique (Killian - ActionManager)
 
 ### Geometrie (3/5)
 - 4.1 Boites de delimitation (Clement - AABB)
@@ -317,19 +314,12 @@
 ## Notes importantes
 
 ### Qualite du code
-- **Pas de duplication** - Refactoring avec systeme de filtres EntityFilter
-- **Architecture propre** - ECS bien structure, pas de couplage fort
+- **Architecture professionnel** - ECS bien structure, pas de couplage fort
 - **Hotfixes reactifs** - Memory leaks et bugs critiques corriges rapidement
 - **Review actif** - Leandre a assure 19 merges avec QA
 
-### Collaboration
-- **Workflow git propre** - 47 PRs, branches feature claires
-- **Roles complementaires** - Chacun dans son domaine d'expertise
-- **Sprint coordonne** - Semaine 3 tres productive (92 commits)
-- **Communication** - Issues GitHub utilisees efficacement
-
 ### Conformite TP1
-- **Criteres fonctionnels** - 18-19/25 (objectif ~15)
+- **Criteres fonctionnels** - 15/25 (objectif 15)
 - **Document de design** - En cours de finalisation
 - **Video** - A produire
 - **DevLog** - Complete (ce document)
