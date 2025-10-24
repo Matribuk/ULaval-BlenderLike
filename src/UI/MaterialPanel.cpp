@@ -17,7 +17,7 @@ bool MaterialPanel::_checkAllEntitiesHaveSameVisibility(const std::set<EntityID>
     if (entities.empty()) return false;
 
     bool first = true;
-    bool referenceVisibility;
+    bool referenceVisibility = false;
 
     for (EntityID id : entities) {
         Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);

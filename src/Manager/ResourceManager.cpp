@@ -14,7 +14,7 @@ ofMesh& ResourceManager::loadMesh(std::string path) {
         ofxAssimpModelLoader model;
         ofMesh mesh;
 
-        model.loadModel(path);
+        model.load(path);
         mesh = model.getMesh(0);
         size_t vcount = mesh.getNumVertices();
         size_t tcount = mesh.getNumTexCoords();
