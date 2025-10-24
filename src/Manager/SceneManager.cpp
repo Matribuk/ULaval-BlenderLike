@@ -96,14 +96,6 @@ void SceneManager::render()
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
-    ImGui::SameLine();
-
-    if (ImGui::Button("create Entity")) {
-        if (selectedEntity != INVALID_ENTITY) {
-            // do nothing for now
-        }
-    }
-    ImGui::SameLine();
 
     if (ImGui::Button("Delete Selected")) {
         if (selectedEntity != INVALID_ENTITY) {
