@@ -90,12 +90,6 @@
   - Calcul et transformation des bounding boxes
   - Affichage des bounding boxes sur entites selectionnees
   - Gestion du mode selection (activable/desactivable)
-- **Multi-selection** (PR #81):
-  - Selection multiple avec Ctrl+clic
-  - Toggle pour ajouter/retirer de la selection
-- **CursorManager** (PR merge semaine 3):
-  - 6 types de curseurs dynamiques (arrow, ibeam, crosshair, hand, resize H/V)
-  - Systeme de layers pour priorite des curseurs
 - **Focus automatique** (PR #61, #62):
   - Vue recentree automatique sur selection
   - Cadrage optimal pour voir tout le contenu
@@ -106,6 +100,12 @@
   - Clean de ofApp setup
 
 ### Killian Cottrelle - **27 commits**
+- **Multi-selection** (PR #81):
+  - Selection multiple avec Ctrl+clic
+  - Toggle pour ajouter/retirer de la selection
+- **CursorManager** (commits semaine 3):
+  - 6 types de curseurs dynamiques (arrow, ibeam, crosshair, hand, resize H/V)
+  - Systeme de layers pour priorite des curseurs
 - **Primitives geometriques 3D** (PR #84):
   - Generation procedurale de cubes et spheres
   - Algorithmes sans donnees externes
@@ -117,23 +117,33 @@
   - Systeme d'eclairage de base
   - Skybox
 
-### Antonin Leprest (Matribuk) - **10 commits**
+### Antonin Leprest (Matribuk) - **15 commits**
 - **Hotfix memory leaks** (PR #72) - **BUGS CRITIQUES CORRIGES**:
   - Fix invalidation de la queue d'evenements dans EventManager::processEvents()
   - Fix utilisation de _fileManager avant initialisation dans ofApp::setup()
   - Correction des segfaults et undefined behaviors
-- **Assets Management** (PR #77, #78):
+  - 3 reviews approuves (Richon, Marion, Killian)
+- **Assets Management** (PR #77, #78, #93):
   - AssetsPanel avec auto-load du dossier ./data/
   - Bouton d'import pour creer des assets
   - Systeme de drag & drop d'assets sur la scene
+  - Import/export d'images interactif
 - **ExportPanel** (PR #77):
   - Export de sequences d'images
   - Configuration FPS et duree
   - Sauvegarde en memoire puis export final
+- **Integration MaterialPanel** (PR #77):
+  - Integration du MaterialPanel de Marion dans l'architecture
+  - Gestion des includes et dependencies
 - **Fix TransformSystem** (PR #60):
+  - Panel R/S avec degres et pourcentages
   - Corrections du panel Transform
   - Amelioration de l'UI
-- **Application de textures** - Drag & drop de textures sur entites depuis AssetsPanel
+- **Code quality**:
+  - Fix auto types (best practices)
+  - Fix function naming conventions (private/public)
+  - Fix include files (external libs)
+  - Application de textures par drag & drop
 
 ### Marion Kauffmann (THORINKAUFFMANN) - **12 commits**
 - **MaterialPanel** (PR #82, #89):
@@ -211,7 +221,7 @@
 |--------|---------|---------------------|----------------------|----------------|
 | **Clement Barrier** (Maskalito) | 84 | 11 | - | Architecture & Core Systems |
 | **Killian Cottrelle** | 78 | 13 | - | Features & Primitives |
-| **Antonin Leprest** (Matribuk) | 31 | 7 | - | UI/UX & Integration |
+| **Antonin Leprest** (Matribuk) | 31 | 10 | - | UI/UX, Integration & Bugfixes |
 | **Marion Kauffmann** | 12 | 2 | - | Material System |
 | **Leandre Cacarie** (Richon) | 8 | 1 | 19 | Refactoring & Review Lead |
 | **TOTAL** | **213** | **47** | - | - |
@@ -223,9 +233,7 @@
 ### Clement Barrier (Maskalito) - **Architecture & Rendering**
 - SelectionSystem avec raycast AABB complet
 - CameraSystem avec orbit/pan/zoom/focus
-- CursorManager (6 types de curseurs)
 - Focus automatique sur selection
-- Multi-selection avec Ctrl
 - 8 primitives (3D: Box, Sphere, Plane + 2D: Rectangle, Point, Line, Triangle, Circle)
 - Bounding boxes visibles
 - Architecture UIManager clean
@@ -235,22 +243,26 @@
 - Systeme d'evenements (EventManager, EventBridge)
 - ActionManager avec undo/redo (Command Pattern)
 - FileManager (import/export meshes)
+- Multi-selection avec Ctrl (PR #81)
+- CursorManager (6 types de curseurs dynamiques)
 - Primitives geometriques 3D procedurales
 - Graphe de scene avec hierarchie parent-enfant
 - Light & Sky system
 - Multi-cameras avec creation dynamique
 
-### Antonin Leprest (Matribuk) - **UI/UX & Polish**
-- Hotfixes critiques (PR #72): memory leaks, segfaults, EventManager queue invalidation
-- 4 UI Panels: Properties, Assets, Export, Color
-- TransformSystem avec dirty flags
-- Assets Management avec drag & drop
-- Export de sequences d'images
-- Color Palette avec sauvegarde
-- EyedropperSystem (pipette couleur) avec preview
-- Refactoring SelectionSystem (elimination duplication)
-- AABB Helpers publics reutilisables
-- Application textures par drag & drop
+### Antonin Leprest (Matribuk) - **UI/UX, Integration & Bugfixes**
+- **10 PRs authored** (15, 20, 23, 42, 46, 60, 72, 77, 78, 93)
+- **Bugfixes critiques** (PR #72): memory leaks, segfaults, EventManager queue invalidation, _fileManager initialization order
+- **4 UI Panels complets**: Properties, Assets, Export, Color
+- **TransformSystem** (PR #42) avec dirty flags et controle manuel rotation
+- **Assets Management** (PR #77, #78, #93) avec drag & drop, auto-load, import/export images
+- **Export de sequences d'images** avec configuration FPS/duree
+- **Color Palette** avec sauvegarde de couleurs
+- **EyedropperSystem** (pipette couleur) avec preview temps reel
+- **Refactoring SelectionSystem** (elimination ~110 lignes duplication code)
+- **AABB Helpers** publics statiques reutilisables
+- **Code quality**: fix auto types, naming conventions, includes, compilation errors
+- **Integration**: MaterialPanel de Marion, coordination entre systemes
 
 ### Marion Kauffmann - **Material System**
 - MaterialPanel complet
