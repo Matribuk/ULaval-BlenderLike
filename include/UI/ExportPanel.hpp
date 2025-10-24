@@ -13,7 +13,7 @@ class ExportPanel {
         void render();
         void open();
         void close();
-        bool isOpen() const { return _isOpen; }
+        bool isOpen() const;
 
     private:
         ImageSequenceExporter& _exporter;

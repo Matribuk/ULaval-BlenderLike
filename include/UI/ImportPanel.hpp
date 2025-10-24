@@ -14,7 +14,7 @@ class ImportPanel {
         void render();
         void open();
         void close();
-        bool isOpen() const { return _isOpen; }
+        bool isOpen() const;
 
     private:
         FileManager& _fileManager;

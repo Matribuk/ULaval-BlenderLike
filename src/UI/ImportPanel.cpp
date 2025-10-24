@@ -16,6 +16,11 @@ void ImportPanel::close()
     _isOpen = false;
 }
 
+bool ImportPanel::isOpen() const
+{
+    return _isOpen;
+}
+
 void ImportPanel::render()
 {
     if (!_isOpen) return;

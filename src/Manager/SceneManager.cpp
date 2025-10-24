@@ -99,7 +99,7 @@ void SceneManager::render()
     ImGui::Spacing();
 
     if (ImGui::Button("Create Camera"))
-        _createCamera();
+        this->_createCamera();
 
 
     ImGui::SameLine();
