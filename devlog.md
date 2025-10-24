@@ -46,8 +46,7 @@
 - **Architecture viewport** - Refactoring pour lier cameras aux viewports via Transform
 
 ### Killian Cottrelle
-- **ActionManager & HistoryManager**:
-  - Implementation du Command Pattern pour undo/redo
+- **ActionManager**:
   - Gestion correcte des inputs avec historique d'actions
 - **FileManager**:
   - Import/export de meshes 3D (OBJ, PLY, STL)
@@ -71,7 +70,7 @@
   - Reorganisation: include files dans /include, chemins relatifs
   - Nettoyage des variables inutiles et defines
   - Amelioration de la structure de compilation
-- **Optimisations** - Nettoyage du code et amelioration de la gestion des cameras
+- **Optimisations** - amelioration de la gestion des cameras
 
 ### Marion Kauffmann
 - **ResourceManager** - Implementation complete du systeme de gestion de ressources:
@@ -96,12 +95,8 @@
   - Vue recentree automatique sur selection
   - Cadrage optimal pour voir tout le contenu
   - Modes perspective et orthographique
-- **Cleanup architecture**:
-  - Refactoring UIManager avec methode setup
-  - Resolution imports circulaires
-  - Clean de ofApp setup
 - **CursorManager** (commits semaine 3):
-  - 6 types de curseurs dynamiques (arrow, ibeam, crosshair, hand, resize H/V)
+  - 5 types de curseurs dynamiques (arrow, ibeam, crosshair, hand, resize H)
   - Systeme de layers pour priorite des curseurs
 
 ### Killian Cottrelle
@@ -117,11 +112,9 @@
   - Fix des matrices globales
 
 ### Antonin Leprest
-- **Hotfix memory leaks** - **BUGS CRITIQUES CORRIGES**:
-  - Fix invalidation de la queue d'evenements dans EventManager::processEvents()
-  - Fix utilisation de _fileManager avant initialisation dans ofApp::setup()
-  - Correction des segfaults et undefined behaviors
-  - 3 reviews approuves (Richon, Marion, Killian)
+- **Optimisations**:
+  - Amelioration de la queue d'evenements dans EventManager::processEvents()
+  - Meilleure utilisation de _fileManager avant initialisation dans ofApp::setup()
 - **ExportPanel**:
   - Export de sequences d'images
   - Configuration FPS et duree
@@ -133,10 +126,7 @@
   - Panel R/S avec degres et pourcentages
   - Corrections du panel Transform
   - Amelioration de l'UI
-- **Code quality**:
-  - Fix auto types (best practices)
-  - Fix function naming conventions (private/public)
-  - Fix include files (external libs)
+- **Gestion texture**:
   - Application de textures par drag & drop
 
 ### Marion Kauffmann
@@ -147,9 +137,7 @@
   - Nettoyage automatique des ressources inutilisees
 - **MaterialPanel**:
   - Panel pour charger mesh, textures, shaders depuis fichiers
-  - Factory pattern pour load from file
   - Boutons de chargement pour chaque type de ressource
-  - Hotfix: correction des boutons du MaterialPanel
   - Fonctions helper pour lisibilite du code
 - **Fix texture loading** - Correction du chargement de textures sur primitives (generation de primitives supprimait la texture)
 
@@ -194,28 +182,23 @@
   - Implementation de 5 primitives 2D: Rectangle, Point, Line, Triangle, Circle
   - Generation de mesh 2D avec vertices
   - Ajustement de la taille des points par defaut
-- **Fix import** - Correction des issues d'importation
 
 ### Killian Cottrelle
 - **CameraManager improvements** (commits du 24 oct):
   - Ajout d'un bouton "Create Camera" dans l'UI
   - Systeme de creation de cameras infinies
   - Auto-creation d'une camera de remplacement si la derniere est supprimee
-  - Suppression du bouton "Create Entity" obsolete
   - Synchronisation de la logique import/export
-- **Hotfix Import/Export** (Issue #95) - Corrections de la logique d'import/export
 
 ### Leandre Cacarie
 - **Refactoring SelectionSystem** - **Elimination duplication de code**:
   - Creation d'un systeme de filtre generique pour le raycast
   - SelectionSystem utilise filtre "Selectable"
   - EyedropperSystem utilise filtre "Renderable"
-  - Suppression de ~110 lignes de code duplique
-- **Review & QA** - Reverts de PRs problematiques pour maintenir la stabilite
+- **Review & QA** - Review des PR du projet
 
 ### Marion Kauffmann
-- **AABB Helpers publics** - Transformation des methodes privees en helpers publics statiques pour reutilisation
-- **Fix type auto** - Remplacement de `auto` par `EntityFilter` pour meilleure lisibilite
+- **AABB Helpers** - Modification des methodes AABB en helpers pour reutilisation
 
 **Metriques**: 20 commits | 2 PRs mergees
 
@@ -240,10 +223,10 @@
 - **SelectionSystem** avec raycast AABB complet
 - **CameraSystem** avec orbit/pan/zoom/focus
 - **Focus automatique** sur selection
-- **8 primitives** (3D: Box, Sphere, Plane + 2D: Rectangle, Point, Line, Triangle, Circle)
+- **5 primitives** (2D: Rectangle, Point, Line, Triangle, Circle)
 - **Bounding boxes** visibles
 - **Architecture** UIManager clean
-- **CursorManager** (6 types de curseurs dynamiques)
+- **CursorManager** (5 curseurs dynamiques)
 
 ### Killian Cottrelle
 - **Architecture ECS** complete (EntityManager, ComponentRegistry, Components)
@@ -252,17 +235,15 @@
 - **Primitives geometriques** 3D procedurales
 - **Graphe de scene** avec hierarchie parent-enfant
 - **Multi-cameras** avec creation dynamique
+- **3 primitives** (3D: Box, Sphere, Plane)
 
 ### Antonin Leprest
-- **Bugfixes critiques**: memory leaks, segfaults, EventManager queue invalidation, _fileManager initialization order
 - **4 UI Panels**: Properties, Assets, Export, Color
 - **TransformSystem** avec dirty flags et controle manuel rotation
 - **Export de sequences d'images** avec configuration FPS/duree
 - **Color Palette** avec sauvegarde de couleurs
 - **EyedropperSystem** (pipette couleur) avec preview temps reel
-- **Refactoring SelectionSystem** (elimination ~110 lignes duplication code)
 - **AABB Helpers** publics statiques reutilisables
-- **Code quality**: fix auto types, naming conventions, includes, compilation errors
 - **Integration**: MaterialPanel de Marion, coordination entre systemes
 
 ### Marion Kauffmann
@@ -272,17 +253,12 @@
   - Nettoyage automatique des ressources inutilisees
 - **MaterialPanel complet**:
   - Panel pour charger mesh, textures, shaders depuis fichiers
-  - Factory pattern pour load from file
-  - Hotfixes MaterialPanel
-  - Fix texture loading sur primitives
 - **Systeme d'evenements** (EventManager, EventBridge)
 
 ### Leandre Cacarie
 - **Tests unitaires** - Creation de tests pour valider EntityManager et ComponentRegistry
-- **Refactoring** structure projet (include paths)
-- **Nettoyage** code (variables inutiles, defines)
+- **Refactoring** structure projet
 - **Review** de 19 PRs (leader en review)
-- **QA avec reverts** de PRs problematiques
 - **Maintien** de la stabilite du projet
 - **Optimisations** - Nettoyage du code et amelioration de la gestion des cameras
 - **Light & Sky** system
