@@ -31,7 +31,7 @@
 *Pas encore actif cette semaine*
 
 ### Marion Kauffmann
-*Pas encore actif cette semaine*
+*Pas encore active cette semaine*
 
 **Metriques**: 15 commits | 3 PRs mergees
 
@@ -76,7 +76,11 @@
   - Amelioration de la structure de compilation
 
 ### Marion Kauffmann
-*Pas encore actif cette semaine*
+- **ResourceManager** - Implementation complete du systeme de gestion de ressources:
+  - Cache de ressources (meshes, textures, shaders)
+  - Methodes loadMesh(), loadTexture(), loadShader()
+  - Reference counting pour gestion memoire
+  - Nettoyage automatique des ressources inutilisees
 
 **Metriques**: 57 commits | 12 PRs mergees
 
@@ -146,6 +150,11 @@
   - Application de textures par drag & drop
 
 ### Marion Kauffmann (THORINKAUFFMANN) - **12 commits**
+- **ResourceManager** - Implementation complete du systeme de gestion de ressources:
+  - Cache de ressources (meshes, textures, shaders)
+  - Methodes loadMesh(), loadTexture(), loadShader()
+  - Reference counting pour gestion memoire optimale
+  - Nettoyage automatique des ressources inutilisees
 - **MaterialPanel** (PR #82, #89):
   - Panel pour charger mesh, textures, shaders depuis fichiers
   - Factory pattern pour load from file
@@ -209,7 +218,7 @@
 *Pas actif cette semaine*
 
 ### Marion Kauffmann
-*Pas actif cette semaine*
+*Pas active cette semaine*
 
 **Metriques**: 15+ commits | 2 PRs mergees | **Projet pret pour livraison**
 
@@ -264,12 +273,16 @@
 - **Code quality**: fix auto types, naming conventions, includes, compilation errors
 - **Integration**: MaterialPanel de Marion, coordination entre systemes
 
-### Marion Kauffmann - **Material System**
-- MaterialPanel complet
-- Chargement de mesh, textures, shaders depuis fichiers
-- Factory pattern pour load from file
-- Hotfixes MaterialPanel
-- Fix texture loading sur primitives
+### Marion Kauffmann - **Resource & Material System**
+- **ResourceManager complet**:
+  - Cache de ressources (meshes, textures, shaders)
+  - loadMesh(), loadTexture(), loadShader() avec reference counting
+  - Nettoyage automatique des ressources inutilisees
+- **MaterialPanel complet**:
+  - Panel pour charger mesh, textures, shaders depuis fichiers
+  - Factory pattern pour load from file
+  - Hotfixes MaterialPanel
+  - Fix texture loading sur primitives
 
 ### Leandre Cacarie (Richon) - **Refactoring & QA**
 - Refactoring structure projet (include paths)
