@@ -182,7 +182,7 @@ bool FileManager::importAndAddAsset(const std::string& filePath, AssetsPanel& as
     eventLog.addLog("File copied to data/: " + filename, ofColor::cyan);
 
     if (FileManager::isImageFile(destPath)) {
-        assetsPanel.addImageOrModelAsset(name, "", true);
+        assetsPanel.addImageOrModelAsset(name, destPath, true);
         eventLog.addLog("Image loaded: " + name + " (drag & drop into scene)", ofColor::green);
         return true;
     } else if (FileManager::isModelFile(destPath)) {

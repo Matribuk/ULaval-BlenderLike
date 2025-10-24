@@ -1,4 +1,12 @@
 #include "UI/MaterialPanel.hpp"
+#include "Components/Primitive/Box.hpp"
+#include "Components/Primitive/Triangle.hpp"
+#include "Components/Primitive/Sphere.hpp"
+#include "Components/Primitive/Plane.hpp"
+#include "Components/Primitive/Circle.hpp"
+#include "Components/Primitive/Line.hpp"
+#include "Components/Primitive/Rectangle.hpp"
+#include "Components/Primitive/Point.hpp"
 
 
 MaterialPanel::MaterialPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem, ResourceManager& resourceManager)
@@ -9,7 +17,7 @@ bool MaterialPanel::_checkAllEntitiesHaveSameVisibility(const std::set<EntityID>
     if (entities.empty()) return false;
 
     bool first = true;
-    bool referenceVisibility;
+    bool referenceVisibility = false;
 
     for (EntityID id : entities) {
         Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
@@ -121,7 +129,7 @@ void MaterialPanel::render()
             ImGui::Image((ImTextureID)(uintptr_t)texID, thumbSize, ImVec2(0,1), ImVec2(1,0));
 
             ImGui::SameLine();
-            this->_loadFile(primaryRenderable, "TEX");
+            this->_loadFile(primaryEntity, primaryRenderable, "TEX");
 
             ImGui::SameLine();
             if (ImGui::Button("Clear Texture")) {
@@ -130,7 +138,7 @@ void MaterialPanel::render()
         } else {
             ImGui::Text(" - Texture: None");
             ImGui::SameLine();
-            this->_loadFile(primaryRenderable, "TEX");
+            this->_loadFile(primaryEntity, primaryRenderable, "TEX");
 
         }
 
@@ -139,11 +147,11 @@ void MaterialPanel::render()
             std::string meshName = this->_resourceManager.getMeshPath(mesh);
             ImGui::Text(" - Mesh: %s", meshName.c_str());
             ImGui::SameLine();
-            this->_loadFile(primaryRenderable, "MESH");
+            this->_loadFile(primaryEntity, primaryRenderable, "MESH");
         } else {
             ImGui::Text(" - Mesh: None");
             ImGui::SameLine();
-            this->_loadFile(primaryRenderable, "MESH");
+            this->_loadFile(primaryEntity, primaryRenderable, "MESH");
         }
 
         ImGui::Separator();
@@ -198,7 +206,7 @@ void MaterialPanel::_loadShaders(Renderable* primaryRenderable) {
             }
 }
 
-void MaterialPanel::_loadFile(Renderable* primaryRenderable, std::string type) {
+void MaterialPanel::_loadFile(EntityID entityId, Renderable* primaryRenderable, std::string type) {
     std::string title = type.compare("MESH") == 0 ? "Load mesh" : "Load texture";
     if (ImGui::Button(title.c_str())) {
         ofFileDialogResult result = ofSystemLoadDialog("Choose a file to load", false);
@@ -207,6 +215,33 @@ void MaterialPanel::_loadFile(Renderable* primaryRenderable, std::string type) {
             if (type.compare("MESH") == 0 ) {
                 ofMesh& newMesh = this->_resourceManager.loadMesh(path);
                 primaryRenderable->mesh = newMesh;
+
+                primaryRenderable->isPrimitive = false;
+
+                glm::vec3 minBounds(FLT_MAX, FLT_MAX, FLT_MAX);
+                glm::vec3 maxBounds(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+                for (const auto& vertex : newMesh.getVertices()) {
+                    minBounds.x = std::min(minBounds.x, vertex.x);
+                    minBounds.y = std::min(minBounds.y, vertex.y);
+                    minBounds.z = std::min(minBounds.z, vertex.z);
+                    maxBounds.x = std::max(maxBounds.x, vertex.x);
+                    maxBounds.y = std::max(maxBounds.y, vertex.y);
+                    maxBounds.z = std::max(maxBounds.z, vertex.z);
+                }
+
+                glm::vec3 size = maxBounds - minBounds;
+
+                this->_componentRegistry.removeComponent<Box>(entityId);
+                this->_componentRegistry.removeComponent<Sphere>(entityId);
+                this->_componentRegistry.removeComponent<Plane>(entityId);
+                this->_componentRegistry.removeComponent<Triangle>(entityId);
+                this->_componentRegistry.removeComponent<Circle>(entityId);
+                this->_componentRegistry.removeComponent<Line>(entityId);
+                this->_componentRegistry.removeComponent<Rectangle>(entityId);
+                this->_componentRegistry.removeComponent<Point>(entityId);
+
+                this->_componentRegistry.registerComponent(entityId, Box(size));
             } else {
                 ofTexture& newTex = this->_resourceManager.loadTexture(path);
                 primaryRenderable->material->texture = &newTex;

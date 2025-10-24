@@ -21,6 +21,7 @@ void UIManager::render()
     this->_viewportManager.renderAll();
     this->_assetsPanel->render();
     this->_exportPanel->render();
+    this->_importPanel->render();
     this->_instructionsPanel->render();
     this->_eventLogPanel->render();
     this->_skyboxPanel->render();
@@ -76,7 +77,7 @@ void UIManager::setupDockspace()
     ImGui::PopStyleVar(3);
 }
 
-void UIManager::setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, InstructionsPanel& instructionsPanel, EventLogPanel& eventLogPanel, AssetsPanel& assetsPanel, ExportPanel& exportPanel, PrimitivesPanel& primitivesPanel, ViewportPanel& viewportPanel)
+void UIManager::setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, InstructionsPanel& instructionsPanel, EventLogPanel& eventLogPanel, AssetsPanel& assetsPanel, ExportPanel& exportPanel, ImportPanel& importPanel, PrimitivesPanel& primitivesPanel, ViewportPanel& viewportPanel)
 {
     this->_toolbar = &toolbar;
     this->_skyboxPanel = &skyboxPanel;
@@ -84,6 +85,7 @@ void UIManager::setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, Instructions
     this->_eventLogPanel = &eventLogPanel;
     this->_assetsPanel = &assetsPanel;
     this->_exportPanel = &exportPanel;
+    this->_importPanel = &importPanel;
     this->_primitivesPanel = &primitivesPanel;
     this->_viewportPanel = &viewportPanel;
 }
@@ -111,7 +113,6 @@ void UIManager::_setupInitialLayout()
     ImGui::DockBuilderDockWindow("Event Log", dockDown);
     ImGui::DockBuilderDockWindow("Instructions", dockDown);
     ImGui::DockBuilderDockWindow("Skybox Settings", dockDown);
-    ImGui::DockBuilderDockWindow("Export", dockDown);
 
     ImGui::DockBuilderFinish(this->_dockspaceId);
 }

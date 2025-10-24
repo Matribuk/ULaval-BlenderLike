@@ -3,10 +3,12 @@
 ViewportPanel::ViewportPanel(
     ViewportManager& viewportManager,
     CameraManager& cameraManager,
-    RenderSystem& renderSystem
+    RenderSystem& renderSystem,
+    SceneManager& sceneManager
 ) : _viewportManager(viewportManager),
     _cameraManager(cameraManager),
-    _renderSystem(renderSystem)
+    _renderSystem(renderSystem),
+    _sceneManager(sceneManager)
 {}
 
 void ViewportPanel::render()
@@ -62,7 +64,7 @@ void ViewportPanel::render()
 
                 std::vector<std::string> cameraLabels;
                 for (EntityID camId : cameras)
-                    cameraLabels.push_back("Camera " + std::to_string(camId));
+                    cameraLabels.push_back(this->_sceneManager.getEntityName(camId));
 
                 if (ImGui::BeginCombo("##camera", cameraLabels[currentCameraIndex].c_str())) {
                     for (size_t c = 0; c < cameras.size(); ++c) {

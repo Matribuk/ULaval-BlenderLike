@@ -33,6 +33,7 @@
 #include "UI/EventLogPanel.hpp"
 #include "UI/AssetsPanel.hpp"
 #include "UI/ExportPanel.hpp"
+#include "UI/ImportPanel.hpp"
 #include "UI/PrimitivesPanel.hpp"
 #include "UI/ViewportPanel.hpp"
 
@@ -79,6 +80,7 @@ struct UIContext {
     std::unique_ptr<EventLogPanel> eventLogPanel;
     std::unique_ptr<AssetsPanel> assetsPanel;
     std::unique_ptr<ExportPanel> exportPanel;
+    std::unique_ptr<ImportPanel> importPanel;
     std::unique_ptr<PrimitivesPanel> primitivesPanel;
     std::unique_ptr<ViewportPanel> viewportPanel;
 };

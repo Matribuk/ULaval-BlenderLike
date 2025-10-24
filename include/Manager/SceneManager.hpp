@@ -8,9 +8,6 @@
 #include "Events/EventManager.hpp"
 #include "Events/EventTypes/SelectionEvent.hpp"
 
-#include "Components/Primitive/Box.hpp"
-#include "Components/Primitive/Sphere.hpp"
-#include "Components/Primitive/Plane.hpp"
 #include "Components/Camera.hpp"
 #include "Components/Transform.hpp"
 
@@ -23,6 +20,7 @@
 #include "ofxImGui.h"
 
 class SelectionSystem;
+class CameraManager;
 
 struct EntityNode {
     EntityID id;
@@ -46,8 +44,10 @@ class SceneManager {
         void removeParent(EntityID child);
 
         const std::vector<EntityID>& getRootEntities() const { return _rootEntities; }
+        std::string getEntityName(EntityID id) const;
 
         void setSelectionSystem(SelectionSystem& selectionSystem);
+        void setCameraManager(CameraManager& cameraManager);
 
     private:
         EntityManager& _entityManager;
@@ -55,12 +55,14 @@ class SceneManager {
         EventManager& _eventManager;
         TransformSystem& _transformSystem;
         SelectionSystem* _selectionSystem = nullptr;
+        CameraManager* _cameraManager = nullptr;
 
         std::unordered_map<EntityID, EntityNode> _entities;
         std::vector<EntityID> _rootEntities;
 
         bool _isDescendant(EntityID entityId, EntityID targetId) const;
         void _renderEntityNode(EntityID id, int depth = 0);
+        void _createCamera();
         std::string _generateDefaultName(EntityID id);
         void _handleDragDrop(EntityID id);
 };

@@ -1,4 +1,5 @@
 #include "Manager/SceneManager.hpp"
+#include "Manager/CameraManager.hpp"
 #include "Events/EventTypes/SelectionEvent.hpp"
 #include "Systems/SelectionSystem.hpp"
 
@@ -96,20 +97,29 @@ void SceneManager::render()
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
-    ImGui::SameLine();
 
-    if (ImGui::Button("create Entity")) {
-        if (selectedEntity != INVALID_ENTITY) {
-            // do nothing for now
-        }
-    }
+    if (ImGui::Button("Create Camera"))
+        this->_createCamera();
+
+
     ImGui::SameLine();
 
     if (ImGui::Button("Delete Selected")) {
         if (selectedEntity != INVALID_ENTITY) {
+            bool isCamera = this->_componentRegistry.hasComponent<Camera>(selectedEntity);
+
             this->_entityManager.destroyEntity(selectedEntity);
             unregisterEntity(selectedEntity);
             this->_selectionSystem->clearSelection();
+
+            if (isCamera && this->_cameraManager) {
+                this->_cameraManager->removeCamera(selectedEntity);
+
+                if (this->_cameraManager->getActiveCameraId() == INVALID_ENTITY) {
+                    EntityID newCameraId = this->_cameraManager->addCamera(glm::vec3(0, 5, 10));
+                    this->registerEntity(newCameraId, "Camera " + std::to_string(newCameraId));
+                }
+            }
         }
     }
 
@@ -146,6 +156,16 @@ void SceneManager::render()
     }
 
     ImGui::EndChild();
+}
+
+
+void SceneManager::_createCamera()
+{
+    if (!this->_cameraManager) return;
+
+    EntityID newCameraId = this->_cameraManager->addCamera(glm::vec3(0, 5, 10));
+    std::string cameraName = "Camera " + std::to_string(newCameraId);
+    this->registerEntity(newCameraId, cameraName);
 }
 
 bool SceneManager::_isDescendant(EntityID entityId, EntityID targetId) const
@@ -208,11 +228,22 @@ void SceneManager::_renderEntityNode(EntityID id, int depth)
         }
 
         if (ImGui::MenuItem("Delete")) {
+            bool isCamera = this->_componentRegistry.hasComponent<Camera>(id);
+
             this->_entityManager.destroyEntity(id);
             unregisterEntity(id);
 
             if (this->_selectionSystem->isEntitySelected(id))
                 this->_selectionSystem->removeFromSelection(id);
+
+            if (isCamera && this->_cameraManager) {
+                this->_cameraManager->removeCamera(id);
+
+                if (this->_cameraManager->getActiveCameraId() == INVALID_ENTITY) {
+                    EntityID newCameraId = this->_cameraManager->addCamera(glm::vec3(0, 5, 10));
+                    this->registerEntity(newCameraId, "Camera " + std::to_string(newCameraId));
+                }
+            }
         }
 
         ImGui::Separator();
@@ -263,4 +294,18 @@ std::string SceneManager::_generateDefaultName(EntityID id)
 void SceneManager::setSelectionSystem(SelectionSystem& selectionSystem)
 {
     this->_selectionSystem = &selectionSystem;
+}
+
+void SceneManager::setCameraManager(CameraManager& cameraManager)
+{
+    this->_cameraManager = &cameraManager;
+}
+
+std::string SceneManager::getEntityName(EntityID id) const
+{
+    auto it = this->_entities.find(id);
+    if (it != this->_entities.end()) {
+        return it->second.name;
+    }
+    return "Unknown Entity";
 }

@@ -112,7 +112,7 @@ void PrimitivesPanel::_createPrimitive(PrimitiveType type)
         primitiveName = "Point " + std::to_string(entity.getId());
     }
 
-    this->_componentRegistry.registerComponent(entity.getId(), Renderable(ofMesh(), defaultColor));
+    this->_componentRegistry.registerComponent(entity.getId(), Renderable(ofMesh(), defaultColor, true, nullptr, nullptr, true));
     this->_componentRegistry.registerComponent(entity.getId(), Selectable());
 
     this->_sceneManager.registerEntity(entity.getId(), primitiveName);

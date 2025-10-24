@@ -166,6 +166,7 @@ bool ApplicationBootstrapper::_InitializeUI()
     this->_ui.toolbar = std::make_unique<Toolbar>(*this->_managers.cursorManager);
     this->_ui.assetsPanel = std::make_unique<AssetsPanel>(*this->_managers.sceneManager, this->_componentRegistry, *this->_managers.cursorManager);
     this->_ui.exportPanel = std::make_unique<ExportPanel>(*this->_systems.imageExporter, *this->_managers.viewportManager);
+    this->_ui.importPanel = std::make_unique<ImportPanel>(*this->_managers.fileManager, *this->_ui.assetsPanel, *this->_ui.eventLogPanel);
     this->_ui.primitivesPanel = std::make_unique<PrimitivesPanel>(
         this->_entityManager,
         this->_componentRegistry,
@@ -175,7 +176,8 @@ bool ApplicationBootstrapper::_InitializeUI()
     this->_ui.viewportPanel = std::make_unique<ViewportPanel>(
         *this->_managers.viewportManager,
         *this->_managers.cameraManager,
-        *this->_systems.renderSystem
+        *this->_systems.renderSystem,
+        *this->_managers.sceneManager
     );
 
     return true;
@@ -196,6 +198,7 @@ bool ApplicationBootstrapper::_SetupCallbacks()
     });
 
     this->_managers.sceneManager->setSelectionSystem(*this->_systems.selectionSystem);
+    this->_managers.sceneManager->setCameraManager(*this->_managers.cameraManager);
     this->_systems.selectionSystem->setupManagers(*this->_managers.cameraManager, *this->_managers.viewportManager);
     this->_systems.eyedropperSystem->setupManagers(*this->_managers.cameraManager, *this->_managers.viewportManager);
     this->_systems.renderSystem->setup(*this->_managers.cameraManager, *this->_systems.selectionSystem);
@@ -218,6 +221,7 @@ bool ApplicationBootstrapper::_SetupCallbacks()
         *this->_ui.eventLogPanel,
         *this->_ui.assetsPanel,
         *this->_ui.exportPanel,
+        *this->_ui.importPanel,
         *this->_ui.primitivesPanel,
         *this->_ui.viewportPanel
     );
@@ -235,23 +239,11 @@ bool ApplicationBootstrapper::_SetupCallbacks()
     });
 
     this->_ui.toolbar->setImportCallback([this]() {
-        ofFileDialogResult result = ofSystemLoadDialog("Choose a file to import (image or 3D model)", false);
-        if (result.bSuccess) {
-            this->_managers.fileManager->importAndAddAsset(
-                result.getPath(),
-                *this->_ui.assetsPanel,
-                *this->_ui.eventLogPanel
-            );
-        }
+        this->_ui.importPanel->open();
     });
 
     this->_ui.toolbar->setExportCallback([this]() {
-        EntityID selected = this->_systems.selectionSystem->getSelectedEntity();
-        if (selected != INVALID_ENTITY) {
-            this->_managers.fileManager->exportMesh(selected, "export.obj");
-            this->_ui.eventLogPanel->addLog("Exported model", ofColor::green);
-        } else
-            this->_ui.eventLogPanel->addLog("No entity selected for export", ofColor::orange);
+        this->_ui.exportPanel->open();
     });
 
     this->_ui.toolbar->setSelectCallback([this]() {
