@@ -6,37 +6,32 @@ PrimitiveSystem::PrimitiveSystem(ComponentRegistry& registry, EntityManager& ent
 
 void PrimitiveSystem::generateMeshes() {
     for (EntityID id : this->_entityManager.getAllEntities()) {
+        Renderable* render = this->_registry.getComponent<Renderable>(id);
+        if (!render || !render->isPrimitive) continue;
+
         if (Box* box = this->_registry.getComponent<Box>(id)) {
-            if (Renderable* render = this->_registry.getComponent<Renderable>(id))
-                render->mesh = this->_generateBoxMesh(box->dimensions);
+            render->mesh = this->_generateBoxMesh(box->dimensions);
         }
-        if (Sphere* sphere = this->_registry.getComponent<Sphere>(id)) {
-            if (Renderable* render = this->_registry.getComponent<Renderable>(id))
-                render->mesh = this->_generateSphereMesh(sphere->radius);
+        else if (Sphere* sphere = this->_registry.getComponent<Sphere>(id)) {
+            render->mesh = this->_generateSphereMesh(sphere->radius);
         }
-        if (Plane* plane = this->_registry.getComponent<Plane>(id)) {
-            if (Renderable* render = this->_registry.getComponent<Renderable>(id))
-                render->mesh = this->_generatePlaneMesh(plane->size);
+        else if (Plane* plane = this->_registry.getComponent<Plane>(id)) {
+            render->mesh = this->_generatePlaneMesh(plane->size);
         }
-        if (Triangle* triangle = this->_registry.getComponent<Triangle>(id)) {
-            if (Renderable* render = this->_registry.getComponent<Renderable>(id))
-                render->mesh = this->_generateTriangleMesh(triangle->vertex1, triangle->vertex2, triangle->vertex3);
+        else if (Triangle* triangle = this->_registry.getComponent<Triangle>(id)) {
+            render->mesh = this->_generateTriangleMesh(triangle->vertex1, triangle->vertex2, triangle->vertex3);
         }
-        if (Circle* circle = this->_registry.getComponent<Circle>(id)) {
-            if (Renderable* render = this->_registry.getComponent<Renderable>(id))
-                render->mesh = this->_generateCircleMesh(circle->radius, circle->segments);
+        else if (Circle* circle = this->_registry.getComponent<Circle>(id)) {
+            render->mesh = this->_generateCircleMesh(circle->radius, circle->segments);
         }
-        if (Line* line = this->_registry.getComponent<Line>(id)) {
-            if (Renderable* render = this->_registry.getComponent<Renderable>(id))
-                render->mesh = this->_generateLineMesh(line->start, line->end);
+        else if (Line* line = this->_registry.getComponent<Line>(id)) {
+            render->mesh = this->_generateLineMesh(line->start, line->end);
         }
-        if (Rectangle* rectangle = this->_registry.getComponent<Rectangle>(id)) {
-            if (Renderable* render = this->_registry.getComponent<Renderable>(id))
-                render->mesh = this->_generateRectangleMesh(rectangle->width, rectangle->height);
+        else if (Rectangle* rectangle = this->_registry.getComponent<Rectangle>(id)) {
+            render->mesh = this->_generateRectangleMesh(rectangle->width, rectangle->height);
         }
-        if (Point* point = this->_registry.getComponent<Point>(id)) {
-            if (Renderable* render = this->_registry.getComponent<Renderable>(id))
-                render->mesh = this->_generatePointMesh(point->size);
+        else if (Point* point = this->_registry.getComponent<Point>(id)) {
+            render->mesh = this->_generatePointMesh(point->size);
         }
     }
 }
