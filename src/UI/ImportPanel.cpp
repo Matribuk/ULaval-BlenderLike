@@ -1,7 +1,7 @@
 #include "UI/ImportPanel.hpp"
 
 ImportPanel::ImportPanel(FileManager& fileManager, AssetsPanel& assetsPanel, EventLogPanel& eventLogPanel)
-    : this->_fileManager(fileManager), this->_assetsPanel(assetsPanel), this->_eventLogPanel(eventLogPanel)
+    : _fileManager(fileManager), _assetsPanel(assetsPanel), _eventLogPanel(eventLogPanel)
 {
     std::strcpy(this->_filePathBuffer, "");
 }
