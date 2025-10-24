@@ -142,4 +142,3 @@ OF_ROOT = ../../../of_v0.12.1_linux64_gcc6_release/
 # PROJECT_CC =
 
 # vscode template
-
