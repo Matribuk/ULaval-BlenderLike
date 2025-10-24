@@ -320,7 +320,7 @@
 - 5.2 Cameras multiples (Clement, Killian)
 - 5.3 Points de vue multiples (Clement)
 
-**Total: 18-19 criteres sur 25**
+**Total: 15 criteres sur 25**
 
 ---
 
