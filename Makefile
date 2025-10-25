@@ -1,13 +1,16 @@
-# Attempt to load a config.make file.
-# If none is found, project defaults in config.project.make will be used.
-ifneq ($(wildcard config.make),)
-	include config.make
-endif
-
-# make sure the the OF_ROOT location is defined
+# --- Define OF_ROOT before including anything ---
 ifndef OF_ROOT
 	OF_ROOT=../../..
 endif
 
-# call the project makefile!
+# --- Include path for headers ---
+PROJECT_INCLUDE_PATHS += $(shell find $(PROJECT_ROOT)/include -type d)
+USER_CFLAGS += $(addprefix -I, $(shell find $(PROJECT_ROOT)/include -type d))
+
+# Attempt to load a config.make file (may override some vars)
+ifneq ($(wildcard config.make),)
+	include config.make
+endif
+
+# --- Finally include the openFrameworks project compiler ---
 include $(OF_ROOT)/libs/openFrameworksCompiled/project/makefileCommon/compile.project.mk

@@ -1,156 +1,174 @@
-# IFT3100A25_TP1_E02
-
 # TODO List - Projet ECS openFrameworks
 
 ## 📁 Phase 1: Structure de base et Types fondamentaux
 
 ### Core/Entity.h
-- [ ] Créer type `EntityID` (typedef uint32_t)
-- [ ] Créer classe `Entity` avec ID unique
-- [ ] Méthode `getId()` const
-- [ ] Opérateurs de comparaison (==, <)
-- [ ] Constructeur/destructeur
+
+- [x] Créer type `EntityID` (typedef uint32_t)
+- [x] Créer classe `Entity` avec ID unique
+- [x] Méthode `getId()` const
+- [x] Opérateurs de comparaison (==, <)
+- [x] Constructeur/destructeur
 
 ### Core/ComponentRegistry.h
-- [ ] Map pour stocker les composants par type
-- [ ] Template `registerComponent<T>(EntityID)`
-- [ ] Template `getComponent<T>(EntityID)`
-- [ ] Template `removeComponent<T>(EntityID)`
-- [ ] Template `hasComponent<T>(EntityID)`
-- [ ] Méthode `removeAllComponents(EntityID)`
-- [ ] Destructeur avec cleanup
+
+- [x] Map pour stocker les composants par type
+- [x] Template `registerComponent<T>(EntityID)`
+- [x] Template `getComponent<T>(EntityID)`
+- [x] Template `removeComponent<T>(EntityID)`
+- [x] Template `hasComponent<T>(EntityID)`
+- [x] Méthode `removeAllComponents(EntityID)`
+- [x] Destructeur avec cleanup
 
 ### Core/EntityManager.h
-- [ ] Générateur d'IDs uniques
-- [ ] Vector des entités actives
-- [ ] Méthode `createEntity()` → EntityID
-- [ ] Méthode `destroyEntity(EntityID)`
-- [ ] Méthode `isEntityValid(EntityID)`
-- [ ] Méthode `getAllEntities()`
+
+- [x] Générateur d'IDs uniques
+- [x] Vector des entités actives
+- [x] Méthode `createEntity()` → EntityID
+- [x] Méthode `destroyEntity(EntityID)`
+- [x] Méthode `isEntityValid(EntityID)`
+- [x] Méthode `getAllEntities()`
 
 ## 📁 Phase 2: Composants de base
 
 ### Components/Transform.h
-- [ ] `glm::vec3 position`
-- [ ] `glm::vec3 rotation`
-- [ ] `glm::vec3 scale`
-- [ ] Constructeur par défaut
-- [ ] Méthodes getter/setter
-- [ ] Méthode `getMatrix()` pour transformation
+
+- [x] `glm::vec3 position`
+- [x] `glm::vec3 rotation`
+- [x] `glm::vec3 scale`
+- [x] Constructeur par défaut
+- [x] TransformSystem calcul les matrices
 
 ### Components/Renderable.h
-- [ ] `ofMesh mesh`
-- [ ] `ofColor color`
-- [ ] `bool visible`
-- [ ] Constructeur par défaut
-- [ ] Méthodes de manipulation du mesh
+
+- [x] `ofMesh mesh`
+- [x] `ofColor color`
+- [x] `bool visible`
+- [x] Constructeur par défaut
+- [x] RenderSystem manipule le mesh
 
 ### Components/Camera.h
-- [ ] `glm::vec3 target`
-- [ ] `glm::vec3 up`
-- [ ] `float fov`
-- [ ] `float nearClip, farClip`
-- [ ] Méthodes de calcul matrices view/projection
+
+- [x] `glm::vec3 target`
+- [x] `glm::vec3 position`
+- [x] `float fov`
+- [x] `float nearClip, farClip`
+- [x] CameraSystem calcule les matrices
 
 ### Components/Selectable.h
-- [ ] `bool isSelected`
-- [ ] `ofColor selectedColor`
-- [ ] `ofColor normalColor`
-- [ ] Constructeur par défaut
 
-### Components/Primitive.h
-- [ ] Enum `PrimitiveType` (BOX, SPHERE, PLANE, etc.)
-- [ ] `PrimitiveType type`
-- [ ] `glm::vec3 dimensions`
-- [ ] Méthodes de génération de mesh
+- [x] `bool isSelected`
+- [x] `ofColor selectedColor`
+- [x] `ofColor normalColor`
+- [x] Constructeur par défaut
+
+### Components/Primitive/**.h
+
+- [x] Créer un composant Box avec glm::vec3 dimensions
+- [x] Créer un composant Sphere avec float radius
+- [x] Créer un composant Plane avec glm::vec2 size
+- [x] PrimitiveSystem génère les meshes à partir des composants correspondants
 
 ## 📁 Phase 3: Système d'événements
 
 ### Events/EventTypes.h
-- [ ] Enum `EventType` (INPUT, SELECTION, CAMERA, etc.)
-- [ ] Struct de base `Event` avec type et timestamp
-- [ ] Structs spécialisés:
-  - [ ] `MouseEvent` (x, y, button, type)
-  - [ ] `KeyEvent` (key, type)
-  - [ ] `SelectionEvent` (entityID, selected)
-  - [ ] `CameraEvent` (position, target, type)
+
+- [x] Enum Class `EventType` (INPUT, SELECTION, CAMERA, etc.)
+- [x] Struct de base `Event` avec type et timestamp
+- [X] Structs spécialisés:
+  - [x] `MouseEvent` (x, y, button, type)
+  - [x] `KeyEvent` (key, type)
+  - [x] `SelectionEvent` (entityID, selected)
+  - [X] `CameraEvent` (position, target, type)
 
 ### Events/EventManager.h
-- [ ] Map de callbacks par type d'événement
-- [ ] Queue d'événements à traiter
-- [ ] Template `subscribe<T>(callback)`
-- [ ] Template `unsubscribe<T>(callback)`
-- [ ] Template `emit<T>(event)`
-- [ ] Méthode `processEvents()` (vidage de la queue)
-- [ ] Système de priorités pour les événements
+
+- [x] Map de callbacks par type d'événement
+- [x] Queue d'événements à traiter
+- [x] Template `subscribe<T>(callback)`
+- [x] Template `unsubscribe<T>(callback)`
+- [x] Template `emit<T>(event)`
+- [x] Méthode `processEvents()` (vidage de la queue)
 
 ### Events/EventBridge.h
-- [ ] Référence vers EventManager
-- [ ] Constructeur avec EventManager*
-- [ ] `onKeyPressed(int key)`
-- [ ] `onKeyReleased(int key)`
-- [ ] `onMousePressed(int x, int y, int button)`
-- [ ] `onMouseReleased(int x, int y, int button)`
-- [ ] `onMouseMoved(int x, int y)`
-- [ ] `onMouseDragged(int x, int y, int button)`
-- [ ] `onMouseScrolled(int x, int y, float sx, float sy)`
-- [ ] `onWindowResized(int w, int h)`
-- [ ] `onDragEvent(ofDragInfo dragInfo)`
+
+- [x] Référence vers EventManager
+- [x] Constructeur avec EventManager*
+- [x] `onKeyPressed(int key)`
+- [x] `onKeyReleased(int key)`
+- [x] `onMousePressed(int x, int y, int button)`
+- [x] `onMouseReleased(int x, int y, int button)`
+- [x] `onMouseMoved(int x, int y)`
+- [x] `onMouseDragged(int x, int y, int button)`
+- [x] `onMouseScrolled(int x, int y, float sx, float sy)`
+- [x] `onWindowResized(int w, int h)`
+- [x] `onDragEvent(ofDragInfo dragInfo)`
 
 ## 📁 Phase 4: Systèmes logiques
 
 ### Systems/RenderSystem.h
-- [ ] Référence vers ComponentRegistry
-- [ ] Référence vers caméra active
-- [ ] Méthode `render()`
-- [ ] Méthode `setActiveCamera(EntityID)`
-- [ ] Rendu des entités avec Transform + Renderable
-- [ ] Gestion des materials et shaders
-- [ ] Culling et optimisations
+
+- [x] Référence vers ComponentRegistry
+- [x] Référence vers caméra active
+- [x] Méthode `render()`
+- [x] Méthode `setActiveCamera(EntityID)`
+- [x] Rendu des entités avec Transform + Renderable
+- [x] Gestion des materials et shaders
+- [x] Culling et optimisations
 
 ### Systems/SelectionSystem.h
-- [ ] Référence vers ComponentRegistry et EventManager
-- [ ] Subscribe aux MouseEvents
-- [ ] Méthode `handleMouseClick(MouseEvent)`
-- [ ] Ray casting pour sélection 3D
-- [ ] Mise à jour composants Selectable
-- [ ] Émission SelectionEvents
+
+- [x] Référence vers ComponentRegistry et EventManager
+- [x] Subscribe aux MouseEvents
+- [x] Méthode `handleMouseClick(MouseEvent)`
+- [x] Ray casting pour sélection 3D
+- [x] Mise à jour composants Selectable
+- [x] Émission SelectionEvents
+- [x] S'active seulement en select mode
+- [x] Bounding boxes
+- [x] Gère tout type de mesh
+- [ ] Select seulement des objets visibles
 
 ### Systems/TransformSystem.h
-- [ ] Mise à jour matrices de transformation
-- [ ] Gestion hiérarchies parent/enfant
-- [ ] Méthode `updateTransforms()`
-- [ ] Calcul matrices globales
-- [ ] Optimisations (dirty flags)
+
+- [x] Mise à jour matrices de transformation
+- [x] Gestion hiérarchies parent/enfant
+- [x] Méthode `updateTransforms()`
+- [x] Calcul matrices globales
+- [x] Optimisations (dirty flags)
 
 ### Systems/CameraSystem.h
-- [ ] Subscribe aux événements caméra
-- [ ] Gestion multiple caméras
-- [ ] Méthodes de déplacement (orbit, pan, zoom)
-- [ ] Méthode `updateCamera(float deltaTime)`
-- [ ] Contraintes de mouvement
+
+- [x] Subscribe aux événements caméra
+- [x] Gestion multiple caméras
+- [x] Méthodes de déplacement (orbit, pan, zoom)
+- [x] Méthode `updateCamera(float deltaTime)`
+- [x] Contraintes de mouvement
 
 ## 📁 Phase 5: Managers globaux
 
 ### Manager/InputManager.h
-- [ ] État actuel clavier/souris
-- [ ] Historique des inputs
-- [ ] Méthodes `isKeyPressed(int key)`
-- [ ] Méthodes `getMousePosition()`
-- [ ] Méthodes `getMouseDelta()`
-- [ ] Gestion raccourcis clavier
-- [ ] Subscribe aux EventBridge events
+
+- [x] État actuel clavier/souris
+- [x] Historique des inputs
+- [x] Méthodes `isKeyPressed(int key)`
+- [x] Méthodes `getMousePosition()`
+- [x] Méthodes `getMouseDelta()`
+- [x] Gestion raccourcis clavier
+- [x] Subscribe aux EventBridge events
 
 ### Manager/CameraManager.h
-- [ ] Liste des caméras disponibles
-- [ ] ID de la caméra active
-- [ ] Méthodes `createCamera(EntityID)`
-- [ ] Méthodes `setActiveCamera(EntityID)`
-- [ ] Méthodes `getActiveCamera()`
-- [ ] Mise à jour automatique aspect ratio
+
+- [x] Liste des caméras disponibles
+- [x] ID de la caméra active
+- [x] Méthodes `createCamera(EntityID)`
+- [x] Méthodes `setActiveCamera(EntityID)`
+- [x] Méthodes `getActiveCamera()`
+- [x] Mise à jour automatique aspect ratio
 
 ### Manager/HistoryManager.h
-- [ ] Stack des commandes (Command Pattern)
+
+- [x] Stack des commandes (Command Pattern)
 - [ ] Méthodes `executeCommand(Command*)`
 - [ ] Méthodes `undo()`
 - [ ] Méthodes `redo()`
@@ -158,58 +176,65 @@
 - [ ] Sérialisation/désérialisation états
 
 ### Manager/FileManager.h
-- [ ] Méthodes `saveScene(string filename)`
-- [ ] Méthodes `loadScene(string filename)`
-- [ ] Méthodes `exportMesh(EntityID, string filename)`
-- [ ] Méthodes `importMesh(string filename)` → EntityID
-- [ ] Support formats (OBJ, PLY, STL)
-- [ ] Gestion erreurs et validations
+
+- [ ] Méthodes `saveScene(string filename)` - optionel
+- [ ] Méthodes `loadScene(string filename)` - optionel
+- [x] Méthodes `exportMesh(EntityID, string filename)`
+- [x] Méthodes `importMesh(string filename)` → EntityID
+- [x] Support formats (OBJ, PLY, STL)
+- [x] Gestion erreurs et validations
 
 ### Manager/ResourceManager.h
-- [ ] Cache des ressources (meshes, textures, shaders)
-- [ ] Méthodes `loadMesh(string path)`
-- [ ] Méthodes `loadTexture(string path)`
-- [ ] Méthodes `loadShader(string path)`
-- [ ] Reference counting
-- [ ] Nettoyage automatique ressources inutilisées
+
+- [x] Cache des ressources (meshes, textures, shaders)
+- [x] Méthodes `loadMesh(string path)`
+- [x] Méthodes `loadTexture(string path)`
+- [x] Méthodes `loadShader(string path)`
+- [x] Reference counting
+- [x] Nettoyage automatique ressources inutilisées
 
 ## 📁 Phase 6: Interface utilisateur
 
 ### UI/ToolBar.h
-- [ ] Liste des outils disponibles
-- [ ] Outil actuellement sélectionné
-- [ ] Méthodes `addTool(Tool)`
-- [ ] Méthodes `selectTool(ToolType)`
-- [ ] Méthodes `render()`
+
+- [x] Liste des outils disponibles
+- [x] Outil actuellement sélectionné
+- [x] Méthodes `addTool(Tool)`
+- [x] Méthodes `selectTool(ToolType)`
+- [x] Méthodes `render()`
 - [ ] Gestion événements clic outils
 
 ### UI/ColorPalette.h
-- [ ] Couleur actuellement sélectionnée
-- [ ] Palette de couleurs prédéfinies
-- [ ] Méthodes `setSelectedColor(ofColor)`
-- [ ] Méthodes `getSelectedColor()`
-- [ ] Méthodes `render()`
+
+- [x] Couleur actuellement sélectionnée
+- [x] Palette de couleurs prédéfinies
+- [x] Méthodes `setSelectedColor(ofColor)`
+- [x] Méthodes `getSelectedColor()`
+- [x] Méthodes `render()`
 - [ ] Interface picker couleur
 
 ### UI/Properties.h
-- [ ] Affichage propriétés entité sélectionnée
-- [ ] Champs éditables pour Transform
-- [ ] Champs éditables pour Material
-- [ ] Méthodes `setSelectedEntity(EntityID)`
-- [ ] Méthodes `render()`
-- [ ] Validation et application changements
+
+- [x] Affichage propriétés entité sélectionnée
+- [x] Champs éditables pour Transform
+- [x] Champs éditables pour Material
+- [x] Méthodes `setSelectedEntity(EntityID)`
+- [x] Méthodes `render()`
 
 ### UI/Viewport.h
-- [ ] Zone de rendu 3D principal
-- [ ] Gestion resize
-- [ ] Overlays (grid, axes, gizmos)
-- [ ] Méthodes `render()`
-- [ ] Conversion coordonnées écran ↔ 3D
-- [ ] Gestion multi-viewport
+
+- [x] Zone de rendu 3D principal
+- [x] Gestion resize
+- [ ] Overlays (gizmos)
+- [x] Overlays (grid, axes)
+- [x] Méthodes `render()`
+- [x] Conversion coordonnées écran ↔ 3D
+- [x] Gestion multi-viewport
 
 ## 📁 Phase 7: Core Systems
 
 ### Core/SystemManager.h
+
 - [ ] Liste de tous les systèmes
 - [ ] Ordre d'exécution des systèmes
 - [ ] Méthodes `registerSystem<T>()`
@@ -218,6 +243,7 @@
 - [ ] Gestion activation/désactivation systèmes
 
 ### Core/SceneManager.h (World/Scene Manager)
+
 - [ ] Référence vers tous les managers
 - [ ] Méthodes `initialize()`
 - [ ] Méthodes `update(float deltaTime)`
@@ -230,11 +256,13 @@
 ## 📁 Phase 8: Intégration et finitions
 
 ### ofApp.h/cpp (déjà fait)
+
 - [x] Intégration des managers principaux
 - [x] Relais événements vers EventBridge
 - [x] Cycle update/render
 
 ### Tests et optimisations
+
 - [ ] Tests unitaires composants de base
 - [ ] Tests systèmes de rendu
 - [ ] Tests sélection/interaction
@@ -243,12 +271,14 @@
 - [ ] Tests sur différentes plateformes
 
 ### Documentation
+
 - [ ] Documentation API des composants
 - [ ] Guide d'utilisation
 - [ ] Exemples d'extension du système
 - [ ] Diagrammes d'architecture mis à jour
 
 ### Fonctionnalités avancées (optionnel)
+
 - [ ] Système de plugins
 - [ ] Scripting (Lua/Python)
 - [ ] Networking pour collaboration
@@ -258,7 +288,7 @@
 
 ---
 
-## 📋 Ordre de développement recommandé:
+## 📋 Ordre de développement recommandé
 
 1. **Phase 1** → Base solide ECS
 2. **Phase 2** → Composants essentiels

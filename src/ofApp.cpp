@@ -1,33 +1,87 @@
 #include "ofApp.h"
 
-void ofApp::setup() {}
+void ofApp::setup()
+{
+    this->_setupOpenGL();
 
-void ofApp::update() {}
+    this->_bootstrapper = std::make_unique<ApplicationBootstrapper>(
+        this->_entityManager,
+        this->_componentRegistry,
+        this->_eventManager
+    );
 
-void ofApp::draw() {}
+    if (!this->_bootstrapper->bootstrap()) return;
 
-void ofApp::exit() {}
+    this->_runtime = std::make_unique<ApplicationRuntime>(
+        this->_eventManager,
+        this->_componentRegistry,
+        this->_bootstrapper->getSystems(),
+        this->_bootstrapper->getManagers(),
+        this->_bootstrapper->getUI(),
+        this->_bootstrapper->getTestEntities()
+    );
 
-void ofApp::keyPressed(int key) {}
+    this->_runtime->initialize();
+}
 
-void ofApp::keyReleased(int key) {}
+void ofApp::_setupOpenGL()
+{
+    ofEnableDepthTest();
+    ofEnableLighting();
+    ofEnableSeparateSpecularLight();
 
-void ofApp::mouseMoved(int x, int y ) {}
+    this->_light.setup();
+    this->_light.setPosition(0, 10, 0);
+    this->_light.enable();
 
-void ofApp::mouseDragged(int x, int y, int button) {}
+    ofSetWindowTitle("IFT3100");
+    ofSetFrameRate(60);
+    ofBackground(20);
 
-void ofApp::mousePressed(int x, int y, int button) {}
+    this->_gui.setup();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+}
 
-void ofApp::mouseReleased(int x, int y, int button) {}
+void ofApp::update()
+{
+    if (this->_runtime) this->_runtime->update(ofGetWidth(), ofGetHeight());
+}
 
-void ofApp::mouseScrolled(int x, int y, float scrollX, float scrollY) {}
+void ofApp::draw()
+{
+    ofEnableDepthTest();
+    glDisable(GL_CULL_FACE);
 
-void ofApp::mouseEntered(int x, int y) {}
+    ofPushView();
+    ofSetupScreen();
 
-void ofApp::mouseExited(int x, int y) {}
+    this->_drawUI();
 
-void ofApp::windowResized(int w, int h) {}
+    ofPopView();
+}
 
-void ofApp::gotMessage(ofMessage msg) {}
+void ofApp::_drawUI()
+{
+    this->_gui.begin();
 
-void ofApp::dragEvent(ofDragInfo dragInfo) {}
+    if (this->_bootstrapper) this->_bootstrapper->getManagers().uiManager->render();
+
+    this->_gui.end();
+}
+
+void ofApp::exit()
+{
+    if (this->_runtime) this->_runtime->shutdown();
+}
+
+void ofApp::keyPressed(int key)
+{
+    this->_eventManager.emit(KeyEvent(key, KeyEventType::Pressed));
+}
+
+void ofApp::keyReleased(int key)
+{
+    this->_eventManager.emit(KeyEvent(key, KeyEventType::Released));
+}
