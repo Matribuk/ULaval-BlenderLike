@@ -81,6 +81,19 @@ jobs:
           cd /opt/openFrameworks/libs/openFrameworksCompiled/project
           make -j$(nproc)
 
+      - name: Install required addons
+        run: |
+          cd /opt/openFrameworks/addons
+          # Clone ofxImGui if not already present
+          if [ ! -d "ofxImGui" ]; then
+            git clone --depth 1 https://github.com/jvcleave/ofxImGui.git
+          fi
+          # Check if ofxAssimpModelLoader exists (should be included)
+          if [ ! -d "ofxAssimpModelLoader" ]; then
+            echo "Warning: ofxAssimpModelLoader not found"
+            ls -la
+          fi
+
       - name: Build project
         run: |
           make OF_ROOT=/opt/openFrameworks -j$(nproc)
