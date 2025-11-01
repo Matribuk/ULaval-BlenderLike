@@ -96,7 +96,7 @@ jobs:
 
       - name: Build project
         run: |
-          make OF_ROOT=/opt/openFrameworks USER_CFLAGS="-Wno-error=unused-function" -j$(nproc)
+          make OF_ROOT=/opt/openFrameworks PROJECT_ROOT=. USER_CFLAGS="-Wno-error=unused-function" -j$(nproc)
 
       - name: Check build artifacts
         run: |
