@@ -59,12 +59,13 @@ jobs:
       - name: Download and setup openFrameworks
         if: steps.cache-of.outputs.cache-hit != 'true'
         run: |
-          sudo mkdir -p /opt/openFrameworks
           wget https://github.com/openframeworks/openFrameworks/releases/download/0.12.0/of_v0.12.0_linux64gcc6_release.tar.gz
-          sudo tar -xzf of_v0.12.0_linux64gcc6_release.tar.gz -C /opt
-          sudo mv /opt/of_v0.12.0_linux64gcc6_release /opt/openFrameworks
-          rm of_v0.12.0_linux64gcc6_release.tar.gz
+          tar -xzf of_v0.12.0_linux64gcc6_release.tar.gz
+          sudo mv of_v0.12.0_linux64gcc6_release /opt/openFrameworks
           sudo chown -R $USER:$USER /opt/openFrameworks
+          rm of_v0.12.0_linux64gcc6_release.tar.gz
+          ls -la /opt/openFrameworks/
+          ls -la /opt/openFrameworks/libs/
 
       - name: Compile openFrameworks (if not cached)
         if: steps.cache-of.outputs.cache-hit != 'true'
