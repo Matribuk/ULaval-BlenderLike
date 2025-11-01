@@ -41,6 +41,7 @@ jobs:
             libxxf86vm-dev \
             libgl1-mesa-dev \
             libglu1-mesa-dev \
+            freeglut3-dev \
             libraw1394-dev \
             libudev-dev \
             libdrm-dev \
