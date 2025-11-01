@@ -83,11 +83,7 @@ jobs:
 
       - name: Build project
         run: |
-          # Update OF_ROOT to point to the installed location
-          export OF_ROOT=/opt/openFrameworks
-          make -j$(nproc)
-        env:
-          OF_ROOT: /opt/openFrameworks
+          make OF_ROOT=/opt/openFrameworks -j$(nproc)
 
       - name: Check build artifacts
         run: |
