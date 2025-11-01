@@ -13,7 +13,7 @@ PROJECT_INCLUDE_PATHS += $(shell find $(PROJECT_ROOT)/include -type d)
 USER_CFLAGS += $(addprefix -I, $(shell find $(PROJECT_ROOT)/include -type d))
 
 USER_CFLAGS += -Wno-unused-function
-USER_CFLAGS += -DOF_KEY_SPACE=32 -DOF_KEY_LEFT_SHIFT=340
+USER_CFLAGS += -DOF_KEY_SPACE=\' \'
 
 # Attempt to load a config.make file (may override some vars)
 ifneq ($(wildcard config.make),)
