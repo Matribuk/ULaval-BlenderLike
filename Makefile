@@ -12,7 +12,7 @@ endif
 PROJECT_INCLUDE_PATHS += $(shell find $(PROJECT_ROOT)/include -type d)
 USER_CFLAGS += $(addprefix -I, $(shell find $(PROJECT_ROOT)/include -type d))
 
-USER_CFLAGS += -Wno-error=unused-function
+USER_CFLAGS += -Wno-unused-function
 
 # Attempt to load a config.make file (may override some vars)
 ifneq ($(wildcard config.make),)
