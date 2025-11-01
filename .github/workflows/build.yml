@@ -30,8 +30,8 @@ jobs:
       - name: Install openFrameworks dependencies
         if: steps.cache-of.outputs.cache-hit != 'true'
         run: |
-          cd /opt/openFrameworks/scripts/ci/linux
-          sudo ./install.sh
+          cd /opt/openFrameworks/scripts/linux/ubuntu
+          sudo ./install_dependencies.sh -y
 
       - name: Compile openFrameworks (if not cached)
         if: steps.cache-of.outputs.cache-hit != 'true'
