@@ -90,8 +90,6 @@
 ### 5.4 Focus automatique
 - [x] Focus automatique sur la sélection
 - [x] Vue recentrée avec cadrage optimal (cacher les autre element non focus)
-<<<<<<< Updated upstream
-=======
 
 ---
 
@@ -207,4 +205,3 @@
 12. 10.1 PBR (3+ matériaux, 2+ lumières)
 13. 10.2 Métallicité (2+ matériaux)
 14. 10.3 Microfacettes/Rugosité (2+ matériaux)
->>>>>>> Stashed changes
