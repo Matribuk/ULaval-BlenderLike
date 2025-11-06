@@ -2,7 +2,7 @@
 
 #include <vector>
 #include "Core/ComponentRegistry.hpp"
-#include "Core//EntityManager.hpp"
+#include "Core/EntityManager.hpp"
 
 #include "Components/Camera.hpp"
 #include "Components/Transform.hpp"

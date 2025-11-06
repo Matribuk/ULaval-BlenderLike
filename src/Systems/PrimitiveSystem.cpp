@@ -45,7 +45,6 @@ ofMesh PrimitiveSystem::_generateBoxMesh(const glm::vec3& dims)
     float halfHeight = dims.y * 0.5f;
     float halfDeep = dims.z * 0.5f;
 
-    // Front face (+Z)
     mesh.addVertex(glm::vec3(-halfWidth, -halfHeight, halfDeep));
     mesh.addVertex(glm::vec3( halfWidth, -halfHeight, halfDeep));
     mesh.addVertex(glm::vec3( halfWidth, halfHeight, halfDeep));
@@ -54,7 +53,6 @@ ofMesh PrimitiveSystem::_generateBoxMesh(const glm::vec3& dims)
     mesh.addTexCoord(glm::vec2(0, 1)); mesh.addTexCoord(glm::vec2(1, 1));
     mesh.addTexCoord(glm::vec2(1, 0)); mesh.addTexCoord(glm::vec2(0, 0));
 
-    // Back face (-Z)
     mesh.addVertex(glm::vec3( halfWidth, -halfHeight, -halfDeep));
     mesh.addVertex(glm::vec3(-halfWidth, -halfHeight, -halfDeep));
     mesh.addVertex(glm::vec3(-halfWidth, halfHeight, -halfDeep));
@@ -63,7 +61,6 @@ ofMesh PrimitiveSystem::_generateBoxMesh(const glm::vec3& dims)
     mesh.addTexCoord(glm::vec2(0, 1)); mesh.addTexCoord(glm::vec2(1, 1));
     mesh.addTexCoord(glm::vec2(1, 0)); mesh.addTexCoord(glm::vec2(0, 0));
 
-    // Right face (+X)
     mesh.addVertex(glm::vec3( halfWidth, -halfHeight,  halfDeep));
     mesh.addVertex(glm::vec3( halfWidth, -halfHeight, -halfDeep));
     mesh.addVertex(glm::vec3( halfWidth, halfHeight, -halfDeep));
@@ -72,7 +69,6 @@ ofMesh PrimitiveSystem::_generateBoxMesh(const glm::vec3& dims)
     mesh.addTexCoord(glm::vec2(0, 1)); mesh.addTexCoord(glm::vec2(1, 1));
     mesh.addTexCoord(glm::vec2(1, 0)); mesh.addTexCoord(glm::vec2(0, 0));
 
-    // Left face (-X)
     mesh.addVertex(glm::vec3(-halfWidth, -halfHeight, -halfDeep));
     mesh.addVertex(glm::vec3(-halfWidth, -halfHeight,  halfDeep));
     mesh.addVertex(glm::vec3(-halfWidth,  halfHeight,  halfDeep));
@@ -81,7 +77,6 @@ ofMesh PrimitiveSystem::_generateBoxMesh(const glm::vec3& dims)
     mesh.addTexCoord(glm::vec2(0, 1)); mesh.addTexCoord(glm::vec2(1, 1));
     mesh.addTexCoord(glm::vec2(1, 0)); mesh.addTexCoord(glm::vec2(0, 0));
 
-    // Top face (+Y)
     mesh.addVertex(glm::vec3(-halfWidth, halfHeight, halfDeep));
     mesh.addVertex(glm::vec3( halfWidth, halfHeight, halfDeep));
     mesh.addVertex(glm::vec3( halfWidth, halfHeight, -halfDeep));
@@ -90,7 +85,6 @@ ofMesh PrimitiveSystem::_generateBoxMesh(const glm::vec3& dims)
     mesh.addTexCoord(glm::vec2(0, 1)); mesh.addTexCoord(glm::vec2(1, 1));
     mesh.addTexCoord(glm::vec2(1, 0)); mesh.addTexCoord(glm::vec2(0, 0));
 
-    // Bottom face (-Y)
     mesh.addVertex(glm::vec3(-halfWidth, -halfHeight, -halfDeep));
     mesh.addVertex(glm::vec3( halfWidth, -halfHeight, -halfDeep));
     mesh.addVertex(glm::vec3( halfWidth, -halfHeight, halfDeep));
@@ -99,7 +93,6 @@ ofMesh PrimitiveSystem::_generateBoxMesh(const glm::vec3& dims)
     mesh.addTexCoord(glm::vec2(0, 1)); mesh.addTexCoord(glm::vec2(1, 1));
     mesh.addTexCoord(glm::vec2(1, 0)); mesh.addTexCoord(glm::vec2(0, 0));
 
-    // Indices for all 6 faces
     for (int i = 0; i < 6; ++i) {
         int offset = i * 4;
         mesh.addIndex(offset + 0);
@@ -122,7 +115,6 @@ ofMesh PrimitiveSystem::_generateSphereMesh(float radius)
     const int sectors = 20;
     const float M_PI_CUSTOM = 3.14159265359f;
 
-    // Generate vertices with proper UV coordinates
     for (int ring = 0; ring <= rings; ++ring) {
         float theta = ring * M_PI_CUSTOM / rings;
         float sinTheta = std::sin(theta);
@@ -140,14 +132,12 @@ ofMesh PrimitiveSystem::_generateSphereMesh(float radius)
             mesh.addVertex(glm::vec3(x * radius, y * radius, z * radius));
             mesh.addNormal(glm::vec3(x, y, z));
 
-            // Proper spherical UV mapping
             float u = (float)sector / (float)sectors;
             float v = (float)ring / (float)rings;
             mesh.addTexCoord(glm::vec2(u, v));
         }
     }
 
-    // Generate indices
     for (int ring = 0; ring < rings; ++ring) {
         for (int sector = 0; sector < sectors; ++sector) {
             int current = ring * (sectors + 1) + sector;
@@ -185,7 +175,6 @@ ofMesh PrimitiveSystem::_generatePlaneMesh(const glm::vec2& size)
     mesh.addNormal(normal);
     mesh.addNormal(normal);
 
-    // Proper UV mapping for plane
     mesh.addTexCoord(glm::vec2(0, 1));
     mesh.addTexCoord(glm::vec2(1, 1));
     mesh.addTexCoord(glm::vec2(1, 0));
@@ -218,10 +207,9 @@ ofMesh PrimitiveSystem::_generateTriangleMesh(const glm::vec3& v1, const glm::ve
     mesh.addNormal(normal);
     mesh.addNormal(normal);
 
-    // UV mapping for triangle (3 corners)
-    mesh.addTexCoord(glm::vec2(0.5f, 0.0f));  // Top
-    mesh.addTexCoord(glm::vec2(0.0f, 1.0f));  // Bottom left
-    mesh.addTexCoord(glm::vec2(1.0f, 1.0f));  // Bottom right
+    mesh.addTexCoord(glm::vec2(0.5f, 0.0f));
+    mesh.addTexCoord(glm::vec2(0.0f, 1.0f));
+    mesh.addTexCoord(glm::vec2(1.0f, 1.0f));
 
     mesh.addIndex(0);
     mesh.addIndex(1);
@@ -235,10 +223,9 @@ ofMesh PrimitiveSystem::_generateCircleMesh(float radius, int segments)
     ofMesh mesh;
     mesh.setMode(OF_PRIMITIVE_TRIANGLE_FAN);
 
-    // Center vertex
     mesh.addVertex(glm::vec3(0.0f, 0.0f, 0.0f));
     mesh.addNormal(glm::vec3(0.0f, 0.0f, 1.0f));
-    mesh.addTexCoord(glm::vec2(0.5f, 0.5f)); // Center of texture
+    mesh.addTexCoord(glm::vec2(0.5f, 0.5f));
 
     const float pi_f = 3.14159265359f;
     for (int i = 0; i <= segments; i++) {
@@ -249,7 +236,6 @@ ofMesh PrimitiveSystem::_generateCircleMesh(float radius, int segments)
         mesh.addVertex(glm::vec3(x, y, 0.0f));
         mesh.addNormal(glm::vec3(0.0f, 0.0f, 1.0f));
 
-        // UV coordinates from center (0.5, 0.5) to edge
         float u = 0.5f + 0.5f * std::cos(angle);
         float v = 0.5f + 0.5f * std::sin(angle);
         mesh.addTexCoord(glm::vec2(u, v));
@@ -276,7 +262,6 @@ ofMesh PrimitiveSystem::_generateLineMesh(const glm::vec3& start, const glm::vec
     mesh.addNormal(direction);
     mesh.addNormal(direction);
 
-    // Simple UV for line (not really used for lines but good to have)
     mesh.addTexCoord(glm::vec2(0, 0));
     mesh.addTexCoord(glm::vec2(1, 1));
 
@@ -305,7 +290,6 @@ ofMesh PrimitiveSystem::_generateRectangleMesh(float width, float height)
     mesh.addNormal(normal);
     mesh.addNormal(normal);
 
-    // Proper UV mapping for rectangle
     mesh.addTexCoord(glm::vec2(0, 1));
     mesh.addTexCoord(glm::vec2(1, 1));
     mesh.addTexCoord(glm::vec2(1, 0));
@@ -323,14 +307,12 @@ ofMesh PrimitiveSystem::_generateRectangleMesh(float width, float height)
 
 ofMesh PrimitiveSystem::_generatePointMesh(float size)
 {
-    // Render point as a small sphere for visibility
     ofMesh mesh = ofMesh::sphere(size * 0.05f, 8);
 
-    // Generate simple UV coords for the point sphere
     int numVertices = mesh.getNumVertices();
     mesh.clearTexCoords();
     for (int i = 0; i < numVertices; i++) {
-        mesh.addTexCoord(glm::vec2(0.5f, 0.5f)); // Center texture on point
+        mesh.addTexCoord(glm::vec2(0.5f, 0.5f));
     }
 
     return mesh;
