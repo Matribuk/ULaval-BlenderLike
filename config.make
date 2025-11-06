@@ -8,7 +8,7 @@
 #   The location of your root openFrameworks installation
 #       (default) OF_ROOT = ../../..
 ################################################################################
-OF_ROOT = ../../../of_v0.12.1_linux64_gcc6_release/
+OF_ROOT = /Applications/of_v0.12.1_osx_release
 
 ################################################################################
 # PROJECT ROOT
@@ -142,4 +142,3 @@ PROJECT_ROOT = .
 # PROJECT_CC =
 
 # vscode template
-

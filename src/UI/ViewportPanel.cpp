@@ -94,11 +94,6 @@ std::vector<std::string> ViewportPanel::getViewportsToDock()
     return this->_viewportsToDock;
 }
 
-void ViewportPanel::clearViewportsToDock()
-{
-    this->_viewportsToDock.clear();
-}
-
 std::vector<EntityID> ViewportPanel::_getAvailableCameras()
 {
     std::vector<EntityID> cameras;

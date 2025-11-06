@@ -36,7 +36,7 @@ void UIManager::render()
     if (!vtp.empty() && this->_dockMainId != 0) {
         for (const std::string & vpName : vtp)
             ImGui::DockBuilderDockWindow(vpName.c_str(), this->_dockMainId);
-        this->_viewportPanel->clearViewportsToDock();
+        vtp.clear();
     }
 }
 
