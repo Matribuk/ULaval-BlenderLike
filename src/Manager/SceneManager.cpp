@@ -37,6 +37,7 @@ void SceneManager::unregisterEntity(EntityID id)
 
     std::vector<EntityID> childrenCopy = it->second.children;
     for (EntityID childId : childrenCopy) {
+        this->_componentRegistry.removeAllComponents(childId);
         this->_entityManager.destroyEntity(childId);
         unregisterEntity(childId);
     }
@@ -108,6 +109,7 @@ void SceneManager::render()
         if (selectedEntity != INVALID_ENTITY) {
             bool isCamera = this->_componentRegistry.hasComponent<Camera>(selectedEntity);
 
+            this->_componentRegistry.removeAllComponents(selectedEntity);
             this->_entityManager.destroyEntity(selectedEntity);
             unregisterEntity(selectedEntity);
             this->_selectionSystem->clearSelection();
@@ -230,6 +232,7 @@ void SceneManager::_renderEntityNode(EntityID id, int depth)
         if (ImGui::MenuItem("Delete")) {
             bool isCamera = this->_componentRegistry.hasComponent<Camera>(id);
 
+            this->_componentRegistry.removeAllComponents(id);
             this->_entityManager.destroyEntity(id);
             unregisterEntity(id);
 

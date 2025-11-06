@@ -90,3 +90,87 @@
 ### 5.4 Focus automatique
 - [x] Focus automatique sur la sélection
 - [x] Vue recentrée avec cadrage optimal (cacher les autre element non focus)
+
+---
+
+## 🖼️ 6. Texture
+
+### 6.1 Coordonnées de texture
+- [ ] L'application peut faire le rendu d'au moins 2 maillages géométriques 3D texturés
+- [ ] Les coordonnées de mapping sont adéquatement distribuées sur la surface
+
+### 6.2 Filtrage
+- [ ] L'application permet d'appliquer au moins 3 types d'algorithmes de traitement d'image ou de filtrage
+- [ ] Ces algorithmes affectent l'apparence d'une texture utilisée dans le rendu d'au moins 1 élément visuel d'une scène
+
+### 6.4 Cubemap
+- [ ] Il existe au moins 2 textures de type cubemap
+- [ ] Ces cubemaps sont utilisées dans le rendu d'au moins 1 élément visuel d'une scène
+
+---
+
+## 💡 7. Illumination classique
+
+### 7.1 Modèles d'illumination
+- [ ] Le rendu d'au moins 2 éléments visuels peut être fait avec les 4 modèles d'illumination classiques :
+  - [ ] Lambert
+  - [ ] Gouraud
+  - [ ] Phong
+  - [ ] Blinn-Phong
+
+### 7.2 Matériaux
+- [ ] Au moins 2 éléments visuels d'une scène ont une surface avec un matériau
+- [ ] Sélection parmi un ensemble d'au moins 4 matériaux différents
+
+### 7.3 Types de lumière
+- [ ] L'application permet d'avoir dans une scène au moins une instance de 4 types de lumières différents :
+  - [ ] Ambiante
+  - [ ] Directionnelle
+  - [ ] Ponctuelle
+  - [ ] Projecteur (spot)
+
+---
+
+## 🔷 8. Topologie
+
+### 8.2 Courbe paramétrique
+- [ ] L'application permet d'afficher au moins 1 type de courbe paramétrique
+- [ ] Avec au moins 5 points de contrôle
+- [ ] Par exemple : spline de Bézier ou de Catmull-Rom
+
+### 8.4 Effet de relief
+- [ ] L'application permet de rendre au moins 3 modèles où une ou des textures sont utilisées pour simuler un effet de relief sur la surface
+- [ ] Par exemple : displacement mapping ou normal mapping
+
+### 8.5 Courbe d'animation
+- [ ] L'application permet d'animer au moins 2 attributs à partir d'un échantillonnage d'une courbe paramétrique en fonction du temps
+
+---
+
+## 🌟 9. Lancer de rayon
+
+### 9.1 Intersection
+- [ ] L'application est capable de calculer le point d'intersection entre un rayon et au moins 3 types de primitives géométriques
+
+### 9.2 Réflexion
+- [ ] Une technique de rendu inspirée des principes du lancer de rayon est utilisée pour rendre au moins 2 effets de réflexion
+- [ ] Par exemple : une surface miroir
+
+### 9.4 Ombrage
+- [ ] Une technique de rendu inspirée des principes du lancer de rayon est utilisée pour calculer l'ombrage d'au moins 1 scène
+
+---
+
+## ✨ 10. Illumination moderne
+
+### 10.1 PBR (Physically Based Rendering)
+- [ ] Il existe au moins 3 matériaux inspirés des principes du rendu basé sur la physique (PBR)
+- [ ] Permet d'illuminer une surface avec au moins 2 instances de lumière dynamique
+
+### 10.2 Métallicité
+- [ ] Il existe au moins 2 matériaux qui exposent un facteur de métallicité
+- [ ] Permet d'influencer interactivement l'apparence métallique d'une surface
+
+### 10.3 Microfacettes
+- [ ] Il existe au moins 2 matériaux qui exposent un facteur de rugosité
+- [ ] Permet d'influencer interactivement l'apparence d'une surface (rugosité des microfacettes)
