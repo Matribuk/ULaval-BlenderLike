@@ -90,22 +90,24 @@
 ### 5.4 Focus automatique
 - [x] Focus automatique sur la sélection
 - [x] Vue recentrée avec cadrage optimal (cacher les autre element non focus)
+<<<<<<< Updated upstream
+=======
 
 ---
 
 ## 🖼️ 6. Texture
 
 ### 6.1 Coordonnées de texture
-- [ ] L'application peut faire le rendu d'au moins 2 maillages géométriques 3D texturés
-- [ ] Les coordonnées de mapping sont adéquatement distribuées sur la surface
-
-### 6.2 Filtrage
-- [ ] L'application permet d'appliquer au moins 3 types d'algorithmes de traitement d'image ou de filtrage
-- [ ] Ces algorithmes affectent l'apparence d'une texture utilisée dans le rendu d'au moins 1 élément visuel d'une scène
+- [x] L'application peut faire le rendu d'au moins 2 maillages géométriques 3D texturés
+- [x] Les coordonnées de mapping sont adéquatement distribuées sur la surface (Box, Sphere, toutes les primitives)
 
 ### 6.4 Cubemap
 - [ ] Il existe au moins 2 textures de type cubemap
 - [ ] Ces cubemaps sont utilisées dans le rendu d'au moins 1 élément visuel d'une scène
+
+### 6.5 Texture procédurale
+- [ ] Génération procédurale de textures
+- [ ] Au moins 2 types de textures procédurales différentes
 
 ---
 
@@ -133,6 +135,10 @@
 
 ## 🔷 8. Topologie
 
+### 8.1 Triangulation
+- [ ] Algorithme de triangulation
+- [ ] Application sur formes 2D complexes
+
 ### 8.2 Courbe paramétrique
 - [ ] L'application permet d'afficher au moins 1 type de courbe paramétrique
 - [ ] Avec au moins 5 points de contrôle
@@ -142,15 +148,13 @@
 - [ ] L'application permet de rendre au moins 3 modèles où une ou des textures sont utilisées pour simuler un effet de relief sur la surface
 - [ ] Par exemple : displacement mapping ou normal mapping
 
-### 8.5 Courbe d'animation
-- [ ] L'application permet d'animer au moins 2 attributs à partir d'un échantillonnage d'une courbe paramétrique en fonction du temps
-
 ---
 
 ## 🌟 9. Lancer de rayon
 
 ### 9.1 Intersection
 - [ ] L'application est capable de calculer le point d'intersection entre un rayon et au moins 3 types de primitives géométriques
+- [ ] Implémentation pour sphère, box, plan (minimum)
 
 ### 9.2 Réflexion
 - [ ] Une technique de rendu inspirée des principes du lancer de rayon est utilisée pour rendre au moins 2 effets de réflexion
@@ -158,6 +162,7 @@
 
 ### 9.4 Ombrage
 - [ ] Une technique de rendu inspirée des principes du lancer de rayon est utilisée pour calculer l'ombrage d'au moins 1 scène
+- [ ] Calcul des ombres portées
 
 ---
 
@@ -174,3 +179,32 @@
 ### 10.3 Microfacettes
 - [ ] Il existe au moins 2 matériaux qui exposent un facteur de rugosité
 - [ ] Permet d'influencer interactivement l'apparence d'une surface (rugosité des microfacettes)
+
+---
+
+### 🎯 À faire (par ordre de priorité suggéré)
+
+**Phase 1 - Illumination de base (Section 7)**
+1. 7.3 Types de lumière (ambiante, directionnelle, ponctuelle, spot)
+2. 7.1 Modèles d'illumination (Lambert, Gouraud, Phong, Blinn-Phong)
+3. 7.2 Matériaux (4+ types différents)
+
+**Phase 2 - Textures avancées (Section 6)**
+4. 6.4 Cubemap (2 textures minimum)
+5. 6.5 Texture procédurale (2+ types)
+
+**Phase 3 - Topologie (Section 8)**
+6. 8.1 Triangulation
+7. 8.2 Courbe paramétrique (Bézier/Catmull-Rom, 5+ points)
+8. 8.4 Effet de relief (displacement/normal mapping)
+
+**Phase 4 - Raytracing (Section 9)**
+9. 9.1 Intersection rayon-primitive (3+ types)
+10. 9.2 Réflexion (2+ effets)
+11. 9.4 Ombrage par raytracing
+
+**Phase 5 - PBR (Section 10)**
+12. 10.1 PBR (3+ matériaux, 2+ lumières)
+13. 10.2 Métallicité (2+ matériaux)
+14. 10.3 Microfacettes/Rugosité (2+ matériaux)
+>>>>>>> Stashed changes
