@@ -32,5 +32,4 @@ class PrimitiveSystem {
         ofMesh _generateLineMesh(const glm::vec3& start, const glm::vec3& end);
         ofMesh _generateRectangleMesh(float width, float height);
         ofMesh _generatePointMesh(float size);
-        void _generateDefaultTexCoords(ofMesh& mesh, const std::string& mode = "box");
 };
