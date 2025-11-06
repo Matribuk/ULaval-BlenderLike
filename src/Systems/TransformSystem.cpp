@@ -117,22 +117,17 @@ void TransformSystem::updateTransformHierarchy(EntityID entity, const glm::mat4&
         glm::vec3 parentPos, parentRot, parentScale;
         decomposeMatrix(parentGlobalMatrix, parentPos, parentRot, parentScale);
 
-        glm::vec3 childPos = transform->position;
-        glm::vec3 childRot = transform->rotation;
-        glm::vec3 childScale = transform->scale;
-
         glm::mat4 parentTR = glm::translate(glm::mat4(1.0f), parentPos);
         parentTR = parentTR * glm::eulerAngleXYZ(parentRot.x, parentRot.y, parentRot.z);
 
-        glm::mat4 childTR = glm::translate(glm::mat4(1.0f), childPos);
-        childTR = childTR * glm::eulerAngleXYZ(childRot.x, childRot.y, childRot.z);
+        glm::mat4 childLocal = glm::translate(glm::mat4(1.0f), transform->position);
+        childLocal = childLocal * glm::eulerAngleXYZ(transform->rotation.x, transform->rotation.y, transform->rotation.z);
+        childLocal = childLocal * glm::scale(glm::mat4(1.0f), transform->scale);
 
-        glm::vec3 combinedScale = parentScale * childScale;
-        glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), combinedScale);
-
-        transform->globalMatrix = parentTR * childTR * scaleMatrix;
-    } else
+        transform->globalMatrix = parentTR * childLocal;
+    } else {
         transform->globalMatrix = transform->localMatrix;
+    }
 
     transform->matrix = transform->globalMatrix;
 
@@ -177,34 +172,14 @@ void TransformSystem::setParent(EntityID child, EntityID parent)
     glm::mat4 parentTR = glm::translate(glm::mat4(1.0f), parentPos);
     parentTR = parentTR * glm::eulerAngleXYZ(parentRot.x, parentRot.y, parentRot.z);
 
-    glm::mat4 childGlobalTR = glm::translate(glm::mat4(1.0f), childGlobalPos);
-    childGlobalTR = childGlobalTR * glm::eulerAngleXYZ(childGlobalRot.x, childGlobalRot.y, childGlobalRot.z);
+    glm::vec3 localPos = glm::vec3(glm::inverse(parentTR) * glm::vec4(childGlobalPos, 1.0f));
 
-    glm::mat4 childLocalTR = glm::inverse(parentTR) * childGlobalTR;
-
-    glm::vec3 localPos, localRot, dummyScale;
-    decomposeMatrix(childLocalTR, localPos, localRot, dummyScale);
-
-    glm::vec3 localScale;
-    localScale.x = (glm::abs(parentScale.x) > 0.0001f) ? (childGlobalScale.x / parentScale.x) : childGlobalScale.x;
-    localScale.y = (glm::abs(parentScale.y) > 0.0001f) ? (childGlobalScale.y / parentScale.y) : childGlobalScale.y;
-    localScale.z = (glm::abs(parentScale.z) > 0.0001f) ? (childGlobalScale.z / parentScale.z) : childGlobalScale.z;
+    glm::vec3 localRot = childGlobalRot - parentRot;
 
     childTransform->position = localPos;
     childTransform->rotation = localRot;
-    childTransform->scale = localScale;
-    childTransform->localMatrix = calculateMatrix(localPos, localRot, localScale);
-    childTransform->isDirty = false;
 
-    glm::vec3 combinedScale = parentScale * localScale;
-    glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), combinedScale);
-
-    childTransform->globalMatrix = parentTR * childLocalTR * scaleMatrix;
-    childTransform->matrix = childTransform->globalMatrix;
-
-    for (EntityID grandChild : childTransform->children) {
-        markDirty(grandChild, true);
-    }
+    markDirty(child, true);
 }
 
 void TransformSystem::removeParent(EntityID child)
@@ -213,6 +188,8 @@ void TransformSystem::removeParent(EntityID child)
     if (!childTransform || childTransform->parent == INVALID_ENTITY) return;
 
     glm::mat4 childGlobalMatrix = childTransform->globalMatrix;
+    glm::vec3 globalPos, globalRot, globalScale;
+    decomposeMatrix(childGlobalMatrix, globalPos, globalRot, globalScale);
 
     Transform* parentTransform = this->_registry.getComponent<Transform>(childTransform->parent);
     if (parentTransform) {
@@ -222,22 +199,10 @@ void TransformSystem::removeParent(EntityID child)
 
     childTransform->parent = INVALID_ENTITY;
 
-    glm::vec3 globalPos, globalRot, globalScale;
-    decomposeMatrix(childGlobalMatrix, globalPos, globalRot, globalScale);
-
     childTransform->position = globalPos;
     childTransform->rotation = globalRot;
-    childTransform->scale = globalScale;
 
-    childTransform->localMatrix = calculateMatrix(globalPos, globalRot, globalScale);
-    childTransform->isDirty = false;
-
-    childTransform->globalMatrix = childTransform->localMatrix;
-    childTransform->matrix = childTransform->globalMatrix;
-
-    for (EntityID grandChild : childTransform->children) {
-        markDirty(grandChild, true);
-    }
+    markDirty(child, true);
 }
 
 EntityID TransformSystem::getParent(EntityID entity) const
