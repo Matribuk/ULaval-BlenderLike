@@ -5,6 +5,7 @@ RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr
     : _registry(registry), _entityManager(entityMgr)
 {
     this->_initSkybox();
+    this->loadCubemap("cubemaps/parc");
 }
 
 void RenderSystem::render()
@@ -20,7 +21,7 @@ void RenderSystem::render()
     }
 
     this->_setupRenderState();
-    this->_renderSkybox();
+    this->_renderSkyboxCubemap();
 
     glMatrixMode(GL_PROJECTION);
     glLoadMatrixf(glm::value_ptr(activeCamera->projMatrix));
@@ -40,12 +41,6 @@ void RenderSystem::render()
     ofPopStyle();
 
     this->_renderEntities();
-}
-
-void RenderSystem::setSkyColors(const glm::vec3& top, const glm::vec3& bottom)
-{
-    _skyTopColor = top;
-    _skyBottomColor = bottom;
 }
 
 void RenderSystem::_setupRenderState()
@@ -143,9 +138,8 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
         material->texture->bind();
         mesh.draw();
         material->texture->unbind();
-    } else {
+    } else
         mesh.draw();
-    }
 
     if (isSelected) {
         ofPushStyle();
@@ -163,15 +157,13 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
 
 void RenderSystem::_initSkybox()
 {
-    bool loaded = this->_skyShader.load("shaders/sky");
-
-    if (!loaded) {
-        std::cout << "[SKYBOX] Sky shader failed to load" << std::endl;
+    bool cubeLoaded = this->_skyCubeShader.load("shaders/skycube");
+    if (!cubeLoaded) {
+        std::cout << "[SKYBOX] Skycube shader failed to load" << std::endl;
         return;
     }
 
     this->_skyQuad.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
-
     this->_skyQuad.addVertex(glm::vec3(-1, -1, 0.999));
     this->_skyQuad.addVertex(glm::vec3( 1, -1, 0.999));
     this->_skyQuad.addVertex(glm::vec3(-1,  1, 0.999));
@@ -180,27 +172,43 @@ void RenderSystem::_initSkybox()
     this->_skyInitialized = true;
 }
 
-void RenderSystem::_renderSkybox()
+void RenderSystem::_renderSkyboxCubemap()
 {
-    if (!_skyInitialized)
-        return;
+    if (!this->_skyInitialized || !this->_skyboxCubemap.isLoaded()) return;
 
-    glClearColor(this->_skyBottomColor.r, this->_skyBottomColor.g, this->_skyBottomColor.b, 1.0f);
+    Camera* activeCamera = this->_cameraManager->getActiveCamera();
+    if (!activeCamera) return;
+
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
 
-    this->_skyShader.begin();
+    this->_skyCubeShader.begin();
 
-    this->_skyShader.setUniform3f("topColor", this->_skyTopColor);
-    this->_skyShader.setUniform3f("bottomColor", this->_skyBottomColor);
+    glm::mat4 invProj = glm::inverse(activeCamera->projMatrix);
+    glm::mat4 invView = glm::inverse(glm::mat4(glm::mat3(activeCamera->viewMatrix)));
+
+    this->_skyCubeShader.setUniformMatrix4f("inverseProjectionMatrix", invProj);
+    this->_skyCubeShader.setUniformMatrix4f("inverseViewMatrix", invView);
+
+    this->_skyboxCubemap.bind(0);
+    this->_skyCubeShader.setUniform1i("cubeMap", 0);
 
     this->_skyQuad.draw();
-    this->_skyShader.end();
+
+    this->_skyboxCubemap.unbind();
+    this->_skyCubeShader.end();
 
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
+}
+
+void RenderSystem::loadCubemap(const std::string& folderPath)
+{
+    bool success = this->_skyboxCubemap.loadFromFolder(folderPath);
+    if (!success) std::cout << "[SKYBOX] Failed to load cubemap from: " << folderPath << std::endl;
 }
 
 void RenderSystem::setup(CameraManager& cameraManager, SelectionSystem& selectionSystem)

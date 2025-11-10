@@ -100,8 +100,8 @@
 - [x] Les coordonnées de mapping sont adéquatement distribuées sur la surface (Box, Sphere, toutes les primitives)
 
 ### 6.4 Cubemap
-- [ ] Il existe au moins 2 textures de type cubemap
-- [ ] Ces cubemaps sont utilisées dans le rendu d'au moins 1 élément visuel d'une scène
+- [x] Il existe au moins 2 textures de type cubemap
+- [x] Ces cubemaps sont utilisées dans le rendu d'au moins 1 élément visuel d'une scène
 
 ### 6.5 Texture procédurale
 - [ ] Génération procédurale de textures
