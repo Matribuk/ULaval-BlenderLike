@@ -8,6 +8,7 @@
 
 #include "Core/ComponentRegistry.hpp"
 #include "Core/EntityManager.hpp"
+#include "Core/Cubemap.hpp"
 #include "Systems/SelectionSystem.hpp"
 
 class SelectionSystem;
@@ -18,7 +19,7 @@ class RenderSystem {
         ~RenderSystem() = default;
 
         void render();
-        void setSkyColors(const glm::vec3& top, const glm::vec3& bottom);
+        void loadCubemap(const std::string& folderPath);
         void setup(CameraManager& cameraManager, SelectionSystem& selectionSystem);
 
     private:
@@ -32,13 +33,14 @@ class RenderSystem {
         void _renderEntities();
         void _drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material *material = nullptr, bool isSelected = false);
 
-        ofShader _skyShader;
+        // Cubemap skybox
+        ofShader _skyCubeShader;
         ofVboMesh _skyQuad;
+        Cubemap _skyboxCubemap;
         bool _skyInitialized = false;
-        glm::vec3 _skyTopColor{0.529f, 0.808f, 0.922f};
-        glm::vec3 _skyBottomColor{0.9f, 0.95f, 1.0f};
+
         float _boundingBoxSize = 2.0f;
 
         void _initSkybox();
-        void _renderSkybox();
+        void _renderSkyboxCubemap();
 };
