@@ -128,9 +128,8 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
         material->shader->setUniform4f("color", ofFloatColor(color));
         material->shader->setUniform1f("uTime", ofGetElapsedTimef());
 
-        if (material->texture) {
+        if (material->texture)
             material->shader->setUniformTexture("tex0", *material->texture, 0);
-        }
 
         mesh.draw();
         material->shader->end();

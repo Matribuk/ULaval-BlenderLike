@@ -89,15 +89,12 @@ void MaterialPanel::render()
     if (visibilityChanged) {
         for (EntityID id : selectedEntities) {
             Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
-            if (renderable) {
-                renderable->visible = editVisibility;
-            }
+            if (renderable) renderable->visible = editVisibility;
         }
     }
 
-    if (selectedEntities.size() > 1) {
+    if (selectedEntities.size() > 1)
         ImGui::Text("(%zu entities selected)", selectedEntities.size());
-    }
 
     if (primaryRenderable->material) {
         ImGui::Text("Material:");
@@ -166,7 +163,8 @@ void MaterialPanel::_addMaterialComponent(EntityID entityId)
     this->_componentRegistry.registerComponent<Renderable>(entityId, Renderable(ofMesh(), ofColor::white));
 }
 
-void MaterialPanel::_loadShaders(Renderable* primaryRenderable) {
+void MaterialPanel::_loadShaders(Renderable* primaryRenderable)
+{
     if (ImGui::Button("Load Shaders")) {
                 ImGui::OpenPopup("LoadShadersPopup");
             }
@@ -208,7 +206,8 @@ void MaterialPanel::_loadShaders(Renderable* primaryRenderable) {
             }
 }
 
-void MaterialPanel::_loadFile(EntityID entityId, Renderable* primaryRenderable, std::string type) {
+void MaterialPanel::_loadFile(EntityID entityId, Renderable* primaryRenderable, std::string type)
+{
     std::string title = type.compare("MESH") == 0 ? "Load mesh" : "Load texture";
     if (ImGui::Button(title.c_str())) {
         ofFileDialogResult result = ofSystemLoadDialog("Choose a file to load", false);
@@ -253,10 +252,10 @@ void MaterialPanel::_loadFile(EntityID entityId, Renderable* primaryRenderable, 
     }
 }
 
-void MaterialPanel::_generateProceduralTexture(Renderable* primaryRenderable) {
-    if (ImGui::Button("Generate Procedural")) {
+void MaterialPanel::_generateProceduralTexture(Renderable* primaryRenderable)
+{
+    if (ImGui::Button("Generate Procedural"))
         ImGui::OpenPopup("ProceduralTexturePopup");
-    }
 
     if (ImGui::BeginPopup("ProceduralTexturePopup")) {
         ImGui::Text("Generate Procedural Texture");
