@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Components/Camera.hpp"
 #include "Components/Renderable.hpp"
 #include "Components/Transform.hpp"

@@ -12,6 +12,7 @@
 
 #include "Core/ComponentRegistry.hpp"
 #include "Core/EntityManager.hpp"
+#include <cmath>
 
 class PrimitiveSystem {
     public:

@@ -1,13 +1,5 @@
 #include "Manager/ResourceManager.hpp"
 
-ResourceManager::ResourceManager()
-{
-}
-
-ResourceManager::~ResourceManager()
-{
-}
-
 ofMesh& ResourceManager::loadMesh(std::string path) {
 
     if (this->_meshes.find(path) == this->_meshes.end()) {
@@ -98,6 +90,19 @@ ofTexture& ResourceManager::loadTexture(std::string path) {
     tex.loadData(img.getPixels());
 
     return tex;
+}
+
+ofTexture& ResourceManager::storeTexture(const std::string& name, const ofTexture& texture) {
+    ofDisableArbTex();
+
+    auto it = this->_textures.find(name);
+    if (it != this->_textures.end()) {
+        it->second = texture;
+        return it->second;
+    }
+
+    auto [insertedIt, success] = this->_textures.emplace(name, texture);
+    return insertedIt->second;
 }
 
 std::string ResourceManager::getTexturePath(ofTexture& target) {

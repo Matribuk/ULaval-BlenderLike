@@ -3,6 +3,9 @@
 #include "Manager/ViewportManager.hpp"
 #include <ofMain.h>
 #include <string>
+#include <iomanip>
+#include <sstream>
+#include <ctime>
 
 class ImageSequenceExporter {
     public:

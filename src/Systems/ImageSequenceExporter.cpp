@@ -1,7 +1,4 @@
 #include "Systems/ImageSequenceExporter.hpp"
-#include <iomanip>
-#include <sstream>
-#include <ctime>
 
 ImageSequenceExporter::ImageSequenceExporter(ViewportManager& viewportManager)
     : _viewportManager(viewportManager) {}

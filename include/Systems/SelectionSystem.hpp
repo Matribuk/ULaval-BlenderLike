@@ -10,6 +10,7 @@
 #include "Manager/CameraManager.hpp"
 #include "Manager/ViewportManager.hpp"
 #include "Manager/InputManager.hpp"
+#include "Manager/ViewportManager.hpp"
 
 #include "Components/Selectable.hpp"
 #include "Components/Transform.hpp"

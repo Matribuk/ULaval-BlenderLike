@@ -4,12 +4,15 @@
 
 #include "Systems/CameraSystem.hpp"
 #include "Systems/RenderSystem.hpp"
+
 #include "Events/EventManager.hpp"
+#include "Events/EventTypes/AssetDropEvent.hpp"
 
 #include "ofxImGui.h"
 #include <functional>
 
 class RenderSystem;
+class CursorManager;
 
 class Viewport {
     public:

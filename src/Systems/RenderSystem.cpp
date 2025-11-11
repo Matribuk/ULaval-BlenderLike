@@ -1,5 +1,4 @@
 #include "Systems/RenderSystem.hpp"
-#include <glm/gtc/type_ptr.hpp>
 
 RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr)
     : _registry(registry), _entityManager(entityMgr)
@@ -132,9 +131,8 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
             material->shader->setUniformTexture("tex0", *material->texture, 0);
 
         mesh.draw();
-
         material->shader->end();
-    } else if (material && material->texture && !material->shader) {
+    } else if (material && material->texture) {
         material->texture->bind();
         mesh.draw();
         material->texture->unbind();

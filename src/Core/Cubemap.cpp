@@ -1,6 +1,4 @@
 #include "Core/Cubemap.hpp"
-#include "ofImage.h"
-#include <iostream>
 
 Cubemap::Cubemap()
     : _textureID(0)

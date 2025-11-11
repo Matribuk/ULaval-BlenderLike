@@ -1,13 +1,4 @@
 #include "UI/MaterialPanel.hpp"
-#include "Components/Primitive/Box.hpp"
-#include "Components/Primitive/Triangle.hpp"
-#include "Components/Primitive/Sphere.hpp"
-#include "Components/Primitive/Plane.hpp"
-#include "Components/Primitive/Circle.hpp"
-#include "Components/Primitive/Line.hpp"
-#include "Components/Primitive/Rectangle.hpp"
-#include "Components/Primitive/Point.hpp"
-
 
 MaterialPanel::MaterialPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem, ResourceManager& resourceManager)
     : _componentRegistry(componentRegistry), _selectionSystem(selectionSystem), _resourceManager(resourceManager){}
@@ -89,15 +80,12 @@ void MaterialPanel::render()
     if (visibilityChanged) {
         for (EntityID id : selectedEntities) {
             Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
-            if (renderable) {
-                renderable->visible = editVisibility;
-            }
+            if (renderable) renderable->visible = editVisibility;
         }
     }
 
-    if (selectedEntities.size() > 1) {
+    if (selectedEntities.size() > 1)
         ImGui::Text("(%zu entities selected)", selectedEntities.size());
-    }
 
     if (primaryRenderable->material) {
         ImGui::Text("Material:");
@@ -137,9 +125,9 @@ void MaterialPanel::render()
             }
         } else {
             ImGui::Text(" - Texture: None");
-            ImGui::SameLine();
             this->_loadFile(primaryEntity, primaryRenderable, "TEX");
-
+            ImGui::SameLine();
+            this->_generateProceduralTexture(primaryRenderable);
         }
 
         if (primaryRenderable->mesh.getNumVertices() > 0) {
@@ -155,7 +143,6 @@ void MaterialPanel::render()
         }
 
         ImGui::Separator();
-
     }
 }
 
@@ -166,47 +153,50 @@ void MaterialPanel::_addMaterialComponent(EntityID entityId)
     this->_componentRegistry.registerComponent<Renderable>(entityId, Renderable(ofMesh(), ofColor::white));
 }
 
-void MaterialPanel::_loadShaders(Renderable* primaryRenderable) {
-    if (ImGui::Button("Load Shaders")) {
-                ImGui::OpenPopup("LoadShadersPopup");
-            }
+void MaterialPanel::_loadShaders(Renderable* primaryRenderable)
+{
+    if (ImGui::Button("Load Shaders"))
+        ImGui::OpenPopup("LoadShadersPopup");
 
-            if (ImGui::BeginPopup("LoadShadersPopup")) {
-                std::filesystem::path shaderDir = std::filesystem::path("data") / "shaders";
-                std::vector<std::string> names;
-                if (std::filesystem::exists(shaderDir) && std::filesystem::is_directory(shaderDir)) {
-                    for (std::filesystem::directory_entry entry : std::filesystem::directory_iterator(shaderDir)) {
-                        if (!entry.is_regular_file()) continue;
-                        std::string ext = entry.path().extension().string();
-                        if (ext == ".vert" || ext == ".frag") {
-                            names.push_back(entry.path().stem().string());
-                        }
-                    }
+    if (ImGui::BeginPopup("LoadShadersPopup")) {
+        std::filesystem::path shaderDir = std::filesystem::path(ofToDataPath("shaders"));
+        std::vector<std::string> names;
+        if (std::filesystem::exists(shaderDir) && std::filesystem::is_directory(shaderDir)) {
+            for (std::filesystem::directory_entry entry : std::filesystem::directory_iterator(shaderDir)) {
+                if (!entry.is_regular_file()) continue;
+                std::string ext = entry.path().extension().string();
+                if (ext == ".vert" || ext == ".frag") {
+                    names.push_back(entry.path().stem().string());
                 }
-                std::sort(names.begin(), names.end());
-                names.erase(std::unique(names.begin(), names.end()), names.end());
-
-                if (names.empty()) {
-                    ImGui::TextDisabled("No shaders found in data/shaders");
-                } else {
-                    for (const std::string &n : names) {
-                        if (ImGui::Selectable(n.c_str())) {
-                            std::filesystem::path vert = shaderDir / (n + ".vert");
-                            std::filesystem::path frag = shaderDir / (n + ".frag");
-                            if (std::filesystem::exists(vert) && std::filesystem::exists(frag)) {
-                                ofShader& loaded = this->_resourceManager.loadShader(vert.string(), frag.string());
-                                primaryRenderable->material->shader = &loaded;
-                            }
-                            ImGui::CloseCurrentPopup();
-                        }
-                    }
-                }
-
-                ImGui::EndPopup();
             }
+        }
+        std::sort(names.begin(), names.end());
+        names.erase(std::unique(names.begin(), names.end()), names.end());
+
+        if (names.empty()) {
+            ImGui::TextDisabled("No shaders found in data/shaders");
+        } else {
+            for (const std::string &n : names) {
+                if (n == "skycube") continue;
+
+                if (ImGui::Selectable(n.c_str())) {
+                    std::filesystem::path vert = shaderDir / (n + ".vert");
+                    std::filesystem::path frag = shaderDir / (n + ".frag");
+                    if (std::filesystem::exists(vert) && std::filesystem::exists(frag)) {
+                        ofShader& loaded = this->_resourceManager.loadShader(vert.string(), frag.string());
+                        primaryRenderable->material->shader = &loaded;
+                    }
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+        }
+
+        ImGui::EndPopup();
+    }
 }
 
-void MaterialPanel::_loadFile(EntityID entityId, Renderable* primaryRenderable, std::string type) {
+void MaterialPanel::_loadFile(EntityID entityId, Renderable* primaryRenderable, std::string type)
+{
     std::string title = type.compare("MESH") == 0 ? "Load mesh" : "Load texture";
     if (ImGui::Button(title.c_str())) {
         ofFileDialogResult result = ofSystemLoadDialog("Choose a file to load", false);
@@ -245,8 +235,54 @@ void MaterialPanel::_loadFile(EntityID entityId, Renderable* primaryRenderable, 
             } else {
                 ofTexture& newTex = this->_resourceManager.loadTexture(path);
                 primaryRenderable->material->texture = &newTex;
-
             }
         }
+    }
+}
+
+void MaterialPanel::_generateProceduralTexture(Renderable* primaryRenderable)
+{
+    if (ImGui::Button("Generate Procedural"))
+        ImGui::OpenPopup("ProceduralTexturePopup");
+
+    if (ImGui::BeginPopup("ProceduralTexturePopup")) {
+        ImGui::Text("Generate Procedural Texture");
+        ImGui::Separator();
+
+        static int selectedType = 0;
+        const char* types[] = { "Perlin Noise", "Voronoi", "Checkerboard", "Gradient" };
+        ImGui::Combo("Type", &selectedType, types, IM_ARRAYSIZE(types));
+
+        static float color1[3] = {0.2f, 0.2f, 0.8f};
+        static float color2[3] = {0.9f, 0.9f, 0.9f};
+        ImGui::ColorEdit3("Color 1", color1);
+        ImGui::ColorEdit3("Color 2", color2);
+
+        static int resolution = 512;
+        ImGui::SliderInt("Resolution", &resolution, 128, 2048);
+
+        if (ImGui::Button("Generate", ImVec2(-1, 0))) {
+            ProceduralTexture::Type type;
+            switch (selectedType) {
+                case 0: type = ProceduralTexture::Type::PERLIN_NOISE; break;
+                case 1: type = ProceduralTexture::Type::VORONOI; break;
+                case 2: type = ProceduralTexture::Type::CHECKERBOARD; break;
+                case 3: type = ProceduralTexture::Type::GRADIENT; break;
+                default: type = ProceduralTexture::Type::PERLIN_NOISE; break;
+            }
+
+            ofColor col1(color1[0] * 255, color1[1] * 255, color1[2] * 255);
+            ofColor col2(color2[0] * 255, color2[1] * 255, color2[2] * 255);
+
+            ofTexture generatedTex = this->_proceduralTextureGenerator.generate(type, resolution, resolution, col1, col2);
+
+            std::string texName = "procedural_" + std::string(types[selectedType]) + "_" + std::to_string(resolution);
+            ofTexture& storedTex = this->_resourceManager.storeTexture(texName, generatedTex);
+            primaryRenderable->material->texture = &storedTex;
+
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
     }
 }

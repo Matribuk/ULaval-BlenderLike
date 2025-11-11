@@ -104,8 +104,8 @@
 - [x] Ces cubemaps sont utilisées dans le rendu d'au moins 1 élément visuel d'une scène
 
 ### 6.5 Texture procédurale
-- [ ] Génération procédurale de textures
-- [ ] Au moins 2 types de textures procédurales différentes
+- [x] Génération procédurale de textures
+- [x] Au moins 2 types de textures procédurales différentes
 
 ---
 

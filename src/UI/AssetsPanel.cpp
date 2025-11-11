@@ -1,5 +1,4 @@
 #include "UI/AssetsPanel.hpp"
-#include "Manager/FileManager.hpp"
 
 AssetsPanel::AssetsPanel(SceneManager& sceneManager, ComponentRegistry& componentRegistry, CursorManager& cursorManager)
     : _sceneManager(sceneManager), _componentRegistry(componentRegistry), _cursorManager(cursorManager) {}
