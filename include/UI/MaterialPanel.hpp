@@ -5,6 +5,7 @@
 
 #include "Core/ComponentRegistry.hpp"
 #include "Core/Entity.hpp"
+#include "Core/ProceduralTexture.hpp"
 
 #include "Systems/SelectionSystem.hpp"
 
@@ -26,9 +27,11 @@ class MaterialPanel {
         ResourceManager& _resourceManager;
 
         std::set<EntityID> _prevSelectedEntities;
+        ProceduralTexture _proceduralTextureGenerator;
 
         void _addMaterialComponent(EntityID entityId);
         bool _checkAllEntitiesHaveSameVisibility(const std::set<EntityID>& entities, bool& outVisibility) const;
         void _loadShaders(Renderable* primaryRenderable);
         void _loadFile(EntityID entityId, Renderable* primaryRenderable, std::string type);
+        void _generateProceduralTexture(Renderable* primaryRenderable);
 };

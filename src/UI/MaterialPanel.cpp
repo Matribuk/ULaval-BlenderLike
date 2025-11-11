@@ -137,9 +137,9 @@ void MaterialPanel::render()
             }
         } else {
             ImGui::Text(" - Texture: None");
-            ImGui::SameLine();
             this->_loadFile(primaryEntity, primaryRenderable, "TEX");
-
+            ImGui::SameLine();
+            this->_generateProceduralTexture(primaryRenderable);
         }
 
         if (primaryRenderable->mesh.getNumVertices() > 0) {
@@ -190,6 +190,8 @@ void MaterialPanel::_loadShaders(Renderable* primaryRenderable) {
                     ImGui::TextDisabled("No shaders found in data/shaders");
                 } else {
                     for (const std::string &n : names) {
+                        if (n == "skycube") continue;
+
                         if (ImGui::Selectable(n.c_str())) {
                             std::filesystem::path vert = shaderDir / (n + ".vert");
                             std::filesystem::path frag = shaderDir / (n + ".frag");
@@ -248,5 +250,52 @@ void MaterialPanel::_loadFile(EntityID entityId, Renderable* primaryRenderable, 
 
             }
         }
+    }
+}
+
+void MaterialPanel::_generateProceduralTexture(Renderable* primaryRenderable) {
+    if (ImGui::Button("Generate Procedural")) {
+        ImGui::OpenPopup("ProceduralTexturePopup");
+    }
+
+    if (ImGui::BeginPopup("ProceduralTexturePopup")) {
+        ImGui::Text("Generate Procedural Texture");
+        ImGui::Separator();
+
+        static int selectedType = 0;
+        const char* types[] = { "Perlin Noise", "Voronoi", "Checkerboard", "Gradient" };
+        ImGui::Combo("Type", &selectedType, types, IM_ARRAYSIZE(types));
+
+        static float color1[3] = {0.2f, 0.2f, 0.8f};
+        static float color2[3] = {0.9f, 0.9f, 0.9f};
+        ImGui::ColorEdit3("Color 1", color1);
+        ImGui::ColorEdit3("Color 2", color2);
+
+        static int resolution = 512;
+        ImGui::SliderInt("Resolution", &resolution, 128, 2048);
+
+        if (ImGui::Button("Generate", ImVec2(-1, 0))) {
+            ProceduralTexture::Type type;
+            switch (selectedType) {
+                case 0: type = ProceduralTexture::Type::PERLIN_NOISE; break;
+                case 1: type = ProceduralTexture::Type::VORONOI; break;
+                case 2: type = ProceduralTexture::Type::CHECKERBOARD; break;
+                case 3: type = ProceduralTexture::Type::GRADIENT; break;
+                default: type = ProceduralTexture::Type::PERLIN_NOISE; break;
+            }
+
+            ofColor col1(color1[0] * 255, color1[1] * 255, color1[2] * 255);
+            ofColor col2(color2[0] * 255, color2[1] * 255, color2[2] * 255);
+
+            ofTexture generatedTex = this->_proceduralTextureGenerator.generate(type, resolution, resolution, col1, col2);
+
+            std::string texName = "procedural_" + std::string(types[selectedType]) + "_" + std::to_string(resolution);
+            ofTexture& storedTex = this->_resourceManager.storeTexture(texName, generatedTex);
+            primaryRenderable->material->texture = &storedTex;
+
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
     }
 }

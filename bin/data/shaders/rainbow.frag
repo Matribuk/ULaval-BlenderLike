@@ -1,17 +1,27 @@
-#version 150
+#version 120
 
 uniform sampler2D tex0;
 uniform vec4 color;
 uniform float uTime;
 
-in vec2 vTexCoord;
-out vec4 fragColor;
+varying vec2 vTexCoord;
 
 void main() {
-    float texMask = texture(tex0, vTexCoord).r;
-    float anim = sin(uTime * 1.5) * 0.5 + 0.5;
-    float t = mix(texMask, anim, 0.5);
-    vec3 cyan = vec3(0.0, 1.0, 1.0);
-    vec3 finalColor = mix(color.rgb, cyan, t);
-    fragColor = vec4(finalColor, color.a);
+    vec4 texColor = texture2D(tex0, vTexCoord);
+
+    float hue = uTime * 0.5;
+    vec3 rainbow = vec3(
+        sin(hue * 6.28318) * 0.5 + 0.5,
+        sin(hue * 6.28318 + 2.09439) * 0.5 + 0.5,
+        sin(hue * 6.28318 + 4.18879) * 0.5 + 0.5
+    );
+
+    float texLuminance = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
+
+    if (texLuminance > 0.95) {
+        gl_FragColor = vec4(color.rgb * rainbow, color.a);
+    } else {
+        vec3 finalColor = texColor.rgb + rainbow * 0.3;
+        gl_FragColor = vec4(finalColor, color.a);
+    }
 }

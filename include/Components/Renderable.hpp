@@ -5,6 +5,11 @@
 struct Material {
     ofShader* shader = nullptr;
     ofTexture* texture = nullptr;
+
+    float scale = 5.0f;
+    float octaves = 4.0f;
+    float persistence = 0.5f;
+    float borderWidth = 0.05f;
 };
 
 struct Renderable {
