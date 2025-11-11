@@ -3,6 +3,9 @@
 #include "ofMain.h"
 #include <string>
 
+#include "ofImage.h"
+#include <iostream>
+
 class Cubemap {
     public:
         Cubemap();

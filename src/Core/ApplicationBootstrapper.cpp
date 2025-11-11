@@ -1,5 +1,4 @@
 #include "Core/ApplicationBootstrapper.hpp"
-#include "Events/EventTypes/AssetDropEvent.hpp"
 
 ApplicationBootstrapper::ApplicationBootstrapper(
     EntityManager& entityManager,

@@ -1,5 +1,4 @@
 #include "UI/TranformPanel.hpp"
-#include <functional>
 
 TranformPanel::TranformPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem)
     : _componentRegistry(componentRegistry), _selectionSystem(selectionSystem) {}

@@ -4,6 +4,7 @@
 #include "Core/ComponentRegistry.hpp"
 
 #include "Systems/TransformSystem.hpp"
+#include "Systems/SelectionSystem.hpp"
 
 #include "Events/EventManager.hpp"
 #include "Events/EventTypes/SelectionEvent.hpp"
@@ -11,6 +12,7 @@
 #include "Components/Camera.hpp"
 #include "Components/Transform.hpp"
 
+#include "Manager/CameraManager.hpp"
 #include "Manager/InputManager.hpp"
 
 #include <string>

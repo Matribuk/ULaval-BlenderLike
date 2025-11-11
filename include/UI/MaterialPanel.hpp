@@ -2,6 +2,14 @@
 
 #include "Components/Transform.hpp"
 #include "Components/Renderable.hpp"
+#include "Components/Primitive/Box.hpp"
+#include "Components/Primitive/Triangle.hpp"
+#include "Components/Primitive/Sphere.hpp"
+#include "Components/Primitive/Plane.hpp"
+#include "Components/Primitive/Circle.hpp"
+#include "Components/Primitive/Line.hpp"
+#include "Components/Primitive/Rectangle.hpp"
+#include "Components/Primitive/Point.hpp"
 
 #include "Core/ComponentRegistry.hpp"
 #include "Core/Entity.hpp"

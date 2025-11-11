@@ -8,8 +8,8 @@
 
 class ResourceManager {
     public:
-        ResourceManager();
-        ~ResourceManager();
+        ResourceManager() = default;
+        ~ResourceManager() = default;
 
         ofMesh& loadMesh(std::string path);
         ofTexture& loadTexture(std::string path);

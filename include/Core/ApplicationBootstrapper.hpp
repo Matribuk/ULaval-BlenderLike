@@ -3,6 +3,7 @@
 #include "Core/EntityManager.hpp"
 #include "Core/ComponentRegistry.hpp"
 
+#include "Events/EventTypes/AssetDropEvent.hpp"
 #include "Events/EventManager.hpp"
 
 #include "Systems/TransformSystem.hpp"

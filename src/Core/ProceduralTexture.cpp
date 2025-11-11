@@ -1,8 +1,4 @@
 #include "Core/ProceduralTexture.hpp"
-#include <cmath>
-#include <random>
-
-ProceduralTexture::ProceduralTexture() {}
 
 ofTexture ProceduralTexture::generate(Type type, int width, int height, const ofColor& color1, const ofColor& color2)
 {

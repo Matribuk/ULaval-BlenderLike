@@ -1,8 +1,4 @@
 #include "Manager/FileManager.hpp"
-#include "UI/AssetsPanel.hpp"
-#include "UI/EventLogPanel.hpp"
-#include "Manager/SceneManager.hpp"
-#include "Manager/ResourceManager.hpp"
 
 FileManager::FileManager(ComponentRegistry& componentRegistry, EntityManager& entityManager)
     : _componentRegistry(componentRegistry), _entityManager(entityManager) {}

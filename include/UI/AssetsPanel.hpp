@@ -2,6 +2,7 @@
 
 #include "Manager/SceneManager.hpp"
 #include "Manager/CursorManager.hpp"
+#include "Manager/FileManager.hpp"
 
 #include "Core/EntityManager.hpp"
 #include "Core/ComponentRegistry.hpp"

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include "Components/Transform.hpp"
 #include "Components/Renderable.hpp"
 

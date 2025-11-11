@@ -1,5 +1,4 @@
 #include "Systems/PrimitiveSystem.hpp"
-#include <cmath>
 
 PrimitiveSystem::PrimitiveSystem(ComponentRegistry& registry, EntityManager& entityMgr)
     : _registry(registry), _entityManager(entityMgr) {}

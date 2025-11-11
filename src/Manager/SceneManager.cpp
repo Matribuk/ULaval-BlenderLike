@@ -1,7 +1,4 @@
 #include "Manager/SceneManager.hpp"
-#include "Manager/CameraManager.hpp"
-#include "Events/EventTypes/SelectionEvent.hpp"
-#include "Systems/SelectionSystem.hpp"
 
 SceneManager::SceneManager(
     EntityManager& entityManager, ComponentRegistry& componentRegistry, EventManager& eventManager, TransformSystem& transformSystem )

@@ -4,6 +4,7 @@
 #include "Manager/CameraManager.hpp"
 #include "Manager/SceneManager.hpp"
 #include "Manager/CursorManager.hpp"
+#include "Manager/SceneManager.hpp"
 
 #include "Systems/CameraSystem.hpp"
 #include "Systems/RenderSystem.hpp"

@@ -2,6 +2,8 @@
 
 #include "ofMain.h"
 #include <string>
+#include <cmath>
+#include <random>
 
 class ProceduralTexture {
     public:
@@ -12,7 +14,7 @@ class ProceduralTexture {
             GRADIENT
         };
 
-        ProceduralTexture();
+        ProceduralTexture() = default;
         ~ProceduralTexture() = default;
 
         ofTexture generate(Type type, int width, int height, const ofColor& color1, const ofColor& color2);

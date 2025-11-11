@@ -5,6 +5,12 @@
 #include "Components/Selectable.hpp"
 #include "Components/Primitive/Box.hpp"
 
+#include "UI/AssetsPanel.hpp"
+#include "UI/EventLogPanel.hpp"
+
+#include "Manager/SceneManager.hpp"
+#include "Manager/ResourceManager.hpp"
+
 #include "Core/ComponentRegistry.hpp"
 #include "Core/EntityManager.hpp"
 

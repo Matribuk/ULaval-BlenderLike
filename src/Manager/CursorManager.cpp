@@ -1,5 +1,4 @@
 #include "CursorManager.hpp"
-#include <GLFW/glfw3.h>
 
 static int shapeToIndex(int shape) {
     switch (shape) {

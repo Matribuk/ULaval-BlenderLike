@@ -1,13 +1,4 @@
 #include "UI/MaterialPanel.hpp"
-#include "Components/Primitive/Box.hpp"
-#include "Components/Primitive/Triangle.hpp"
-#include "Components/Primitive/Sphere.hpp"
-#include "Components/Primitive/Plane.hpp"
-#include "Components/Primitive/Circle.hpp"
-#include "Components/Primitive/Line.hpp"
-#include "Components/Primitive/Rectangle.hpp"
-#include "Components/Primitive/Point.hpp"
-
 
 MaterialPanel::MaterialPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem, ResourceManager& resourceManager)
     : _componentRegistry(componentRegistry), _selectionSystem(selectionSystem), _resourceManager(resourceManager){}
@@ -152,7 +143,6 @@ void MaterialPanel::render()
         }
 
         ImGui::Separator();
-
     }
 }
 
@@ -165,45 +155,44 @@ void MaterialPanel::_addMaterialComponent(EntityID entityId)
 
 void MaterialPanel::_loadShaders(Renderable* primaryRenderable)
 {
-    if (ImGui::Button("Load Shaders")) {
-                ImGui::OpenPopup("LoadShadersPopup");
-            }
+    if (ImGui::Button("Load Shaders"))
+        ImGui::OpenPopup("LoadShadersPopup");
 
-            if (ImGui::BeginPopup("LoadShadersPopup")) {
-                std::filesystem::path shaderDir = std::filesystem::path("data") / "shaders";
-                std::vector<std::string> names;
-                if (std::filesystem::exists(shaderDir) && std::filesystem::is_directory(shaderDir)) {
-                    for (std::filesystem::directory_entry entry : std::filesystem::directory_iterator(shaderDir)) {
-                        if (!entry.is_regular_file()) continue;
-                        std::string ext = entry.path().extension().string();
-                        if (ext == ".vert" || ext == ".frag") {
-                            names.push_back(entry.path().stem().string());
-                        }
-                    }
+    if (ImGui::BeginPopup("LoadShadersPopup")) {
+        std::filesystem::path shaderDir = std::filesystem::path(ofToDataPath("shaders"));
+        std::vector<std::string> names;
+        if (std::filesystem::exists(shaderDir) && std::filesystem::is_directory(shaderDir)) {
+            for (std::filesystem::directory_entry entry : std::filesystem::directory_iterator(shaderDir)) {
+                if (!entry.is_regular_file()) continue;
+                std::string ext = entry.path().extension().string();
+                if (ext == ".vert" || ext == ".frag") {
+                    names.push_back(entry.path().stem().string());
                 }
-                std::sort(names.begin(), names.end());
-                names.erase(std::unique(names.begin(), names.end()), names.end());
-
-                if (names.empty()) {
-                    ImGui::TextDisabled("No shaders found in data/shaders");
-                } else {
-                    for (const std::string &n : names) {
-                        if (n == "skycube") continue;
-
-                        if (ImGui::Selectable(n.c_str())) {
-                            std::filesystem::path vert = shaderDir / (n + ".vert");
-                            std::filesystem::path frag = shaderDir / (n + ".frag");
-                            if (std::filesystem::exists(vert) && std::filesystem::exists(frag)) {
-                                ofShader& loaded = this->_resourceManager.loadShader(vert.string(), frag.string());
-                                primaryRenderable->material->shader = &loaded;
-                            }
-                            ImGui::CloseCurrentPopup();
-                        }
-                    }
-                }
-
-                ImGui::EndPopup();
             }
+        }
+        std::sort(names.begin(), names.end());
+        names.erase(std::unique(names.begin(), names.end()), names.end());
+
+        if (names.empty()) {
+            ImGui::TextDisabled("No shaders found in data/shaders");
+        } else {
+            for (const std::string &n : names) {
+                if (n == "skycube") continue;
+
+                if (ImGui::Selectable(n.c_str())) {
+                    std::filesystem::path vert = shaderDir / (n + ".vert");
+                    std::filesystem::path frag = shaderDir / (n + ".frag");
+                    if (std::filesystem::exists(vert) && std::filesystem::exists(frag)) {
+                        ofShader& loaded = this->_resourceManager.loadShader(vert.string(), frag.string());
+                        primaryRenderable->material->shader = &loaded;
+                    }
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+        }
+
+        ImGui::EndPopup();
+    }
 }
 
 void MaterialPanel::_loadFile(EntityID entityId, Renderable* primaryRenderable, std::string type)
@@ -246,7 +235,6 @@ void MaterialPanel::_loadFile(EntityID entityId, Renderable* primaryRenderable, 
             } else {
                 ofTexture& newTex = this->_resourceManager.loadTexture(path);
                 primaryRenderable->material->texture = &newTex;
-
             }
         }
     }

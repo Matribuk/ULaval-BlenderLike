@@ -1,5 +1,4 @@
 #include "Systems/RenderSystem.hpp"
-#include <glm/gtc/type_ptr.hpp>
 
 RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr)
     : _registry(registry), _entityManager(entityMgr)
