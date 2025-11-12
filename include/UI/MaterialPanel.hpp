@@ -42,4 +42,20 @@ class MaterialPanel {
         void _loadShaders(Renderable* primaryRenderable);
         void _loadFile(EntityID entityId, Renderable* primaryRenderable, std::string type);
         void _generateProceduralTexture(Renderable* primaryRenderable);
+        void _renderVisibilityControl(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
+        void _renderShaderSection(EntityID primaryEntity, Renderable* primaryRenderable);
+        void _renderTextureSection(EntityID primaryEntity, Renderable* primaryRenderable);
+        void _renderMeshSection(EntityID primaryEntity, Renderable* primaryRenderable);
+        void _renderLightingParameters(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
+
+        template<typename T>
+        void _syncMaterialProperty(const std::set<EntityID>& entities, T Material::* property, const T& value)
+        {
+            for (EntityID id : entities) {
+                Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+                if (renderable && renderable->material) {
+                    renderable->material->*property = value;
+                }
+            }
+        }
 };

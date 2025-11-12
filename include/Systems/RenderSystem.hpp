@@ -40,8 +40,11 @@ class RenderSystem {
         Cubemap _skyboxCubemap;
         bool _skyInitialized = false;
 
+        ofTexture _whiteTexture;
+
         float _boundingBoxSize = 2.0f;
 
         void _initSkybox();
         void _renderSkyboxCubemap();
+        void _initWhiteTexture();
 };

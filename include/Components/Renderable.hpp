@@ -10,6 +10,12 @@ struct Material {
     float octaves = 4.0f;
     float persistence = 0.5f;
     float borderWidth = 0.05f;
+
+    glm::vec3 lightPosition = glm::vec3(5.0f, 5.0f, 5.0f);
+    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+    float lightIntensity = 1.0f;
+    glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
+    float shininess = 32.0f;
 };
 
 struct Renderable {

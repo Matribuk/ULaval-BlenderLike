@@ -26,14 +26,6 @@ void ofApp::setup()
 
 void ofApp::_setupOpenGL()
 {
-    ofEnableDepthTest();
-    ofEnableLighting();
-    ofEnableSeparateSpecularLight();
-
-    this->_light.setup();
-    this->_light.setPosition(0, 10, 0);
-    this->_light.enable();
-
     ofSetWindowTitle("IFT3100");
     ofSetFrameRate(60);
     ofBackground(20);

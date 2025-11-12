@@ -6,7 +6,8 @@ uniform float uTime;
 
 varying vec2 vTexCoord;
 
-void main() {
+void main()
+{
     vec4 texColor = texture2D(tex0, vTexCoord);
 
     float hue = uTime * 0.5;

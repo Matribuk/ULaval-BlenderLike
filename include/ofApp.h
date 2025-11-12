@@ -30,7 +30,6 @@ class ofApp : public ofBaseApp {
         std::unique_ptr<ApplicationBootstrapper> _bootstrapper;
         std::unique_ptr<ApplicationRuntime> _runtime;
 
-        ofLight _light;
         ofxImGui::Gui _gui;
 
         void _setupOpenGL();
