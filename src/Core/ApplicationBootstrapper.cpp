@@ -172,6 +172,13 @@ bool ApplicationBootstrapper::_InitializeUI()
         *this->_managers.sceneManager,
         *this->_systems.primitiveSystem
     );
+    this->_ui.topologyPanel = std::make_unique<TopologyPanel>(
+        this->_componentRegistry,
+        this->_entityManager,
+        *this->_systems.primitiveSystem,
+        *this->_systems.selectionSystem,
+        *this->_managers.sceneManager
+    );
     this->_ui.viewportPanel = std::make_unique<ViewportPanel>(
         *this->_managers.viewportManager,
         *this->_managers.cameraManager,
@@ -222,6 +229,7 @@ bool ApplicationBootstrapper::_SetupCallbacks()
         *this->_ui.exportPanel,
         *this->_ui.importPanel,
         *this->_ui.primitivesPanel,
+        *this->_ui.topologyPanel,
         *this->_ui.viewportPanel
     );
     this->_ui.primitivesPanel->setEventLogPanel(this->_ui.eventLogPanel.get());
