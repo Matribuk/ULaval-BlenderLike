@@ -275,9 +275,8 @@ void MaterialPanel::_renderTextureSection(EntityID primaryEntity, Renderable* pr
         this->_loadFile(primaryEntity, primaryRenderable, "TEX");
 
         ImGui::SameLine();
-        if (ImGui::Button("Clear Texture")) {
+        if (ImGui::Button("Clear Texture"))
             primaryRenderable->material->texture = nullptr;
-        }
     } else {
         ImGui::Text(" - Texture: None");
         this->_loadFile(primaryEntity, primaryRenderable, "TEX");

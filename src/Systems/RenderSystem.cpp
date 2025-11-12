@@ -128,9 +128,8 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
             material->shader->setUniformMatrix4f("projMatrix", activeCam->projMatrix);
 
             Transform* camTransform = this->_registry.getComponent<Transform>(activeCameraId);
-            if (camTransform) {
+            if (camTransform)
                 material->shader->setUniform3f("cameraPosition", camTransform->position);
-            }
         }
 
         glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
