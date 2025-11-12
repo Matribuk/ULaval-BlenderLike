@@ -47,9 +47,7 @@ void MaterialPanel::render()
             ImGui::Text("Some selected entities don't have Renderable component");
         } else {
             ImGui::Button("Add Renderable Component");
-            if (ImGui::IsItemClicked()) {
-                this->_addMaterialComponent(*selectedEntities.begin());
-            }
+            if (ImGui::IsItemClicked()) this->_addMaterialComponent(*selectedEntities.begin());
         }
         this->_prevSelectedEntities.clear();
         return;
