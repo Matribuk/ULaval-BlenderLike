@@ -8,11 +8,14 @@
 #include "Components/Primitive/Line.hpp"
 #include "Components/Primitive/Rectangle.hpp"
 #include "Components/Primitive/Point.hpp"
+#include "Components/Primitive/DelaunayMesh.hpp"
 #include "Components/Renderable.hpp"
 
 #include "Core/ComponentRegistry.hpp"
 #include "Core/EntityManager.hpp"
+#include "Algorithms/Delaunay.hpp"
 #include <cmath>
+#include <random>
 
 class PrimitiveSystem {
     public:
@@ -33,4 +36,9 @@ class PrimitiveSystem {
         ofMesh _generateLineMesh(const glm::vec3& start, const glm::vec3& end);
         ofMesh _generateRectangleMesh(float width, float height);
         ofMesh _generatePointMesh(float size);
+        ofMesh _generateDelaunayMesh(const DelaunayMesh& delaunay);
+
+        std::vector<glm::vec2> _generateRandomPoints(int count, const glm::vec2& bounds, unsigned int seed);
+        std::vector<glm::vec2> _generateGridPoints(int resolution, const glm::vec2& bounds, float perturbation, unsigned int seed);
+        ofColor _generateColorFromPosition(const glm::vec2& pos);
 };
