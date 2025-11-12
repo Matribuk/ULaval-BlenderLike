@@ -55,6 +55,14 @@ void PrimitivesPanel::render()
         if (ImGui::Button("Point", ImVec2(-1, 60)))
             this->_createPrimitive(PrimitiveType::Point);
 
+        ImGui::Spacing();
+        ImGui::Text("Add a Computational Geometry Primitive");
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        if (ImGui::Button("Delaunay Triangulation", ImVec2(-1, 60)))
+            this->_createPrimitive(PrimitiveType::DelaunayTriangulation);
+
     }
     ImGui::End();
 }
@@ -110,6 +118,11 @@ void PrimitivesPanel::_createPrimitive(PrimitiveType type)
     } else if (type == PrimitiveType::Point) {
         this-> _componentRegistry.registerComponent(entity.getId(), defaultPoint);
         primitiveName = "Point " + std::to_string(entity.getId());
+    } else if (type == PrimitiveType::DelaunayTriangulation) {
+        DelaunayMesh defaultDelaunay(15, glm::vec2(10.0f, 10.0f));
+        defaultDelaunay.mode = DelaunayMesh::GenerationMode::RANDOM;
+        this->_componentRegistry.registerComponent(entity.getId(), defaultDelaunay);
+        primitiveName = "Delaunay " + std::to_string(entity.getId());
     }
 
     this->_componentRegistry.registerComponent(entity.getId(), Renderable(ofMesh(), defaultColor, true, nullptr, nullptr, true));

@@ -8,6 +8,7 @@
 #include "Components/Transform.hpp"
 #include "Components/Primitive/Box.hpp"
 #include "Components/Primitive/Sphere.hpp"
+#include "Components/Primitive/DelaunayMesh.hpp"
 #include "Components/Renderable.hpp"
 #include "Components/Selectable.hpp"
 
@@ -25,7 +26,8 @@ enum class PrimitiveType {
     Circle,
     Line,
     Rectangle,
-    Point
+    Point,
+    DelaunayTriangulation
 };
 
 class PrimitivesPanel {
