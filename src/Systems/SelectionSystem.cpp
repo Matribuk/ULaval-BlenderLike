@@ -153,34 +153,38 @@ EntityID SelectionSystem::performRaycast(const glm::vec2& mouseGlobalPos, Entity
         if (!t || !filter(id, t, this->_componentRegistry)) continue;
 
         glm::mat4 transformMatrix = getOrComputeTransformMatrix(t);
-        glm::vec3 localMin, localMax;
+        std::optional<RaycastHit> hit = std::nullopt;
 
-        if (Box* box = this->_componentRegistry.getComponent<Box>(id)) {
-            glm::vec3 half = box->dimensions * 0.5f;
-            localMin = -half;
-            localMax = half;
-        } else if (Sphere* sphere = this->_componentRegistry.getComponent<Sphere>(id)) {
-            glm::vec3 half(sphere->radius);
-            localMin = -half;
-            localMax = half;
-        } else if (Plane* plane = this->_componentRegistry.getComponent<Plane>(id)) {
-            glm::vec3 half(plane->size.x*0.5f, 0.5f, plane->size.y*0.5f);
-            localMin = -half;
-            localMax = half;
-        } else {
+        if (Sphere* sphere = this->_componentRegistry.getComponent<Sphere>(id)) {
+            glm::vec3 worldCenter = glm::vec3(transformMatrix[3]);
+            float worldRadius = sphere->radius * glm::length(t->scale);
+            hit = RaycastSystem::intersectRaySphere(rayOrigin, rayDir, worldCenter, worldRadius, id);
+        }
+        else if (Box* box = this->_componentRegistry.getComponent<Box>(id)) {
+            glm::vec3 worldCenter = glm::vec3(transformMatrix[3]);
+            glm::vec3 worldHalfExtents = (box->dimensions * t->scale) * 0.5f;
+            glm::mat3 rotation = glm::mat3(transformMatrix);
+            hit = RaycastSystem::intersectRayBox(rayOrigin, rayDir, worldCenter, worldHalfExtents, rotation, id);
+        }
+        else if (this->_componentRegistry.getComponent<Plane>(id)) {
+            glm::vec3 worldCenter = glm::vec3(transformMatrix[3]);
+            glm::vec3 planeNormal = glm::normalize(glm::mat3(transformMatrix) * glm::vec3(0.0f, 1.0f, 0.0f));
+            hit = RaycastSystem::intersectRayPlane(rayOrigin, rayDir, worldCenter, planeNormal, id);
+        }
+        else {
+            glm::vec3 localMin, localMax;
             glm::vec3 half = glm::max(t->scale * 0.5f, glm::vec3(0.1f));
             localMin = -half;
             localMax = half;
+
+            glm::vec3 worldMin, worldMax;
+            transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
+
+            hit = RaycastSystem::intersectRayAABB(rayOrigin, rayDir, worldMin, worldMax, id);
         }
 
-        glm::vec3 worldMin, worldMax;
-        transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
-
-        float tHit = 0.0f;
-        bool hit = intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
-
-        if (hit && tHit < closestT) {
-            closestT = tHit;
+        if (hit && hit->distance < closestT) {
+            closestT = hit->distance;
             closest = id;
         }
     }

@@ -18,6 +18,8 @@
 #include "Components/Primitive/Plane.hpp"
 #include "Components/Primitive/Box.hpp"
 
+#include "Systems/RaycastSystem.hpp"
+
 #include "UI/Viewport.hpp"
 
 #include <glm/gtc/matrix_inverse.hpp>
