@@ -18,6 +18,7 @@ void UIManager::render()
     this->_toolbar->render();
     this->_propertiesManager.render();
     this->_primitivesPanel->render();
+    this->_topologyPanel->draw();
     this->_viewportManager.renderAll();
     this->_assetsPanel->render();
     this->_exportPanel->render();
@@ -77,7 +78,7 @@ void UIManager::setupDockspace()
     ImGui::PopStyleVar(3);
 }
 
-void UIManager::setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, InstructionsPanel& instructionsPanel, EventLogPanel& eventLogPanel, AssetsPanel& assetsPanel, ExportPanel& exportPanel, ImportPanel& importPanel, PrimitivesPanel& primitivesPanel, ViewportPanel& viewportPanel)
+void UIManager::setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, InstructionsPanel& instructionsPanel, EventLogPanel& eventLogPanel, AssetsPanel& assetsPanel, ExportPanel& exportPanel, ImportPanel& importPanel, PrimitivesPanel& primitivesPanel, TopologyPanel& topologyPanel, ViewportPanel& viewportPanel)
 {
     this->_toolbar = &toolbar;
     this->_skyboxPanel = &skyboxPanel;
@@ -87,6 +88,7 @@ void UIManager::setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, Instructions
     this->_exportPanel = &exportPanel;
     this->_importPanel = &importPanel;
     this->_primitivesPanel = &primitivesPanel;
+    this->_topologyPanel = &topologyPanel;
     this->_viewportPanel = &viewportPanel;
 }
 
@@ -105,6 +107,7 @@ void UIManager::_setupInitialLayout()
     this->_dockMainId = dockMain;
 
     ImGui::DockBuilderDockWindow("Primitives", dockRight);
+    ImGui::DockBuilderDockWindow("Topology", dockRight);
     ImGui::DockBuilderDockWindow("Assets", dockRight);
     ImGui::DockBuilderDockWindow("Viewport Manager", dockRight);
     ImGui::DockBuilderDockWindow("Toolbar", dockUp);
