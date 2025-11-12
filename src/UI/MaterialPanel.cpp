@@ -37,23 +37,22 @@ void MaterialPanel::render()
     }
 
     bool allHaveRenderable = true;
-    int tmpCount = 0;
     for (EntityID id : selectedEntities) {
-        tmpCount++;
         if (!this->_componentRegistry.getComponent<Renderable>(id))
             allHaveRenderable = false;
     }
 
-    if (!allHaveRenderable && tmpCount > 1) {
-        ImGui::Text("Some selected entities don't have Renderable component");
+    if (!allHaveRenderable) {
+        if (selectedEntities.size() > 1) {
+            ImGui::Text("Some selected entities don't have Renderable component");
+        } else {
+            ImGui::Button("Add Renderable Component");
+            if (ImGui::IsItemClicked()) {
+                this->_addMaterialComponent(*selectedEntities.begin());
+            }
+        }
         this->_prevSelectedEntities.clear();
         return;
-    } else if (!allHaveRenderable && tmpCount == 1) {
-        ImGui::Button("Add Renderable Component");
-        if (ImGui::IsItemClicked()) {
-            EntityID onlyEntity = *selectedEntities.begin();
-            this->_addMaterialComponent(onlyEntity);
-        }
     }
 
     EntityID primaryEntity = this->_selectionSystem.getSelectedEntity();
@@ -67,82 +66,19 @@ void MaterialPanel::render()
     if (this->_prevSelectedEntities != selectedEntities)
         this->_prevSelectedEntities = selectedEntities;
 
-    bool commonVisibility;
-    bool visibilitySame = this->_checkAllEntitiesHaveSameVisibility(selectedEntities, commonVisibility);
-
-    bool editVisibility = visibilitySame ? commonVisibility : primaryRenderable->visible;
-    bool visibilityChanged = false;
-
-    ImGui::BeginDisabled(!visibilitySame);
-    visibilityChanged = ImGui::Checkbox("Visible", &editVisibility);
-    ImGui::EndDisabled();
-    if (!visibilitySame) visibilityChanged = false;
-    if (visibilityChanged) {
-        for (EntityID id : selectedEntities) {
-            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
-            if (renderable) renderable->visible = editVisibility;
-        }
-    }
+    this->_renderVisibilityControl(selectedEntities, primaryRenderable);
 
     if (selectedEntities.size() > 1)
         ImGui::Text("(%zu entities selected)", selectedEntities.size());
 
     if (primaryRenderable->material) {
         ImGui::Text("Material:");
-
-        if (primaryRenderable->material->shader) {
-            ofShader* shader = primaryRenderable->material->shader;
-            std::string shaderName = this->_resourceManager.getShaderPath(*shader);
-            ImGui::Text(" - Shader: Set");
-
-            this->_loadShaders(primaryRenderable);
-
-            ImGui::SameLine();
-            if (ImGui::Button("Clear Shader")) {
-                primaryRenderable->material->shader = nullptr;
-            }
-        }
-        else {
-            ImGui::Text(" - Shader: None");
-            ImGui::SameLine();
-            this->_loadShaders(primaryRenderable);
-        }
-
-        if (primaryRenderable->material->texture) {
-            ofTexture* tex = primaryRenderable->material->texture;
-            std::string texName = this->_resourceManager.getTexturePath(*tex);
-            ImGui::Text(" - Texture: Set %s", texName.c_str());
-            ImVec2 thumbSize = ImVec2(24, 24);
-            GLuint texID = tex->getTextureData().textureID;
-            ImGui::Image((ImTextureID)(uintptr_t)texID, thumbSize, ImVec2(0,1), ImVec2(1,0));
-
-            ImGui::SameLine();
-            this->_loadFile(primaryEntity, primaryRenderable, "TEX");
-
-            ImGui::SameLine();
-            if (ImGui::Button("Clear Texture")) {
-                primaryRenderable->material->texture = nullptr;
-            }
-        } else {
-            ImGui::Text(" - Texture: None");
-            this->_loadFile(primaryEntity, primaryRenderable, "TEX");
-            ImGui::SameLine();
-            this->_generateProceduralTexture(primaryRenderable);
-        }
-
-        if (primaryRenderable->mesh.getNumVertices() > 0) {
-            ofMesh mesh = primaryRenderable->mesh;
-            std::string meshName = this->_resourceManager.getMeshPath(mesh);
-            ImGui::Text(" - Mesh: %s", meshName.c_str());
-            ImGui::SameLine();
-            this->_loadFile(primaryEntity, primaryRenderable, "MESH");
-        } else {
-            ImGui::Text(" - Mesh: None");
-            ImGui::SameLine();
-            this->_loadFile(primaryEntity, primaryRenderable, "MESH");
-        }
+        this->_renderShaderSection(primaryEntity, primaryRenderable);
+        this->_renderTextureSection(primaryEntity, primaryRenderable);
+        this->_renderMeshSection(primaryEntity, primaryRenderable);
 
         ImGui::Separator();
+        this->_renderLightingParameters(selectedEntities, primaryRenderable);
     }
 }
 
@@ -285,4 +221,106 @@ void MaterialPanel::_generateProceduralTexture(Renderable* primaryRenderable)
 
         ImGui::EndPopup();
     }
+}
+
+void MaterialPanel::_renderVisibilityControl(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable)
+{
+    bool commonVisibility;
+    bool visibilitySame = this->_checkAllEntitiesHaveSameVisibility(selectedEntities, commonVisibility);
+
+    bool editVisibility = visibilitySame ? commonVisibility : primaryRenderable->visible;
+    bool visibilityChanged = false;
+
+    ImGui::BeginDisabled(!visibilitySame);
+    visibilityChanged = ImGui::Checkbox("Visible", &editVisibility);
+    ImGui::EndDisabled();
+
+    if (!visibilitySame) visibilityChanged = false;
+
+    if (visibilityChanged) {
+        for (EntityID id : selectedEntities) {
+            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+            if (renderable) renderable->visible = editVisibility;
+        }
+    }
+}
+
+void MaterialPanel::_renderShaderSection(EntityID primaryEntity, Renderable* primaryRenderable)
+{
+    if (primaryRenderable->material->shader) {
+        ImGui::Text(" - Shader: Set");
+        this->_loadShaders(primaryRenderable);
+        ImGui::SameLine();
+        if (ImGui::Button("Clear Shader"))
+            primaryRenderable->material->shader = nullptr;
+    } else {
+        ImGui::Text(" - Shader: None");
+        ImGui::SameLine();
+        this->_loadShaders(primaryRenderable);
+    }
+}
+
+void MaterialPanel::_renderTextureSection(EntityID primaryEntity, Renderable* primaryRenderable)
+{
+    if (primaryRenderable->material->texture) {
+        ofTexture* tex = primaryRenderable->material->texture;
+        std::string texName = this->_resourceManager.getTexturePath(*tex);
+        ImGui::Text(" - Texture: Set %s", texName.c_str());
+
+        ImVec2 thumbSize = ImVec2(24, 24);
+        GLuint texID = tex->getTextureData().textureID;
+        ImGui::Image((ImTextureID)(uintptr_t)texID, thumbSize, ImVec2(0,1), ImVec2(1,0));
+
+        ImGui::SameLine();
+        this->_loadFile(primaryEntity, primaryRenderable, "TEX");
+
+        ImGui::SameLine();
+        if (ImGui::Button("Clear Texture")) {
+            primaryRenderable->material->texture = nullptr;
+        }
+    } else {
+        ImGui::Text(" - Texture: None");
+        this->_loadFile(primaryEntity, primaryRenderable, "TEX");
+        ImGui::SameLine();
+        this->_generateProceduralTexture(primaryRenderable);
+    }
+}
+
+void MaterialPanel::_renderMeshSection(EntityID primaryEntity, Renderable* primaryRenderable)
+{
+    if (primaryRenderable->mesh.getNumVertices() > 0) {
+        ofMesh mesh = primaryRenderable->mesh;
+        std::string meshName = this->_resourceManager.getMeshPath(mesh);
+        ImGui::Text(" - Mesh: %s", meshName.c_str());
+        ImGui::SameLine();
+        this->_loadFile(primaryEntity, primaryRenderable, "MESH");
+    } else {
+        ImGui::Text(" - Mesh: None");
+        ImGui::SameLine();
+        this->_loadFile(primaryEntity, primaryRenderable, "MESH");
+    }
+}
+
+void MaterialPanel::_renderLightingParameters(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable)
+{
+    if (!primaryRenderable->material->shader) return;
+
+    ImGui::Text("Lighting Parameters:");
+
+    if (ImGui::DragFloat3("Light Position", &primaryRenderable->material->lightPosition.x, 0.1f))
+        this->_syncMaterialProperty(selectedEntities, &Material::lightPosition, primaryRenderable->material->lightPosition);
+
+    if (ImGui::ColorEdit3("Light Color", &primaryRenderable->material->lightColor.x))
+        this->_syncMaterialProperty(selectedEntities, &Material::lightColor, primaryRenderable->material->lightColor);
+
+    if (ImGui::SliderFloat("Light Intensity", &primaryRenderable->material->lightIntensity, 0.0f, 5.0f))
+        this->_syncMaterialProperty(selectedEntities, &Material::lightIntensity, primaryRenderable->material->lightIntensity);
+
+    if (ImGui::ColorEdit3("Ambient Color", &primaryRenderable->material->ambientColor.x))
+        this->_syncMaterialProperty(selectedEntities, &Material::ambientColor, primaryRenderable->material->ambientColor);
+
+    if (ImGui::SliderFloat("Shininess", &primaryRenderable->material->shininess, 1.0f, 128.0f))
+        this->_syncMaterialProperty(selectedEntities, &Material::shininess, primaryRenderable->material->shininess);
+
+    ImGui::Separator();
 }

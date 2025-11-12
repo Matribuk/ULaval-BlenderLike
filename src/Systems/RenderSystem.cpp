@@ -5,6 +5,7 @@ RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr
 {
     this->_initSkybox();
     this->loadCubemap("cubemaps/parc");
+    this->_initWhiteTexture();
 }
 
 void RenderSystem::render()
@@ -45,6 +46,7 @@ void RenderSystem::render()
 void RenderSystem::_setupRenderState()
 {
     glDisable(GL_CULL_FACE);
+    glEnable(GL_NORMALIZE);
 }
 
 ofCamera RenderSystem::_buildCameraFromComponents(Camera& camera, const Transform& transform)
@@ -120,17 +122,38 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
         material->shader->setUniformMatrix4f("modelMatrix", transform);
 
         Camera* activeCam = this->_cameraManager->getActiveCamera();
+        EntityID activeCameraId = this->_cameraManager->getActiveCameraId();
         if (activeCam) {
             material->shader->setUniformMatrix4f("viewMatrix", activeCam->viewMatrix);
             material->shader->setUniformMatrix4f("projMatrix", activeCam->projMatrix);
+
+            Transform* camTransform = this->_registry.getComponent<Transform>(activeCameraId);
+            if (camTransform) {
+                material->shader->setUniform3f("cameraPosition", camTransform->position);
+            }
         }
+
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
+        material->shader->setUniformMatrix3f("normalMatrix", normalMatrix);
+
         material->shader->setUniform4f("color", ofFloatColor(color));
         material->shader->setUniform1f("uTime", ofGetElapsedTimef());
 
+        material->shader->setUniform3f("lightPosition", material->lightPosition);
+        material->shader->setUniform3f("lightColor", material->lightColor);
+        material->shader->setUniform1f("lightIntensity", material->lightIntensity);
+        material->shader->setUniform3f("ambientColor", material->ambientColor);
+        material->shader->setUniform1f("shininess", material->shininess);
+
         if (material->texture)
             material->shader->setUniformTexture("tex0", *material->texture, 0);
+        else
+            material->shader->setUniformTexture("tex0", this->_whiteTexture, 0);
 
+        glEnableClientState(GL_NORMAL_ARRAY);
         mesh.draw();
+        glDisableClientState(GL_NORMAL_ARRAY);
+
         material->shader->end();
     } else if (material && material->texture) {
         material->texture->bind();
@@ -207,6 +230,15 @@ void RenderSystem::loadCubemap(const std::string& folderPath)
 {
     bool success = this->_skyboxCubemap.loadFromFolder(folderPath);
     if (!success) std::cout << "[SKYBOX] Failed to load cubemap from: " << folderPath << std::endl;
+}
+
+void RenderSystem::_initWhiteTexture()
+{
+    ofPixels pixels;
+    pixels.allocate(1, 1, OF_PIXELS_RGB);
+    pixels.setColor(0, 0, ofColor::white);
+    this->_whiteTexture.allocate(1, 1, GL_RGB);
+    this->_whiteTexture.loadData(pixels);
 }
 
 void RenderSystem::setup(CameraManager& cameraManager, SelectionSystem& selectionSystem)

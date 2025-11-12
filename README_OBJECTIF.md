@@ -112,10 +112,10 @@
 ## 💡 7. Illumination classique
 
 ### 7.1 Modèles d'illumination
-- [ ] Le rendu d'au moins 2 éléments visuels peut être fait avec les 4 modèles d'illumination classiques :
-  - [ ] Lambert
+- [x] Le rendu d'au moins 2 éléments visuels peut être fait avec les 4 modèles d'illumination classiques :
+  - [x] Lambert
   - [ ] Gouraud
-  - [ ] Phong
+  - [x] Phong
   - [ ] Blinn-Phong
 
 ### 7.2 Matériaux
