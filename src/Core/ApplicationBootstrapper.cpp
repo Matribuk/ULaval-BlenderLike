@@ -160,6 +160,7 @@ bool ApplicationBootstrapper::_InitializeUI()
     this->_ui.materialPanel = std::make_unique<MaterialPanel>(this->_componentRegistry, *this->_systems.selectionSystem, *this->_managers.resourceManager);
     this->_ui.transformPanel = std::make_unique<TranformPanel>(this->_componentRegistry, *this->_systems.selectionSystem);
     this->_ui.colorPanel = std::make_unique<ColorPanel>(this->_componentRegistry, *this->_systems.selectionSystem, this->_eventManager);
+    this->_ui.delaunayPanel = std::make_unique<DelaunayPanel>(this->_componentRegistry, *this->_systems.selectionSystem, *this->_systems.primitiveSystem);
     this->_ui.instructionsPanel = std::make_unique<InstructionsPanel>();
     this->_ui.eventLogPanel = std::make_unique<EventLogPanel>();
     this->_ui.toolbar = std::make_unique<Toolbar>(*this->_managers.cursorManager);
@@ -211,7 +212,8 @@ bool ApplicationBootstrapper::_SetupCallbacks()
     this->_managers.propertiesManager->setupUI(
         *this->_ui.transformPanel,
         *this->_ui.materialPanel,
-        *this->_ui.colorPanel
+        *this->_ui.colorPanel,
+        *this->_ui.delaunayPanel
     );
 
     this->_ui.colorPanel->setEyedropperModeCallback([this](bool active) {
