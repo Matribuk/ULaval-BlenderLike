@@ -36,11 +36,37 @@ void TopologyPanel::draw()
 
 void TopologyPanel::_drawDelaunayControls()
 {
-    const char* displayModes[] = {"Delaunay Only", "Voronoi Only", "Both"};
-    static int currentDisplayMode = 0;
+    auto selectedEntities = _selectionSystem.getSelectedEntities();
 
-    ImGui::Combo("Display Mode", &currentDisplayMode, displayModes, 3);
+    DelaunayMesh* selectedDelaunay = nullptr;
+    EntityID selectedDelaunayId = 0;
 
+    for (EntityID entityId : selectedEntities) {
+        DelaunayMesh* delaunay = _registry.getComponent<DelaunayMesh>(entityId);
+        if (delaunay) {
+            selectedDelaunay = delaunay;
+            selectedDelaunayId = entityId;
+            break;
+        }
+    }
+
+    if (selectedDelaunay) {
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "DelaunayMesh selected");
+
+        const char* displayModes[] = {"Delaunay Only", "Voronoi Only", "Both"};
+        int currentDisplayMode = static_cast<int>(selectedDelaunay->displayMode);
+
+        if (ImGui::Combo("Display Mode", &currentDisplayMode, displayModes, 3)) {
+            selectedDelaunay->displayMode = static_cast<DelaunayMesh::DisplayMode>(currentDisplayMode);
+            _primitiveSystem.generateMeshes();
+        }
+    } else {
+        ImGui::TextDisabled("No DelaunayMesh selected");
+        ImGui::TextWrapped("Select a Delaunay entity to change display mode.");
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
     ImGui::Spacing();
 
     if (ImGui::Button("Generate from Selected Points", ImVec2(-1, 0))) {
