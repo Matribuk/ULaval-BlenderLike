@@ -1,4 +1,5 @@
 #include "Systems/PrimitiveSystem.hpp"
+#include "Components/CustomBounds.hpp"
 
 PrimitiveSystem::PrimitiveSystem(ComponentRegistry& registry, EntityManager& entityMgr)
     : _registry(registry), _entityManager(entityMgr) {}
@@ -33,7 +34,7 @@ void PrimitiveSystem::generateMeshes() {
             render->mesh = this->_generatePointMesh(point->size);
         }
         else if (DelaunayMesh* delaunay = this->_registry.getComponent<DelaunayMesh>(id)) {
-            render->mesh = this->_generateDelaunayMesh(*delaunay);
+            render->mesh = this->_generateDelaunayMesh(*delaunay, id);
         }
     }
 }
@@ -320,7 +321,7 @@ ofMesh PrimitiveSystem::_generatePointMesh(float size)
     return mesh;
 }
 
-ofMesh PrimitiveSystem::_generateDelaunayMesh(const DelaunayMesh& delaunay)
+ofMesh PrimitiveSystem::_generateDelaunayMesh(const DelaunayMesh& delaunay, EntityID entityId)
 {
     ofMesh mesh;
 
@@ -342,6 +343,10 @@ ofMesh PrimitiveSystem::_generateDelaunayMesh(const DelaunayMesh& delaunay)
 
     if (points.size() < 3) {
         return mesh;
+    }
+
+    if (DelaunayMesh* delaunayMut = this->_registry.getComponent<DelaunayMesh>(entityId)) {
+        delaunayMut->generatedPoints = points;
     }
 
     Delaunay delaunayAlgo;

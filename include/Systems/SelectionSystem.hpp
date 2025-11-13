@@ -14,6 +14,8 @@
 
 #include "Components/Selectable.hpp"
 #include "Components/Transform.hpp"
+#include "Components/CustomBounds.hpp"
+#include "Components/Renderable.hpp"
 #include "Components/Primitive/Sphere.hpp"
 #include "Components/Primitive/Plane.hpp"
 #include "Components/Primitive/Box.hpp"

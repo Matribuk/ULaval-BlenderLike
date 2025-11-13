@@ -5,6 +5,7 @@
 
 struct DelaunayMesh {
     std::vector<glm::vec2> points;
+    std::vector<glm::vec2> generatedPoints;
     int numRandomPoints{15};
     glm::vec2 bounds{10.0f, 10.0f};
     unsigned int seed{42};

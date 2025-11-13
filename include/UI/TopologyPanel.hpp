@@ -28,6 +28,5 @@ class TopologyPanel {
         SceneManager& _sceneManager;
 
         void _drawDelaunayControls();
-        void _drawBoundingBoxControls();
         void _generateFromSelectedPoints();
 };

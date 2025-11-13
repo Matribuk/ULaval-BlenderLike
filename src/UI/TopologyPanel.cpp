@@ -4,6 +4,7 @@
 #include "Components/Transform.hpp"
 #include "Components/Renderable.hpp"
 #include "Components/Selectable.hpp"
+#include "Components/BoundingBoxVisualization.hpp"
 
 TopologyPanel::TopologyPanel(
     ComponentRegistry& registry,
@@ -26,10 +27,6 @@ void TopologyPanel::draw()
 
     ImGui::SeparatorText("Delaunay / Voronoi");
     _drawDelaunayControls();
-
-    ImGui::Spacing();
-    ImGui::SeparatorText("Bounding Box");
-    _drawBoundingBoxControls();
 
     ImGui::End();
 }
@@ -76,17 +73,6 @@ void TopologyPanel::_drawDelaunayControls()
     ImGui::TextWrapped("Select Point entities in the scene, then click to create a triangulation from them.");
 }
 
-void TopologyPanel::_drawBoundingBoxControls()
-{
-    const char* bboxTypes[] = {"AABB", "Convex Hull", "Delaunay", "Edge Highlight"};
-    static int currentBBoxType = 0;
-
-    ImGui::Combo("Bounding Box Type", &currentBBoxType, bboxTypes, 4);
-
-    ImGui::TextWrapped("Bounding box options for selected entities.");
-    ImGui::TextDisabled("(Implementation pending)");
-}
-
 void TopologyPanel::_generateFromSelectedPoints()
 {
     auto selectedEntities = _selectionSystem.getSelectedEntities();
@@ -120,6 +106,8 @@ void TopologyPanel::_generateFromSelectedPoints()
     _registry.registerComponent(entity.getId(), Transform());
     _registry.registerComponent(entity.getId(), Renderable(ofMesh(), ofColor::white, true, nullptr, nullptr, true));
     _registry.registerComponent(entity.getId(), Selectable());
+
+    _registry.registerComponent(entity.getId(), BoundingBoxVisualization(BoundingBoxVisualization::Type::AABB, false));
 
     std::string primitiveName = "Delaunay from Points " + std::to_string(entity.getId());
     _sceneManager.registerEntity(entity.getId(), primitiveName);

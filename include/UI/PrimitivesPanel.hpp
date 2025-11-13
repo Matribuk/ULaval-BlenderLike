@@ -11,6 +11,7 @@
 #include "Components/Primitive/DelaunayMesh.hpp"
 #include "Components/Renderable.hpp"
 #include "Components/Selectable.hpp"
+#include "Components/BoundingBoxVisualization.hpp"
 
 #include "Manager/SceneManager.hpp"
 

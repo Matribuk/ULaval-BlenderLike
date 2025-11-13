@@ -1,4 +1,5 @@
 #include "Systems/SelectionSystem.hpp"
+#include <limits>
 
 SelectionSystem::SelectionSystem(
     ComponentRegistry& registry,
@@ -153,38 +154,49 @@ EntityID SelectionSystem::performRaycast(const glm::vec2& mouseGlobalPos, Entity
         if (!t || !filter(id, t, this->_componentRegistry)) continue;
 
         glm::mat4 transformMatrix = getOrComputeTransformMatrix(t);
-        std::optional<RaycastHit> hit = std::nullopt;
+        glm::vec3 localMin, localMax;
+        bool hasBounds = false;
 
-        if (Sphere* sphere = this->_componentRegistry.getComponent<Sphere>(id)) {
-            glm::vec3 worldCenter = glm::vec3(transformMatrix[3]);
-            float worldRadius = sphere->radius * glm::length(t->scale);
-            hit = RaycastSystem::intersectRaySphere(rayOrigin, rayDir, worldCenter, worldRadius, id);
-        }
-        else if (Box* box = this->_componentRegistry.getComponent<Box>(id)) {
-            glm::vec3 worldCenter = glm::vec3(transformMatrix[3]);
-            glm::vec3 worldHalfExtents = (box->dimensions * t->scale) * 0.5f;
-            glm::mat3 rotation = glm::mat3(transformMatrix);
-            hit = RaycastSystem::intersectRayBox(rayOrigin, rayDir, worldCenter, worldHalfExtents, rotation, id);
-        }
-        else if (this->_componentRegistry.getComponent<Plane>(id)) {
-            glm::vec3 worldCenter = glm::vec3(transformMatrix[3]);
-            glm::vec3 planeNormal = glm::normalize(glm::mat3(transformMatrix) * glm::vec3(0.0f, 1.0f, 0.0f));
-            hit = RaycastSystem::intersectRayPlane(rayOrigin, rayDir, worldCenter, planeNormal, id);
-        }
-        else {
-            glm::vec3 localMin, localMax;
-            glm::vec3 half = glm::max(t->scale * 0.5f, glm::vec3(0.1f));
-            localMin = -half;
-            localMax = half;
+        // Try to get bounds from the actual mesh first (most accurate)
+        Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+        if (renderable && renderable->mesh.getNumVertices() > 0) {
+            const auto& vertices = renderable->mesh.getVertices();
+            glm::vec3 minVert(std::numeric_limits<float>::max());
+            glm::vec3 maxVert(std::numeric_limits<float>::lowest());
 
-            glm::vec3 worldMin, worldMax;
-            transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
+            for (const auto& v : vertices) {
+                minVert.x = std::min(minVert.x, v.x);
+                minVert.y = std::min(minVert.y, v.y);
+                minVert.z = std::min(minVert.z, v.z);
+                maxVert.x = std::max(maxVert.x, v.x);
+                maxVert.y = std::max(maxVert.y, v.y);
+                maxVert.z = std::max(maxVert.z, v.z);
+            }
 
-            hit = RaycastSystem::intersectRayAABB(rayOrigin, rayDir, worldMin, worldMax, id);
+            localMin = minVert;
+            localMax = maxVert;
+            hasBounds = true;
+        }
+        else if (CustomBounds* customBounds = this->_componentRegistry.getComponent<CustomBounds>(id)) {
+            localMin = customBounds->min;
+            localMax = customBounds->max;
+            hasBounds = true;
         }
 
-        if (hit && hit->distance < closestT) {
-            closestT = hit->distance;
+        if (!hasBounds) {
+            continue;
+        }
+
+        // Transform the local AABB to world space
+        glm::vec3 worldMin, worldMax;
+        transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
+
+        // Perform ray-AABB intersection test
+        float tHit = 0.0f;
+        bool hit = intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
+
+        if (hit && tHit < closestT) {
+            closestT = tHit;
             closest = id;
         }
     }

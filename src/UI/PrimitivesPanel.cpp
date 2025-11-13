@@ -94,39 +94,52 @@ void PrimitivesPanel::_createPrimitive(PrimitiveType type)
     this->_componentRegistry.registerComponent(entity.getId(), Transform(defaultPos));
 
     std::string primitiveName;
+    BoundingBoxVisualization::Type bboxType = BoundingBoxVisualization::Type::AABB; // Default: cubique
+
     if (type == PrimitiveType::Cube) {
         this->_componentRegistry.registerComponent(entity.getId(), Box(defaultSize));
         primitiveName = "Cube " + std::to_string(entity.getId());
+        bboxType = BoundingBoxVisualization::Type::AABB;
     } else if (type == PrimitiveType::Sphere) {
         this->_componentRegistry.registerComponent(entity.getId(), Sphere(defaultSphereRadius));
         primitiveName = "Sphere " + std::to_string(entity.getId());
+        bboxType = BoundingBoxVisualization::Type::SPHERE; // Sphérique pour les sphères
     } else if (type == PrimitiveType::Plane) {
         this-> _componentRegistry.registerComponent(entity.getId(), Plane(defaultSize));
         primitiveName = "Plane " + std::to_string(entity.getId());
+        bboxType = BoundingBoxVisualization::Type::AABB;
     } else if (type == PrimitiveType::Triangle) {
         this-> _componentRegistry.registerComponent(entity.getId(), defaultTriangle);
         primitiveName = "Triangle " + std::to_string(entity.getId());
+        bboxType = BoundingBoxVisualization::Type::AABB;
     } else if (type == PrimitiveType::Circle) {
         this-> _componentRegistry.registerComponent(entity.getId(), defaultCircle);
         primitiveName = "Circle " + std::to_string(entity.getId());
+        bboxType = BoundingBoxVisualization::Type::AABB;
     } else if (type == PrimitiveType::Line) {
         this-> _componentRegistry.registerComponent(entity.getId(), defaultLine);
         primitiveName = "Line " + std::to_string(entity.getId());
+        bboxType = BoundingBoxVisualization::Type::AABB;
     } else if (type == PrimitiveType::Rectangle) {
         this-> _componentRegistry.registerComponent(entity.getId(), defaultRect);
         primitiveName = "Rectangle " + std::to_string(entity.getId());
+        bboxType = BoundingBoxVisualization::Type::AABB;
     } else if (type == PrimitiveType::Point) {
         this-> _componentRegistry.registerComponent(entity.getId(), defaultPoint);
         primitiveName = "Point " + std::to_string(entity.getId());
+        bboxType = BoundingBoxVisualization::Type::SPHERE;
     } else if (type == PrimitiveType::DelaunayTriangulation) {
         DelaunayMesh defaultDelaunay(15, glm::vec2(10.0f, 10.0f));
         defaultDelaunay.mode = DelaunayMesh::GenerationMode::RANDOM;
         this->_componentRegistry.registerComponent(entity.getId(), defaultDelaunay);
         primitiveName = "Delaunay " + std::to_string(entity.getId());
+        bboxType = BoundingBoxVisualization::Type::AABB;
     }
 
     this->_componentRegistry.registerComponent(entity.getId(), Renderable(ofMesh(), defaultColor, true, nullptr, nullptr, true));
     this->_componentRegistry.registerComponent(entity.getId(), Selectable());
+
+    this->_componentRegistry.registerComponent(entity.getId(), BoundingBoxVisualization(bboxType, false));
 
     this->_sceneManager.registerEntity(entity.getId(), primitiveName);
 
