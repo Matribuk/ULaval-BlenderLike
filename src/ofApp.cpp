@@ -29,6 +29,7 @@ void ofApp::_setupOpenGL()
     ofSetWindowTitle("IFT3100");
     ofSetFrameRate(60);
     ofBackground(20);
+    ofSetEscapeQuitsApp(false);
 
     this->_gui.setup();
     ImGuiIO& io = ImGui::GetIO();

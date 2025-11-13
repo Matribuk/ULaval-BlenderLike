@@ -1,10 +1,13 @@
 #pragma once
 
 #include <glm/gtc/type_ptr.hpp>
+#include <limits>
 
 #include "Components/Camera.hpp"
 #include "Components/Renderable.hpp"
 #include "Components/Transform.hpp"
+#include "Components/BoundingBoxVisualization.hpp"
+#include "Components/CustomBounds.hpp"
 
 #include "Manager/CameraManager.hpp"
 
@@ -34,6 +37,7 @@ class RenderSystem {
         ofCamera _buildCameraFromComponents(Camera& camera, const Transform& transform);
         void _renderEntities();
         void _drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material *material = nullptr, bool isSelected = false);
+        void _drawBoundingBox(EntityID entityId, const Transform& transform, const BoundingBoxVisualization& bboxVis);
 
         ofShader _skyCubeShader;
         ofVboMesh _skyQuad;

@@ -76,6 +76,16 @@ void PropertiesManager::render()
             ImGui::Unindent(10.0f);
         }
 
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        if (ImGui::CollapsingHeader("Delaunay Mesh", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Indent(10.0f);
+            this->_delaunayPanel->render();
+            ImGui::Unindent(10.0f);
+        }
+
         ImGui::EndChild();
     }
 
@@ -83,11 +93,12 @@ void PropertiesManager::render()
     ImGui::PopStyleColor(1);
 }
 
-void PropertiesManager::setupUI(TranformPanel& tranformPanel, MaterialPanel& materialPanel, ColorPanel& colorPanel)
+void PropertiesManager::setupUI(TranformPanel& tranformPanel, MaterialPanel& materialPanel, ColorPanel& colorPanel, DelaunayPanel& delaunayPanel)
 {
     this->_tranformPanel = &tranformPanel;
     this->_materialPanel = &materialPanel;
     this->_colorPanel = &colorPanel;
+    this->_delaunayPanel = &delaunayPanel;
 }
 
 void PropertiesManager::_deleteComponnent(std::string componentName)

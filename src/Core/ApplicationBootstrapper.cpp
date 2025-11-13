@@ -160,6 +160,7 @@ bool ApplicationBootstrapper::_InitializeUI()
     this->_ui.materialPanel = std::make_unique<MaterialPanel>(this->_componentRegistry, *this->_systems.selectionSystem, *this->_managers.resourceManager);
     this->_ui.transformPanel = std::make_unique<TranformPanel>(this->_componentRegistry, *this->_systems.selectionSystem);
     this->_ui.colorPanel = std::make_unique<ColorPanel>(this->_componentRegistry, *this->_systems.selectionSystem, this->_eventManager);
+    this->_ui.delaunayPanel = std::make_unique<DelaunayPanel>(this->_componentRegistry, *this->_systems.selectionSystem, *this->_systems.primitiveSystem);
     this->_ui.instructionsPanel = std::make_unique<InstructionsPanel>();
     this->_ui.eventLogPanel = std::make_unique<EventLogPanel>();
     this->_ui.toolbar = std::make_unique<Toolbar>(*this->_managers.cursorManager);
@@ -171,6 +172,13 @@ bool ApplicationBootstrapper::_InitializeUI()
         this->_componentRegistry,
         *this->_managers.sceneManager,
         *this->_systems.primitiveSystem
+    );
+    this->_ui.topologyPanel = std::make_unique<TopologyPanel>(
+        this->_componentRegistry,
+        this->_entityManager,
+        *this->_systems.primitiveSystem,
+        *this->_systems.selectionSystem,
+        *this->_managers.sceneManager
     );
     this->_ui.viewportPanel = std::make_unique<ViewportPanel>(
         *this->_managers.viewportManager,
@@ -204,7 +212,8 @@ bool ApplicationBootstrapper::_SetupCallbacks()
     this->_managers.propertiesManager->setupUI(
         *this->_ui.transformPanel,
         *this->_ui.materialPanel,
-        *this->_ui.colorPanel
+        *this->_ui.colorPanel,
+        *this->_ui.delaunayPanel
     );
 
     this->_ui.colorPanel->setEyedropperModeCallback([this](bool active) {
@@ -222,6 +231,7 @@ bool ApplicationBootstrapper::_SetupCallbacks()
         *this->_ui.exportPanel,
         *this->_ui.importPanel,
         *this->_ui.primitivesPanel,
+        *this->_ui.topologyPanel,
         *this->_ui.viewportPanel
     );
     this->_ui.primitivesPanel->setEventLogPanel(this->_ui.eventLogPanel.get());

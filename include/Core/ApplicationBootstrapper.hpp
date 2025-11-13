@@ -29,6 +29,7 @@
 #include "UI/TranformPanel.hpp"
 #include "UI/MaterialPanel.hpp"
 #include "UI/ColorPanel.hpp"
+#include "UI/DelaunayPanel.hpp"
 #include "UI/SkyboxPanel.hpp"
 #include "UI/InstructionsPanel.hpp"
 #include "UI/EventLogPanel.hpp"
@@ -36,6 +37,7 @@
 #include "UI/ExportPanel.hpp"
 #include "UI/ImportPanel.hpp"
 #include "UI/PrimitivesPanel.hpp"
+#include "UI/TopologyPanel.hpp"
 #include "UI/ViewportPanel.hpp"
 
 #include "Components/Transform.hpp"
@@ -76,6 +78,7 @@ struct UIContext {
     std::unique_ptr<TranformPanel> transformPanel;
     std::unique_ptr<MaterialPanel> materialPanel;
     std::unique_ptr<ColorPanel> colorPanel;
+    std::unique_ptr<DelaunayPanel> delaunayPanel;
     std::unique_ptr<SkyboxPanel> skyboxPanel;
     std::unique_ptr<InstructionsPanel> instructionsPanel;
     std::unique_ptr<EventLogPanel> eventLogPanel;
@@ -83,6 +86,7 @@ struct UIContext {
     std::unique_ptr<ExportPanel> exportPanel;
     std::unique_ptr<ImportPanel> importPanel;
     std::unique_ptr<PrimitivesPanel> primitivesPanel;
+    std::unique_ptr<TopologyPanel> topologyPanel;
     std::unique_ptr<ViewportPanel> viewportPanel;
 };
 

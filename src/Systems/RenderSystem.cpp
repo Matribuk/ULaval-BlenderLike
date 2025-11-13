@@ -106,7 +106,27 @@ void RenderSystem::_renderEntities()
         if (!transform || !render || !render->visible) continue;
 
         bool isSelected = (selectedEntities.find(id) != selectedEntities.end());
-        this->_drawMesh(render->mesh, transform->matrix, render->color, render->material, isSelected);
+        this->_drawMesh(render->mesh, transform->matrix, render->color, render->material, false);
+
+        if (isSelected) {
+            BoundingBoxVisualization* bboxVis = this->_registry.getComponent<BoundingBoxVisualization>(id);
+
+            if (!bboxVis) {
+                BoundingBoxVisualization defaultBBox;
+                defaultBBox.type = BoundingBoxVisualization::Type::AABB;
+                defaultBBox.visible = true;
+                defaultBBox.color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
+                this->_drawBoundingBox(id, *transform, defaultBBox);
+            } else if (bboxVis->type != BoundingBoxVisualization::Type::NONE) {
+                this->_drawBoundingBox(id, *transform, *bboxVis);
+            } else {
+                BoundingBoxVisualization defaultBBox;
+                defaultBBox.type = BoundingBoxVisualization::Type::AABB;
+                defaultBBox.visible = true;
+                defaultBBox.color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
+                this->_drawBoundingBox(id, *transform, defaultBBox);
+            }
+        }
     }
 }
 
@@ -161,17 +181,6 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
     } else
         mesh.draw();
 
-    if (isSelected) {
-        ofPushStyle();
-        ofNoFill();
-        ofSetColor(ofColor::yellow);
-        ofSetLineWidth(this->_boundingBoxSize);
-
-        ofScale(1.01f, 1.01f, 1.01f);
-        mesh.drawWireframe();
-
-        ofPopStyle();
-    }
     ofPopMatrix();
 }
 
@@ -244,4 +253,75 @@ void RenderSystem::setup(CameraManager& cameraManager, SelectionSystem& selectio
 {
     this->_cameraManager = &cameraManager;
     this->_selectionSystem = &selectionSystem;
+}
+
+void RenderSystem::_drawBoundingBox(EntityID entityId, const Transform& transform, const BoundingBoxVisualization& bboxVis)
+{
+    ofPushStyle();
+    ofNoFill();
+    ofSetColor(ofFloatColor(bboxVis.color.r, bboxVis.color.g, bboxVis.color.b, bboxVis.color.a));
+    ofSetLineWidth(2.0f);
+
+    glm::vec3 localMin(0.0f), localMax(0.0f);
+    bool hasBounds = false;
+
+    Renderable* renderable = this->_registry.getComponent<Renderable>(entityId);
+    if (renderable && renderable->mesh.getNumVertices() > 0) {
+        const auto& vertices = renderable->mesh.getVertices();
+        glm::vec3 minVert(std::numeric_limits<float>::max());
+        glm::vec3 maxVert(std::numeric_limits<float>::lowest());
+
+        for (const auto& v : vertices) {
+            minVert.x = std::min(minVert.x, v.x);
+            minVert.y = std::min(minVert.y, v.y);
+            minVert.z = std::min(minVert.z, v.z);
+            maxVert.x = std::max(maxVert.x, v.x);
+            maxVert.y = std::max(maxVert.y, v.y);
+            maxVert.z = std::max(maxVert.z, v.z);
+        }
+
+        localMin = minVert;
+        localMax = maxVert;
+        hasBounds = true;
+    }
+    else if (CustomBounds* customBounds = this->_registry.getComponent<CustomBounds>(entityId)) {
+        localMin = customBounds->min;
+        localMax = customBounds->max;
+        hasBounds = true;
+    }
+
+    if (!hasBounds) {
+        ofPopStyle();
+        return;
+    }
+
+    switch (bboxVis.type) {
+        case BoundingBoxVisualization::Type::AABB: {
+            glm::vec3 center = (localMin + localMax) * 0.5f;
+            glm::vec3 size = localMax - localMin;
+
+            ofPushMatrix();
+            ofMultMatrix(transform.matrix);
+            ofDrawBox(center, size.x, size.y, size.z);
+            ofPopMatrix();
+            break;
+        }
+
+        case BoundingBoxVisualization::Type::SPHERE: {
+            glm::vec3 center = (localMin + localMax) * 0.5f;
+            float radius = glm::length(localMax - center);
+
+            ofPushMatrix();
+            ofMultMatrix(transform.matrix);
+            ofDrawSphere(center, radius);
+            ofPopMatrix();
+            break;
+        }
+
+        case BoundingBoxVisualization::Type::NONE:
+        default:
+            break;
+    }
+
+    ofPopStyle();
 }

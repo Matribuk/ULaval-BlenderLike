@@ -134,8 +134,8 @@
 ## 🔷 8. Topologie
 
 ### 8.1 Triangulation
-- [ ] Algorithme de triangulation
-- [ ] Application sur formes 2D complexes
+- [x] Algorithme de triangulation
+- [x] Application sur formes 2D complexes
 
 ### 8.2 Courbe paramétrique
 - [ ] L'application permet d'afficher au moins 1 type de courbe paramétrique
