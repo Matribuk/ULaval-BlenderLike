@@ -1,5 +1,4 @@
 #include "Systems/RenderSystem.hpp"
-#include <limits>
 
 RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr)
     : _registry(registry), _entityManager(entityMgr)

@@ -157,7 +157,6 @@ EntityID SelectionSystem::performRaycast(const glm::vec2& mouseGlobalPos, Entity
         glm::vec3 localMin, localMax;
         bool hasBounds = false;
 
-        // Try to get bounds from the actual mesh first (most accurate)
         Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
         if (renderable && renderable->mesh.getNumVertices() > 0) {
             const auto& vertices = renderable->mesh.getVertices();
@@ -187,11 +186,9 @@ EntityID SelectionSystem::performRaycast(const glm::vec2& mouseGlobalPos, Entity
             continue;
         }
 
-        // Transform the local AABB to world space
         glm::vec3 worldMin, worldMax;
         transformAABB(localMin, localMax, transformMatrix, worldMin, worldMax);
 
-        // Perform ray-AABB intersection test
         float tHit = 0.0f;
         bool hit = intersectsRayAABB(rayOrigin, rayDir, worldMin, worldMax, tHit);
 

@@ -1,5 +1,4 @@
 #include "Systems/PrimitiveSystem.hpp"
-#include "Components/CustomBounds.hpp"
 
 PrimitiveSystem::PrimitiveSystem(ComponentRegistry& registry, EntityManager& entityMgr)
     : _registry(registry), _entityManager(entityMgr) {}
@@ -329,11 +328,11 @@ ofMesh PrimitiveSystem::_generateDelaunayMesh(const DelaunayMesh& delaunay, Enti
 
     switch (delaunay.mode) {
         case DelaunayMesh::GenerationMode::RANDOM:
-            points = _generateRandomPoints(delaunay.numRandomPoints, delaunay.bounds, delaunay.seed);
+            points = this->_generateRandomPoints(delaunay.numRandomPoints, delaunay.bounds, delaunay.seed);
             break;
 
         case DelaunayMesh::GenerationMode::GRID:
-            points = _generateGridPoints(delaunay.gridResolution, delaunay.bounds, delaunay.gridPerturbation, delaunay.seed);
+            points = this->_generateGridPoints(delaunay.gridResolution, delaunay.bounds, delaunay.gridPerturbation, delaunay.seed);
             break;
 
         case DelaunayMesh::GenerationMode::CUSTOM:
@@ -400,7 +399,7 @@ ofMesh PrimitiveSystem::_generateDelaunayMesh(const DelaunayMesh& delaunay, Enti
         for (const auto& cell : cells) {
             if (cell.vertices.size() < 2) continue;
 
-            ofColor cellColor = _generateColorFromPosition(cell.site);
+            ofColor cellColor = this->_generateColorFromPosition(cell.site);
 
             for (size_t i = 0; i < cell.vertices.size(); ++i) {
                 const glm::vec2& v1 = cell.vertices[i];

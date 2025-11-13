@@ -10,6 +10,7 @@
 #include "Components/Primitive/Point.hpp"
 #include "Components/Primitive/DelaunayMesh.hpp"
 #include "Components/Renderable.hpp"
+#include "Components/CustomBounds.hpp"
 
 #include "Core/ComponentRegistry.hpp"
 #include "Core/EntityManager.hpp"

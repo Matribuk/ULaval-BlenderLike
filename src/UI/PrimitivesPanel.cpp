@@ -94,7 +94,7 @@ void PrimitivesPanel::_createPrimitive(PrimitiveType type)
     this->_componentRegistry.registerComponent(entity.getId(), Transform(defaultPos));
 
     std::string primitiveName;
-    BoundingBoxVisualization::Type bboxType = BoundingBoxVisualization::Type::AABB; // Default: cubique
+    BoundingBoxVisualization::Type bboxType = BoundingBoxVisualization::Type::AABB;
 
     if (type == PrimitiveType::Cube) {
         this->_componentRegistry.registerComponent(entity.getId(), Box(defaultSize));
@@ -103,7 +103,7 @@ void PrimitivesPanel::_createPrimitive(PrimitiveType type)
     } else if (type == PrimitiveType::Sphere) {
         this->_componentRegistry.registerComponent(entity.getId(), Sphere(defaultSphereRadius));
         primitiveName = "Sphere " + std::to_string(entity.getId());
-        bboxType = BoundingBoxVisualization::Type::SPHERE; // Sphérique pour les sphères
+        bboxType = BoundingBoxVisualization::Type::SPHERE;
     } else if (type == PrimitiveType::Plane) {
         this-> _componentRegistry.registerComponent(entity.getId(), Plane(defaultSize));
         primitiveName = "Plane " + std::to_string(entity.getId());

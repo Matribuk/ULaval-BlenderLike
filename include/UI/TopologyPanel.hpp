@@ -1,11 +1,19 @@
 #pragma once
 
+#include <imgui.h>
+
 #include "Core/ComponentRegistry.hpp"
 #include "Core/EntityManager.hpp"
 #include "Systems/PrimitiveSystem.hpp"
 #include "Systems/SelectionSystem.hpp"
 #include "Manager/SceneManager.hpp"
-#include <imgui.h>
+
+#include "Components/Primitive/DelaunayMesh.hpp"
+#include "Components/Primitive/Point.hpp"
+#include "Components/Transform.hpp"
+#include "Components/Renderable.hpp"
+#include "Components/Selectable.hpp"
+#include "Components/BoundingBoxVisualization.hpp"
 
 class TopologyPanel {
     public:
