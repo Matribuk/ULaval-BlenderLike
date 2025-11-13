@@ -34,7 +34,7 @@ void DelaunayPanel::render()
 
     if (ImGui::Combo("Generation Mode", &currentMode, generationModes, 3)) {
         delaunayMesh->mode = static_cast<DelaunayMesh::GenerationMode>(currentMode);
-        _primitiveSystem.generateMeshes();
+        this->_primitiveSystem.generateMeshes();
     }
 
     const char* displayModes[] = {"Delaunay Only", "Voronoi Only", "Both"};

@@ -1,5 +1,4 @@
 #include "Systems/SelectionSystem.hpp"
-#include <limits>
 
 SelectionSystem::SelectionSystem(
     ComponentRegistry& registry,
