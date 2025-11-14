@@ -153,11 +153,15 @@ void TransformSystem::setParent(EntityID child, EntityID parent)
 
     if (!childTransform || !parentTransform || child == parent) return;
 
-    glm::mat4 childGlobalMatrix = childTransform->globalMatrix;
+    glm::vec3 childGlobalPos, childGlobalRot, childGlobalScale;
 
     if (childTransform->parent != INVALID_ENTITY) {
         removeParent(child);
-        childGlobalMatrix = childTransform->globalMatrix;
+        decomposeMatrix(childTransform->globalMatrix, childGlobalPos, childGlobalRot, childGlobalScale);
+    } else {
+        childGlobalPos = childTransform->position;
+        childGlobalRot = childTransform->rotation;
+        childGlobalScale = childTransform->scale;
     }
 
     childTransform->parent = parent;
@@ -165,9 +169,6 @@ void TransformSystem::setParent(EntityID child, EntityID parent)
 
     glm::vec3 parentPos, parentRot, parentScale;
     decomposeMatrix(parentTransform->globalMatrix, parentPos, parentRot, parentScale);
-
-    glm::vec3 childGlobalPos, childGlobalRot, childGlobalScale;
-    decomposeMatrix(childGlobalMatrix, childGlobalPos, childGlobalRot, childGlobalScale);
 
     glm::mat4 parentTR = glm::translate(glm::mat4(1.0f), parentPos);
     parentTR = parentTR * glm::eulerAngleXYZ(parentRot.x, parentRot.y, parentRot.z);
