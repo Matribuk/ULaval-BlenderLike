@@ -604,11 +604,9 @@ ofColor PrimitiveSystem::_generateColorFromPosition(const glm::vec2& pos)
 
 void PrimitiveSystem::_updateDelaunayFromControlPoints(EntityID delaunayId, DelaunayMesh& delaunay)
 {
-    // Gather current positions of control points
     std::vector<glm::vec2> points;
     points.reserve(delaunay.controlPointEntities.size());
 
-    // Get the Delaunay's transform to convert global positions to local space
     Transform* delaunayTransform = this->_registry.getComponent<Transform>(delaunayId);
     glm::mat4 delaunayInverseMatrix = glm::mat4(1.0f);
 
@@ -619,10 +617,8 @@ void PrimitiveSystem::_updateDelaunayFromControlPoints(EntityID delaunayId, Dela
     for (EntityID pointId : delaunay.controlPointEntities) {
         Transform* transform = this->_registry.getComponent<Transform>(pointId);
         if (transform) {
-            // Get global position
             glm::vec3 globalPos = glm::vec3(transform->globalMatrix[3]);
 
-            // Convert to Delaunay's local space
             glm::vec4 localPos4 = delaunayInverseMatrix * glm::vec4(globalPos, 1.0f);
             glm::vec3 localPos = glm::vec3(localPos4);
 
@@ -634,17 +630,13 @@ void PrimitiveSystem::_updateDelaunayFromControlPoints(EntityID delaunayId, Dela
         return;
     }
 
-    // Update the DelaunayMesh component with new points (in local space)
     delaunay.points = points;
 
-    // Regenerate the mesh
     Renderable* render = this->_registry.getComponent<Renderable>(delaunayId);
     if (render) {
         render->mesh = this->_generateDelaunayMesh(delaunay, delaunayId);
     }
 }
-
-// ==================== PARAMETRIC CURVES ====================
 
 ofMesh PrimitiveSystem::_generateParametricCurveMesh(const ParametricCurve& curve, EntityID entityId)
 {
@@ -657,7 +649,6 @@ ofMesh PrimitiveSystem::_generateParametricCurveMesh(const ParametricCurve& curv
 
     std::vector<glm::vec3> curvePoints;
 
-    // Generate curve points based on type
     if (curve.type == ParametricCurve::Type::BEZIER_CUBIC) {
         if (curve.controlPoints.size() >= 4) {
             curvePoints = BezierCurve::generateCurve(curve.controlPoints, curve.resolution);
@@ -668,7 +659,6 @@ ofMesh PrimitiveSystem::_generateParametricCurveMesh(const ParametricCurve& curv
         }
     }
 
-    // Add points to mesh
     for (const auto& point : curvePoints) {
         mesh.addVertex(point);
         mesh.addNormal(glm::vec3(0.0f, 1.0f, 0.0f));
@@ -680,11 +670,9 @@ ofMesh PrimitiveSystem::_generateParametricCurveMesh(const ParametricCurve& curv
 
 void PrimitiveSystem::_updateCurveFromControlPoints(EntityID curveId, ParametricCurve& curve)
 {
-    // Gather current positions of control points
     std::vector<glm::vec3> points;
     points.reserve(curve.controlPointEntities.size());
 
-    // Get the Curve's transform to convert global positions to local space
     Transform* curveTransform = this->_registry.getComponent<Transform>(curveId);
     glm::mat4 curveInverseMatrix = glm::mat4(1.0f);
 
@@ -695,10 +683,8 @@ void PrimitiveSystem::_updateCurveFromControlPoints(EntityID curveId, Parametric
     for (EntityID pointId : curve.controlPointEntities) {
         Transform* transform = this->_registry.getComponent<Transform>(pointId);
         if (transform) {
-            // Get global position
             glm::vec3 globalPos = glm::vec3(transform->globalMatrix[3]);
 
-            // Convert to Curve's local space
             glm::vec4 localPos4 = curveInverseMatrix * glm::vec4(globalPos, 1.0f);
             glm::vec3 localPos = glm::vec3(localPos4);
 
@@ -711,10 +697,8 @@ void PrimitiveSystem::_updateCurveFromControlPoints(EntityID curveId, Parametric
         return;
     }
 
-    // Update the curve component with new points (in local space)
     curve.controlPoints = points;
 
-    // Regenerate the mesh
     Renderable* render = this->_registry.getComponent<Renderable>(curveId);
     if (render) {
         render->mesh = this->_generateParametricCurveMesh(curve, curveId);
