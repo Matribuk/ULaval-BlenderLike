@@ -35,6 +35,103 @@ void PrimitiveSystem::generateMeshes() {
         else if (DelaunayMesh* delaunay = this->_registry.getComponent<DelaunayMesh>(id)) {
             render->mesh = this->_generateDelaunayMesh(*delaunay, id);
         }
+        else if (ParametricCurve* curve = this->_registry.getComponent<ParametricCurve>(id)) {
+            render->mesh = this->_generateParametricCurveMesh(*curve, id);
+        }
+    }
+}
+
+void PrimitiveSystem::updateControlPointBasedMeshes()
+{
+    for (EntityID id : this->_entityManager.getAllEntities()) {
+        DelaunayMesh* delaunay = this->_registry.getComponent<DelaunayMesh>(id);
+        if (delaunay && delaunay->mode == DelaunayMesh::GenerationMode::CUSTOM && !delaunay->controlPointEntities.empty()) {
+            bool needsUpdate = false;
+            std::vector<glm::vec2> currentPoints;
+            currentPoints.reserve(delaunay->controlPointEntities.size());
+
+            Transform* delaunayTransform = this->_registry.getComponent<Transform>(id);
+            glm::mat4 delaunayInverseMatrix = glm::mat4(1.0f);
+
+            if (delaunayTransform) {
+                delaunayInverseMatrix = glm::inverse(delaunayTransform->globalMatrix);
+            }
+
+            for (EntityID pointId : delaunay->controlPointEntities) {
+                Transform* transform = this->_registry.getComponent<Transform>(pointId);
+                if (transform) {
+                    glm::vec3 globalPos = glm::vec3(transform->globalMatrix[3]);
+
+                    glm::vec4 localPos4 = delaunayInverseMatrix * glm::vec4(globalPos, 1.0f);
+                    glm::vec3 localPos = glm::vec3(localPos4);
+
+                    currentPoints.push_back(glm::vec2(localPos.x, localPos.y));
+                }
+            }
+
+            if (currentPoints.size() == delaunay->points.size()) {
+                for (size_t i = 0; i < currentPoints.size(); ++i) {
+                    float dx = std::abs(currentPoints[i].x - delaunay->points[i].x);
+                    float dy = std::abs(currentPoints[i].y - delaunay->points[i].y);
+                    if (dx > 0.0001f || dy > 0.0001f) {
+                        needsUpdate = true;
+                        break;
+                    }
+                }
+            } else {
+                needsUpdate = true;
+            }
+
+            if (needsUpdate || delaunay->needsRegeneration) {
+                this->_updateDelaunayFromControlPoints(id, *delaunay);
+                delaunay->needsRegeneration = false;
+            }
+        }
+
+        ParametricCurve* curve = this->_registry.getComponent<ParametricCurve>(id);
+        if (curve && !curve->controlPointEntities.empty()) {
+            bool needsUpdate = false;
+            std::vector<glm::vec3> currentPoints;
+            currentPoints.reserve(curve->controlPointEntities.size());
+
+            Transform* curveTransform = this->_registry.getComponent<Transform>(id);
+            glm::mat4 curveInverseMatrix = glm::mat4(1.0f);
+
+            if (curveTransform) {
+                curveInverseMatrix = glm::inverse(curveTransform->globalMatrix);
+            }
+
+            for (EntityID pointId : curve->controlPointEntities) {
+                Transform* transform = this->_registry.getComponent<Transform>(pointId);
+                if (transform) {
+                    glm::vec3 globalPos = glm::vec3(transform->globalMatrix[3]);
+
+                    glm::vec4 localPos4 = curveInverseMatrix * glm::vec4(globalPos, 1.0f);
+                    glm::vec3 localPos = glm::vec3(localPos4);
+
+                    currentPoints.push_back(localPos);
+                }
+            }
+
+            if (currentPoints.size() == curve->controlPoints.size()) {
+                for (size_t i = 0; i < currentPoints.size(); ++i) {
+                    float dx = std::abs(currentPoints[i].x - curve->controlPoints[i].x);
+                    float dy = std::abs(currentPoints[i].y - curve->controlPoints[i].y);
+                    float dz = std::abs(currentPoints[i].z - curve->controlPoints[i].z);
+                    if (dx > 0.0001f || dy > 0.0001f || dz > 0.0001f) {
+                        needsUpdate = true;
+                        break;
+                    }
+                }
+            } else {
+                needsUpdate = true;
+            }
+
+            if (needsUpdate || curve->needsRegeneration) {
+                this->_updateCurveFromControlPoints(id, *curve);
+                curve->needsRegeneration = false;
+            }
+        }
     }
 }
 
@@ -503,4 +600,123 @@ ofColor PrimitiveSystem::_generateColorFromPosition(const glm::vec2& pos)
     else { r = c; g = 0.0f; b = x; }
 
     return ofColor((r + m) * 255.0f, (g + m) * 255.0f, (b + m) * 255.0f);
+}
+
+void PrimitiveSystem::_updateDelaunayFromControlPoints(EntityID delaunayId, DelaunayMesh& delaunay)
+{
+    // Gather current positions of control points
+    std::vector<glm::vec2> points;
+    points.reserve(delaunay.controlPointEntities.size());
+
+    // Get the Delaunay's transform to convert global positions to local space
+    Transform* delaunayTransform = this->_registry.getComponent<Transform>(delaunayId);
+    glm::mat4 delaunayInverseMatrix = glm::mat4(1.0f);
+
+    if (delaunayTransform) {
+        delaunayInverseMatrix = glm::inverse(delaunayTransform->globalMatrix);
+    }
+
+    for (EntityID pointId : delaunay.controlPointEntities) {
+        Transform* transform = this->_registry.getComponent<Transform>(pointId);
+        if (transform) {
+            // Get global position
+            glm::vec3 globalPos = glm::vec3(transform->globalMatrix[3]);
+
+            // Convert to Delaunay's local space
+            glm::vec4 localPos4 = delaunayInverseMatrix * glm::vec4(globalPos, 1.0f);
+            glm::vec3 localPos = glm::vec3(localPos4);
+
+            points.push_back(glm::vec2(localPos.x, localPos.y));
+        }
+    }
+
+    if (points.size() < 3) {
+        return;
+    }
+
+    // Update the DelaunayMesh component with new points (in local space)
+    delaunay.points = points;
+
+    // Regenerate the mesh
+    Renderable* render = this->_registry.getComponent<Renderable>(delaunayId);
+    if (render) {
+        render->mesh = this->_generateDelaunayMesh(delaunay, delaunayId);
+    }
+}
+
+// ==================== PARAMETRIC CURVES ====================
+
+ofMesh PrimitiveSystem::_generateParametricCurveMesh(const ParametricCurve& curve, EntityID entityId)
+{
+    ofMesh mesh;
+    mesh.setMode(OF_PRIMITIVE_LINE_STRIP);
+
+    if (curve.controlPoints.size() < 3) {
+        return mesh;
+    }
+
+    std::vector<glm::vec3> curvePoints;
+
+    // Generate curve points based on type
+    if (curve.type == ParametricCurve::Type::BEZIER_CUBIC) {
+        if (curve.controlPoints.size() >= 4) {
+            curvePoints = BezierCurve::generateCurve(curve.controlPoints, curve.resolution);
+        }
+    } else if (curve.type == ParametricCurve::Type::CATMULL_ROM) {
+        if (curve.controlPoints.size() >= 4) {
+            curvePoints = CatmullRomCurve::generateCurve(curve.controlPoints, curve.resolution);
+        }
+    }
+
+    // Add points to mesh
+    for (const auto& point : curvePoints) {
+        mesh.addVertex(point);
+        mesh.addNormal(glm::vec3(0.0f, 1.0f, 0.0f));
+        mesh.addTexCoord(glm::vec2(0.0f, 0.0f));
+    }
+
+    return mesh;
+}
+
+void PrimitiveSystem::_updateCurveFromControlPoints(EntityID curveId, ParametricCurve& curve)
+{
+    // Gather current positions of control points
+    std::vector<glm::vec3> points;
+    points.reserve(curve.controlPointEntities.size());
+
+    // Get the Curve's transform to convert global positions to local space
+    Transform* curveTransform = this->_registry.getComponent<Transform>(curveId);
+    glm::mat4 curveInverseMatrix = glm::mat4(1.0f);
+
+    if (curveTransform) {
+        curveInverseMatrix = glm::inverse(curveTransform->globalMatrix);
+    }
+
+    for (EntityID pointId : curve.controlPointEntities) {
+        Transform* transform = this->_registry.getComponent<Transform>(pointId);
+        if (transform) {
+            // Get global position
+            glm::vec3 globalPos = glm::vec3(transform->globalMatrix[3]);
+
+            // Convert to Curve's local space
+            glm::vec4 localPos4 = curveInverseMatrix * glm::vec4(globalPos, 1.0f);
+            glm::vec3 localPos = glm::vec3(localPos4);
+
+            points.push_back(localPos);
+        }
+    }
+
+    int minPoints = (curve.type == ParametricCurve::Type::BEZIER_CUBIC) ? 4 : 4;
+    if (points.size() < static_cast<size_t>(minPoints)) {
+        return;
+    }
+
+    // Update the curve component with new points (in local space)
+    curve.controlPoints = points;
+
+    // Regenerate the mesh
+    Renderable* render = this->_registry.getComponent<Renderable>(curveId);
+    if (render) {
+        render->mesh = this->_generateParametricCurveMesh(curve, curveId);
+    }
 }
