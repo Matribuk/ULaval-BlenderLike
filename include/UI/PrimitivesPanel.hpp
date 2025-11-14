@@ -9,6 +9,7 @@
 #include "Components/Primitive/Box.hpp"
 #include "Components/Primitive/Sphere.hpp"
 #include "Components/Primitive/DelaunayMesh.hpp"
+#include "Components/Primitive/ParametricCurve.hpp"
 #include "Components/Renderable.hpp"
 #include "Components/Selectable.hpp"
 #include "Components/BoundingBoxVisualization.hpp"
@@ -28,7 +29,9 @@ enum class PrimitiveType {
     Line,
     Rectangle,
     Point,
-    DelaunayTriangulation
+    DelaunayTriangulation,
+    BezierCurve,
+    CatmullRomCurve
 };
 
 class PrimitivesPanel {

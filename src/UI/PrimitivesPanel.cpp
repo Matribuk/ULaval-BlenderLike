@@ -63,6 +63,17 @@ void PrimitivesPanel::render()
         if (ImGui::Button("Delaunay Triangulation", ImVec2(-1, 60)))
             this->_createPrimitive(PrimitiveType::DelaunayTriangulation);
 
+        ImGui::Spacing();
+        ImGui::Text("Add a Parametric Curve");
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        if (ImGui::Button("Bezier Curve", ImVec2(-1, 60)))
+            this->_createPrimitive(PrimitiveType::BezierCurve);
+
+        if (ImGui::Button("Catmull-Rom Spline", ImVec2(-1, 60)))
+            this->_createPrimitive(PrimitiveType::CatmullRomCurve);
+
     }
     ImGui::End();
 }
@@ -129,10 +140,96 @@ void PrimitivesPanel::_createPrimitive(PrimitiveType type)
         primitiveName = "Point " + std::to_string(entity.getId());
         bboxType = BoundingBoxVisualization::Type::SPHERE;
     } else if (type == PrimitiveType::DelaunayTriangulation) {
-        DelaunayMesh defaultDelaunay(15, glm::vec2(10.0f, 10.0f));
-        defaultDelaunay.mode = DelaunayMesh::GenerationMode::RANDOM;
+        std::vector<glm::vec2> points2D = {
+            glm::vec2(-3.0f, -2.0f),
+            glm::vec2(-1.0f, -2.5f),
+            glm::vec2(1.0f, -2.0f),
+            glm::vec2(3.0f, -1.5f),
+            glm::vec2(-2.5f, 0.5f),
+            glm::vec2(0.0f, 0.0f),
+            glm::vec2(2.5f, 1.0f),
+            glm::vec2(-1.5f, 2.5f),
+            glm::vec2(1.0f, 3.0f)
+        };
+        DelaunayMesh defaultDelaunay(points2D);
+        defaultDelaunay.mode = DelaunayMesh::GenerationMode::CUSTOM;
+        defaultDelaunay.showControlPoints = true;
+
+        std::vector<EntityID> pointEntities;
+        for (const auto& pos2D : points2D) {
+            Entity pointEntity = this->_entityManager.createEntity();
+            glm::vec3 pos3D(pos2D.x, pos2D.y, 0.0f);
+            this->_componentRegistry.registerComponent(pointEntity.getId(), Transform(pos3D));
+            this->_componentRegistry.registerComponent(pointEntity.getId(), Point(0.4f));
+            this->_componentRegistry.registerComponent(pointEntity.getId(), Renderable(ofMesh(), ofColor::yellow, true, nullptr, nullptr, true));
+            this->_componentRegistry.registerComponent(pointEntity.getId(), Selectable());
+            this->_componentRegistry.registerComponent(pointEntity.getId(), BoundingBoxVisualization(BoundingBoxVisualization::Type::SPHERE, false));
+
+            std::string pointName = "DelaunayCP " + std::to_string(pointEntity.getId());
+            this->_sceneManager.registerEntity(pointEntity.getId(), pointName);
+            pointEntities.push_back(pointEntity.getId());
+        }
+
+        defaultDelaunay.controlPointEntities = pointEntities;
         this->_componentRegistry.registerComponent(entity.getId(), defaultDelaunay);
         primitiveName = "Delaunay " + std::to_string(entity.getId());
+        bboxType = BoundingBoxVisualization::Type::AABB;
+    } else if (type == PrimitiveType::BezierCurve) {
+        std::vector<glm::vec3> controlPoints = {
+            glm::vec3(-2.0f, -1.0f, 0.0f),
+            glm::vec3(-1.0f, 2.0f, 0.0f),
+            glm::vec3(1.0f, 2.0f, 0.0f),
+            glm::vec3(2.0f, -1.0f, 0.0f)
+        };
+        ParametricCurve bezier(ParametricCurve::Type::BEZIER_CUBIC, controlPoints, 50);
+        bezier.showControlPoints = true;
+
+        std::vector<EntityID> pointEntities;
+        for (const auto& pos : controlPoints) {
+            Entity pointEntity = this->_entityManager.createEntity();
+            this->_componentRegistry.registerComponent(pointEntity.getId(), Transform(pos));
+            this->_componentRegistry.registerComponent(pointEntity.getId(), Point(0.5f));
+            this->_componentRegistry.registerComponent(pointEntity.getId(), Renderable(ofMesh(), ofColor::cyan, true, nullptr, nullptr, true));
+            this->_componentRegistry.registerComponent(pointEntity.getId(), Selectable());
+            this->_componentRegistry.registerComponent(pointEntity.getId(), BoundingBoxVisualization(BoundingBoxVisualization::Type::SPHERE, false));
+
+            std::string pointName = "BezierCP " + std::to_string(pointEntity.getId());
+            this->_sceneManager.registerEntity(pointEntity.getId(), pointName);
+            pointEntities.push_back(pointEntity.getId());
+        }
+
+        bezier.controlPointEntities = pointEntities;
+        this->_componentRegistry.registerComponent(entity.getId(), bezier);
+        primitiveName = "Bezier " + std::to_string(entity.getId());
+        bboxType = BoundingBoxVisualization::Type::AABB;
+    } else if (type == PrimitiveType::CatmullRomCurve) {
+        std::vector<glm::vec3> controlPoints = {
+            glm::vec3(-3.0f, 0.0f, 0.0f),
+            glm::vec3(-1.5f, 2.0f, 0.0f),
+            glm::vec3(0.0f, -1.0f, 0.0f),
+            glm::vec3(1.5f, 2.0f, 0.0f),
+            glm::vec3(3.0f, 0.0f, 0.0f)
+        };
+        ParametricCurve catmull(ParametricCurve::Type::CATMULL_ROM, controlPoints, 50);
+        catmull.showControlPoints = true;
+
+        std::vector<EntityID> pointEntities;
+        for (const auto& pos : controlPoints) {
+            Entity pointEntity = this->_entityManager.createEntity();
+            this->_componentRegistry.registerComponent(pointEntity.getId(), Transform(pos));
+            this->_componentRegistry.registerComponent(pointEntity.getId(), Point(0.5f));
+            this->_componentRegistry.registerComponent(pointEntity.getId(), Renderable(ofMesh(), ofColor::magenta, true, nullptr, nullptr, true));
+            this->_componentRegistry.registerComponent(pointEntity.getId(), Selectable());
+            this->_componentRegistry.registerComponent(pointEntity.getId(), BoundingBoxVisualization(BoundingBoxVisualization::Type::SPHERE, false));
+
+            std::string pointName = "CatmullCP " + std::to_string(pointEntity.getId());
+            this->_sceneManager.registerEntity(pointEntity.getId(), pointName);
+            pointEntities.push_back(pointEntity.getId());
+        }
+
+        catmull.controlPointEntities = pointEntities;
+        this->_componentRegistry.registerComponent(entity.getId(), catmull);
+        primitiveName = "CatmullRom " + std::to_string(entity.getId());
         bboxType = BoundingBoxVisualization::Type::AABB;
     }
 
@@ -142,6 +239,24 @@ void PrimitivesPanel::_createPrimitive(PrimitiveType type)
     this->_componentRegistry.registerComponent(entity.getId(), BoundingBoxVisualization(bboxType, false));
 
     this->_sceneManager.registerEntity(entity.getId(), primitiveName);
+
+    this->_primitiveSystem.generateMeshes();
+
+    if (type == PrimitiveType::BezierCurve || type == PrimitiveType::CatmullRomCurve) {
+        ParametricCurve* curve = this->_componentRegistry.getComponent<ParametricCurve>(entity.getId());
+        if (curve && !curve->controlPointEntities.empty()) {
+            for (EntityID pointId : curve->controlPointEntities) {
+                this->_sceneManager.setParent(pointId, entity.getId());
+            }
+        }
+    } else if (type == PrimitiveType::DelaunayTriangulation) {
+        DelaunayMesh* delaunay = this->_componentRegistry.getComponent<DelaunayMesh>(entity.getId());
+        if (delaunay && !delaunay->controlPointEntities.empty()) {
+            for (EntityID pointId : delaunay->controlPointEntities) {
+                this->_sceneManager.setParent(pointId, entity.getId());
+            }
+        }
+    }
 
     this->_primitiveSystem.generateMeshes();
 
