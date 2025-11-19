@@ -115,17 +115,7 @@ void CurvesPanel::_generateBezierFromSelectedPoints()
         return;
     }
 
-    std::vector<glm::vec3> controlPoints;
-    controlPoints.reserve(4);
-
-    for (EntityID pointId : pointEntities) {
-        Transform* transform = this->_componentRegistry.getComponent<Transform>(pointId);
-        if (transform) {
-            glm::vec3 globalPos = glm::vec3(transform->globalMatrix[3]);
-            controlPoints.push_back(globalPos);
-        }
-    }
-
+    std::vector<glm::vec3> controlPoints = this->_extractControlPointPositions(pointEntities);
     if (controlPoints.size() != 4) {
         if (this->_eventLogPanel) {
             this->_eventLogPanel->addLog("Error: Could not retrieve all point positions", ofColor::red);
@@ -133,29 +123,9 @@ void CurvesPanel::_generateBezierFromSelectedPoints()
         return;
     }
 
-    Entity entity = this->_entityManager.createEntity();
-
-    ParametricCurve curve(ParametricCurve::Type::BEZIER_CUBIC, this->_resolution);
-    curve.controlPointEntities = pointEntities;
-    curve.showControlPoints = this->_showControlPoints;
-    curve.showTangents = this->_showTangents;
-
-    curve.controlPoints = controlPoints;
-
-    this->_componentRegistry.registerComponent(entity.getId(), Transform(glm::vec3(0.0f)));
-    this->_componentRegistry.registerComponent(entity.getId(), curve);
-    this->_componentRegistry.registerComponent(entity.getId(), Renderable(ofMesh(), ofColor::lightGray, true, nullptr, nullptr, true));
-    this->_componentRegistry.registerComponent(entity.getId(), Selectable());
-    this->_componentRegistry.registerComponent(entity.getId(), BoundingBoxVisualization(BoundingBoxVisualization::Type::AABB, false));
-
-    std::string curveName = "Bezier " + std::to_string(entity.getId());
-    this->_sceneManager.registerEntity(entity.getId(), curveName);
-
-    for (EntityID pointId : pointEntities) {
-        this->_sceneManager.setParent(pointId, entity.getId());
-    }
-
-    this->_primitiveSystem.generateMeshes();
+    EntityID curveId = this->_createCurveEntity(ParametricCurve::Type::BEZIER_CUBIC, pointEntities);
+    std::string curveName = "Bezier " + std::to_string(curveId);
+    this->_setupCurveEntity(curveId, curveName, pointEntities);
 
     if (this->_eventLogPanel) {
         this->_eventLogPanel->addLog("Created " + curveName + " from selected points", ofColor::cyan);
@@ -173,6 +143,25 @@ void CurvesPanel::_generateCatmullRomFromSelectedPoints()
         return;
     }
 
+    std::vector<glm::vec3> controlPoints = this->_extractControlPointPositions(pointEntities);
+    if (controlPoints.size() < 4) {
+        if (this->_eventLogPanel) {
+            this->_eventLogPanel->addLog("Error: Could not retrieve all point positions", ofColor::red);
+        }
+        return;
+    }
+
+    EntityID curveId = this->_createCurveEntity(ParametricCurve::Type::CATMULL_ROM, pointEntities);
+    std::string curveName = "CatmullRom " + std::to_string(curveId);
+    this->_setupCurveEntity(curveId, curveName, pointEntities);
+
+    if (this->_eventLogPanel) {
+        this->_eventLogPanel->addLog("Created " + curveName + " from selected points", ofColor::cyan);
+    }
+}
+
+std::vector<glm::vec3> CurvesPanel::_extractControlPointPositions(const std::vector<EntityID>& pointEntities)
+{
     std::vector<glm::vec3> controlPoints;
     controlPoints.reserve(pointEntities.size());
 
@@ -184,20 +173,19 @@ void CurvesPanel::_generateCatmullRomFromSelectedPoints()
         }
     }
 
-    if (controlPoints.size() < 4) {
-        if (this->_eventLogPanel) {
-            this->_eventLogPanel->addLog("Error: Could not retrieve all point positions", ofColor::red);
-        }
-        return;
-    }
+    return controlPoints;
+}
 
+EntityID CurvesPanel::_createCurveEntity(ParametricCurve::Type type, const std::vector<EntityID>& pointEntities)
+{
     Entity entity = this->_entityManager.createEntity();
 
-    ParametricCurve curve(ParametricCurve::Type::CATMULL_ROM, this->_resolution);
+    std::vector<glm::vec3> controlPoints = this->_extractControlPointPositions(pointEntities);
+
+    ParametricCurve curve(type, this->_resolution);
     curve.controlPointEntities = pointEntities;
     curve.showControlPoints = this->_showControlPoints;
     curve.showTangents = this->_showTangents;
-
     curve.controlPoints = controlPoints;
 
     this->_componentRegistry.registerComponent(entity.getId(), Transform(glm::vec3(0.0f)));
@@ -206,16 +194,16 @@ void CurvesPanel::_generateCatmullRomFromSelectedPoints()
     this->_componentRegistry.registerComponent(entity.getId(), Selectable());
     this->_componentRegistry.registerComponent(entity.getId(), BoundingBoxVisualization(BoundingBoxVisualization::Type::AABB, false));
 
-    std::string curveName = "CatmullRom " + std::to_string(entity.getId());
-    this->_sceneManager.registerEntity(entity.getId(), curveName);
+    return entity.getId();
+}
+
+void CurvesPanel::_setupCurveEntity(EntityID curveId, const std::string& name, const std::vector<EntityID>& pointEntities)
+{
+    this->_sceneManager.registerEntity(curveId, name);
 
     for (EntityID pointId : pointEntities) {
-        this->_sceneManager.setParent(pointId, entity.getId());
+        this->_sceneManager.setParent(pointId, curveId);
     }
 
     this->_primitiveSystem.generateMeshes();
-
-    if (this->_eventLogPanel) {
-        this->_eventLogPanel->addLog("Created " + curveName + " from selected points", ofColor::cyan);
-    }
 }

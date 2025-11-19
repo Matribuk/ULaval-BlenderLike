@@ -51,4 +51,11 @@ class PrimitiveSystem {
 
         void _updateDelaunayFromControlPoints(EntityID delaunayId, DelaunayMesh& delaunay);
         void _updateCurveFromControlPoints(EntityID curveId, ParametricCurve& curve);
+
+        std::vector<glm::vec2> _extractDelaunayControlPoints(const DelaunayMesh& delaunay, const glm::mat4& inverseMatrix);
+        std::vector<glm::vec3> _extractCurveControlPoints(const ParametricCurve& curve, const glm::mat4& inverseMatrix);
+        bool _needsDelaunayUpdate(const std::vector<glm::vec2>& currentPoints, const DelaunayMesh& delaunay);
+        bool _needsCurveUpdate(const std::vector<glm::vec3>& currentPoints, const ParametricCurve& curve);
+        void _addDelaunayTriangles(ofMesh& mesh, const std::vector<Triangle2D>& triangles, const DelaunayMesh& delaunay);
+        void _addVoronoiCells(ofMesh& mesh, const std::vector<VoronoiCell>& cells, const DelaunayMesh& delaunay);
 };

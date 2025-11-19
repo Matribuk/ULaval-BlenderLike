@@ -43,4 +43,8 @@ class CurvesPanel {
         void _generateBezierFromSelectedPoints();
         void _generateCatmullRomFromSelectedPoints();
         std::vector<EntityID> _getSelectedPointEntities();
+
+        std::vector<glm::vec3> _extractControlPointPositions(const std::vector<EntityID>& pointEntities);
+        EntityID _createCurveEntity(ParametricCurve::Type type, const std::vector<EntityID>& pointEntities);
+        void _setupCurveEntity(EntityID curveId, const std::string& name, const std::vector<EntityID>& pointEntities);
 };
