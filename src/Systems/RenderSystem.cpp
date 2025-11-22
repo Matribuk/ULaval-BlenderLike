@@ -316,11 +316,11 @@ void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& trans
         }
 
         if (material->normalMap) {
-            material->shader->setUniformTexture("normalMap", *material->normalMap, 1);
-            material->shader->setUniform1i("useNormalMap", 1);
-            material->shader->setUniform1f("normalStrength", material->normalStrength);
+            shader->setUniformTexture("normalMap", *material->normalMap, 2);
+            shader->setUniform1i("useNormalMap", 1);
+            shader->setUniform1f("normalStrength", material->normalStrength);
         } else {
-            material->shader->setUniform1i("useNormalMap", 0);
+            shader->setUniform1i("useNormalMap", 0);
         }
 
         glEnableClientState(GL_NORMAL_ARRAY);
@@ -346,6 +346,7 @@ void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& trans
 
     ofPopMatrix();
 }
+
 
 void RenderSystem::_initSkybox()
 {

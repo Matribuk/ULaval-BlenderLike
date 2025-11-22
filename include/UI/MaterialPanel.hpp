@@ -48,6 +48,8 @@ class MaterialPanel {
         void _loadIlluminationShader(Renderable* primaryRenderable);
         void _loadEffectShader(Renderable* primaryRenderable);
         void _loadShaders(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
+        void _loadIlluminationShader(Renderable* primaryRenderable);
+        void _loadEffectShader(Renderable* primaryRenderable);
         void _loadFile(EntityID entityId, Renderable* primaryRenderable, std::string type);
         void _generateProceduralTexture(Renderable* primaryRenderable);
         void _renderVisibilityControl(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
@@ -59,12 +61,14 @@ class MaterialPanel {
         void _renderMaterialReflectionComponents(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
         bool _isIlluminationShader(ofShader* shader);
         void _renderReliefMappingSection(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
-
         void _renderNormalMappingControls(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
         void _renderNormalMapSelector(const std::set<EntityID>& selectedEntities);
         void _renderDisplacementMappingControls(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
         void _renderHeightMapSelector(const std::set<EntityID>& selectedEntities);
         void _renderDisplacementControls(EntityID primaryEntity, DisplacementMap* displacement);
+        void _renderMaterialPresets(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
+        void _renderMaterialReflectionComponents(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
+        bool _isIlluminationShader(ofShader* shader);
 
         template<typename T>
         void _syncMaterialProperty(const std::set<EntityID>& entities, T Material::* property, const T& value)
