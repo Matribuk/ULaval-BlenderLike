@@ -16,6 +16,9 @@ struct Material {
     float lightIntensity = 1.0f;
     glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
     float shininess = 32.0f;
+
+    float reflectivity = 0.0f;
+    glm::vec3 reflectionTint = glm::vec3(1.0f, 1.0f, 1.0f);
 };
 
 struct Renderable {

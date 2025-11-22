@@ -163,17 +163,36 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
         material->shader->setUniform1f("lightIntensity", material->lightIntensity);
         material->shader->setUniform3f("ambientColor", material->ambientColor);
         material->shader->setUniform1f("shininess", material->shininess);
+        material->shader->setUniform1f("reflectivity", material->reflectivity);
+        material->shader->setUniform3f("reflectionTint", material->reflectionTint);
 
         if (material->texture)
             material->shader->setUniformTexture("tex0", *material->texture, 0);
         else
             material->shader->setUniformTexture("tex0", this->_whiteTexture, 0);
 
+        bool hasEnvMap = false;
+        GLint envMapLoc = glGetUniformLocation(material->shader->getProgram(), "envMap");
+        if (envMapLoc != -1 && this->_skyboxCubemap.isLoaded()) {
+            this->_skyboxCubemap.bind(1);
+            material->shader->setUniform1i("envMap", 1);
+            hasEnvMap = true;
+        }
+
         glEnableClientState(GL_NORMAL_ARRAY);
         mesh.draw();
         glDisableClientState(GL_NORMAL_ARRAY);
 
         material->shader->end();
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        if (hasEnvMap) {
+            glActiveTexture(GL_TEXTURE1);
+            this->_skyboxCubemap.unbind();
+            glActiveTexture(GL_TEXTURE0);
+        }
     } else if (material && material->texture) {
         material->texture->bind();
         mesh.draw();
@@ -237,7 +256,8 @@ void RenderSystem::_renderSkyboxCubemap()
 void RenderSystem::loadCubemap(const std::string& folderPath)
 {
     bool success = this->_skyboxCubemap.loadFromFolder(folderPath);
-    if (!success) std::cout << "[SKYBOX] Failed to load cubemap from: " << folderPath << std::endl;
+    if (!success)
+        ofLogError("RenderSystem") << "Failed to load cubemap from: " << folderPath;
 }
 
 void RenderSystem::_initWhiteTexture()
