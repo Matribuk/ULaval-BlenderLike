@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <vector>
+#include "Core/Entity.hpp"
 
 struct DelaunayMesh {
     std::vector<glm::vec2> points;
@@ -25,6 +26,10 @@ struct DelaunayMesh {
     DisplayMode displayMode{DisplayMode::DELAUNAY_ONLY};
     int gridResolution{5};
     float gridPerturbation{0.3f};
+
+    std::vector<EntityID> controlPointEntities;
+    bool showControlPoints{true};
+    bool needsRegeneration{false};
 
     DelaunayMesh() = default;
 

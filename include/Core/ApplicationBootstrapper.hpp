@@ -38,6 +38,7 @@
 #include "UI/ImportPanel.hpp"
 #include "UI/PrimitivesPanel.hpp"
 #include "UI/TopologyPanel.hpp"
+#include "UI/CurvesPanel.hpp"
 #include "UI/ViewportPanel.hpp"
 
 #include "Components/Transform.hpp"
@@ -87,6 +88,7 @@ struct UIContext {
     std::unique_ptr<ImportPanel> importPanel;
     std::unique_ptr<PrimitivesPanel> primitivesPanel;
     std::unique_ptr<TopologyPanel> topologyPanel;
+    std::unique_ptr<CurvesPanel> curvesPanel;
     std::unique_ptr<ViewportPanel> viewportPanel;
 };
 

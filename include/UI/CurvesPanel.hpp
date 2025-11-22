@@ -6,37 +6,20 @@
 #include "Core/ComponentRegistry.hpp"
 
 #include "Components/Transform.hpp"
-#include "Components/Primitive/Box.hpp"
-#include "Components/Primitive/Sphere.hpp"
-#include "Components/Primitive/DelaunayMesh.hpp"
+#include "Components/Primitive/Point.hpp"
 #include "Components/Primitive/ParametricCurve.hpp"
 #include "Components/Renderable.hpp"
 #include "Components/Selectable.hpp"
 #include "Components/BoundingBoxVisualization.hpp"
 
 #include "Manager/SceneManager.hpp"
-
 #include "Systems/PrimitiveSystem.hpp"
 
 #include "UI/EventLogPanel.hpp"
 
-enum class PrimitiveType {
-    Cube,
-    Sphere,
-    Plane,
-    Triangle,
-    Circle,
-    Line,
-    Rectangle,
-    Point,
-    DelaunayTriangulation,
-    BezierCurve,
-    CatmullRomCurve
-};
-
-class PrimitivesPanel {
+class CurvesPanel {
     public:
-        PrimitivesPanel(
+        CurvesPanel(
             EntityManager& entityManager,
             ComponentRegistry& componentRegistry,
             SceneManager& sceneManager,
@@ -53,11 +36,15 @@ class PrimitivesPanel {
         PrimitiveSystem& _primitiveSystem;
         EventLogPanel* _eventLogPanel;
 
-        PrimitiveType _selectedPrimitive;
-        glm::vec3 _cubeSize;
-        float _sphereRadius;
-        glm::vec3 _spawnPosition;
-        ofColor _primitiveColor;
+        int _resolution{50};
+        bool _showControlPoints{true};
+        bool _showTangents{false};
 
-        void _createPrimitive(PrimitiveType type);
+        void _generateBezierFromSelectedPoints();
+        void _generateCatmullRomFromSelectedPoints();
+        std::vector<EntityID> _getSelectedPointEntities();
+
+        std::vector<glm::vec3> _extractControlPointPositions(const std::vector<EntityID>& pointEntities);
+        EntityID _createCurveEntity(ParametricCurve::Type type, const std::vector<EntityID>& pointEntities);
+        void _setupCurveEntity(EntityID curveId, const std::string& name, const std::vector<EntityID>& pointEntities);
 };

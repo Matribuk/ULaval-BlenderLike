@@ -9,6 +9,7 @@
 #include "UI/AssetsPanel.hpp"
 #include "UI/PrimitivesPanel.hpp"
 #include "UI/TopologyPanel.hpp"
+#include "UI/CurvesPanel.hpp"
 #include "UI/ViewportPanel.hpp"
 
 #include "Manager/ViewportManager.hpp"
@@ -43,6 +44,7 @@ class UIManager {
             ImportPanel& importPanel,
             PrimitivesPanel& primitivesPanel,
             TopologyPanel& topologyPanel,
+            CurvesPanel& curvesPanel,
             ViewportPanel& viewportPanel
         );
 
@@ -61,6 +63,7 @@ class UIManager {
         ImportPanel* _importPanel;
         PrimitivesPanel* _primitivesPanel;
         TopologyPanel* _topologyPanel;
+        CurvesPanel* _curvesPanel;
         ViewportPanel* _viewportPanel;
 
         ImGuiID _dockspaceId = 0;

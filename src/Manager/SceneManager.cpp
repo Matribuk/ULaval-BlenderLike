@@ -86,6 +86,15 @@ void SceneManager::removeParent(EntityID child)
     this->_transformSystem.removeParent(child);
 }
 
+EntityID SceneManager::getParent(EntityID child) const
+{
+    auto it = this->_entities.find(child);
+    if (it != this->_entities.end()) {
+        return it->second.parent;
+    }
+    return INVALID_ENTITY;
+}
+
 void SceneManager::render()
 {
     if (!this->_selectionSystem) return;

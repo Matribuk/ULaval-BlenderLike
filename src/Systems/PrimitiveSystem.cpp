@@ -35,6 +35,42 @@ void PrimitiveSystem::generateMeshes() {
         else if (DelaunayMesh* delaunay = this->_registry.getComponent<DelaunayMesh>(id)) {
             render->mesh = this->_generateDelaunayMesh(*delaunay, id);
         }
+        else if (ParametricCurve* curve = this->_registry.getComponent<ParametricCurve>(id)) {
+            render->mesh = this->_generateParametricCurveMesh(*curve, id);
+        }
+    }
+}
+
+void PrimitiveSystem::updateControlPointBasedMeshes()
+{
+    for (EntityID id : this->_entityManager.getAllEntities()) {
+        DelaunayMesh* delaunay = this->_registry.getComponent<DelaunayMesh>(id);
+        if (delaunay && delaunay->mode == DelaunayMesh::GenerationMode::CUSTOM && !delaunay->controlPointEntities.empty()) {
+            Transform* delaunayTransform = this->_registry.getComponent<Transform>(id);
+            glm::mat4 inverseMatrix = delaunayTransform ? glm::inverse(delaunayTransform->globalMatrix) : glm::mat4(1.0f);
+
+            std::vector<glm::vec2> currentPoints = this->_extractDelaunayControlPoints(*delaunay, inverseMatrix);
+            bool needsUpdate = this->_needsDelaunayUpdate(currentPoints, *delaunay);
+
+            if (needsUpdate || delaunay->needsRegeneration) {
+                this->_updateDelaunayFromControlPoints(id, *delaunay);
+                delaunay->needsRegeneration = false;
+            }
+        }
+
+        ParametricCurve* curve = this->_registry.getComponent<ParametricCurve>(id);
+        if (curve && !curve->controlPointEntities.empty()) {
+            Transform* curveTransform = this->_registry.getComponent<Transform>(id);
+            glm::mat4 inverseMatrix = curveTransform ? glm::inverse(curveTransform->globalMatrix) : glm::mat4(1.0f);
+
+            std::vector<glm::vec3> currentPoints = this->_extractCurveControlPoints(*curve, inverseMatrix);
+            bool needsUpdate = this->_needsCurveUpdate(currentPoints, *curve);
+
+            if (needsUpdate || curve->needsRegeneration) {
+                this->_updateCurveFromControlPoints(id, *curve);
+                curve->needsRegeneration = false;
+            }
+        }
     }
 }
 
@@ -325,16 +361,13 @@ ofMesh PrimitiveSystem::_generateDelaunayMesh(const DelaunayMesh& delaunay, Enti
     ofMesh mesh;
 
     std::vector<glm::vec2> points;
-
     switch (delaunay.mode) {
         case DelaunayMesh::GenerationMode::RANDOM:
             points = this->_generateRandomPoints(delaunay.numRandomPoints, delaunay.bounds, delaunay.seed);
             break;
-
         case DelaunayMesh::GenerationMode::GRID:
             points = this->_generateGridPoints(delaunay.gridResolution, delaunay.bounds, delaunay.gridPerturbation, delaunay.seed);
             break;
-
         case DelaunayMesh::GenerationMode::CUSTOM:
             points = delaunay.points;
             break;
@@ -354,77 +387,16 @@ ofMesh PrimitiveSystem::_generateDelaunayMesh(const DelaunayMesh& delaunay, Enti
         delaunay.displayMode == DelaunayMesh::DisplayMode::BOTH) {
         std::vector<Triangle2D> triangles = delaunayAlgo.triangulate(points);
         mesh.setMode(OF_PRIMITIVE_TRIANGLES);
-
-        for (const auto& triangle : triangles) {
-            mesh.addVertex(glm::vec3(triangle.p1.x, triangle.p1.y, 0.0f));
-            mesh.addVertex(glm::vec3(triangle.p2.x, triangle.p2.y, 0.0f));
-            mesh.addVertex(glm::vec3(triangle.p3.x, triangle.p3.y, 0.0f));
-
-            glm::vec3 normal(0.0f, 0.0f, 1.0f);
-            mesh.addNormal(normal);
-            mesh.addNormal(normal);
-            mesh.addNormal(normal);
-
-            float uScale = 1.0f / delaunay.bounds.x;
-            float vScale = 1.0f / delaunay.bounds.y;
-
-            mesh.addTexCoord(glm::vec2(
-                (triangle.p1.x + delaunay.bounds.x * 0.5f) * uScale,
-                (triangle.p1.y + delaunay.bounds.y * 0.5f) * vScale
-            ));
-            mesh.addTexCoord(glm::vec2(
-                (triangle.p2.x + delaunay.bounds.x * 0.5f) * uScale,
-                (triangle.p2.y + delaunay.bounds.y * 0.5f) * vScale
-            ));
-            mesh.addTexCoord(glm::vec2(
-                (triangle.p3.x + delaunay.bounds.x * 0.5f) * uScale,
-                (triangle.p3.y + delaunay.bounds.y * 0.5f) * vScale
-            ));
-
-            int baseIndex = mesh.getNumVertices() - 3;
-            mesh.addIndex(baseIndex);
-            mesh.addIndex(baseIndex + 1);
-            mesh.addIndex(baseIndex + 2);
-        }
+        this->_addDelaunayTriangles(mesh, triangles, delaunay);
     }
 
     if (delaunay.displayMode == DelaunayMesh::DisplayMode::VORONOI_ONLY ||
         delaunay.displayMode == DelaunayMesh::DisplayMode::BOTH) {
         std::vector<VoronoiCell> cells = delaunayAlgo.computeVoronoi(points);
-
         if (delaunay.displayMode == DelaunayMesh::DisplayMode::VORONOI_ONLY) {
             mesh.setMode(OF_PRIMITIVE_LINES);
         }
-
-        for (const auto& cell : cells) {
-            if (cell.vertices.size() < 2) continue;
-
-            ofColor cellColor = this->_generateColorFromPosition(cell.site);
-
-            for (size_t i = 0; i < cell.vertices.size(); ++i) {
-                const glm::vec2& v1 = cell.vertices[i];
-                const glm::vec2& v2 = cell.vertices[(i + 1) % cell.vertices.size()];
-
-                mesh.addVertex(glm::vec3(v1.x, v1.y, 0.01f));
-                mesh.addVertex(glm::vec3(v2.x, v2.y, 0.01f));
-
-                mesh.addColor(cellColor);
-                mesh.addColor(cellColor);
-
-                glm::vec3 normal(0.0f, 0.0f, 1.0f);
-                mesh.addNormal(normal);
-                mesh.addNormal(normal);
-
-                mesh.addTexCoord(glm::vec2(0.5f, 0.5f));
-                mesh.addTexCoord(glm::vec2(0.5f, 0.5f));
-
-                if (delaunay.displayMode == DelaunayMesh::DisplayMode::VORONOI_ONLY) {
-                    int baseIdx = mesh.getNumVertices() - 2;
-                    mesh.addIndex(baseIdx);
-                    mesh.addIndex(baseIdx + 1);
-                }
-            }
-        }
+        this->_addVoronoiCells(mesh, cells, delaunay);
     }
 
     return mesh;
@@ -503,4 +475,248 @@ ofColor PrimitiveSystem::_generateColorFromPosition(const glm::vec2& pos)
     else { r = c; g = 0.0f; b = x; }
 
     return ofColor((r + m) * 255.0f, (g + m) * 255.0f, (b + m) * 255.0f);
+}
+
+void PrimitiveSystem::_updateDelaunayFromControlPoints(EntityID delaunayId, DelaunayMesh& delaunay)
+{
+    std::vector<glm::vec2> points;
+    points.reserve(delaunay.controlPointEntities.size());
+
+    Transform* delaunayTransform = this->_registry.getComponent<Transform>(delaunayId);
+    glm::mat4 delaunayInverseMatrix = glm::mat4(1.0f);
+
+    if (delaunayTransform) {
+        delaunayInverseMatrix = glm::inverse(delaunayTransform->globalMatrix);
+    }
+
+    for (EntityID pointId : delaunay.controlPointEntities) {
+        Transform* transform = this->_registry.getComponent<Transform>(pointId);
+        if (transform) {
+            glm::vec3 globalPos = glm::vec3(transform->globalMatrix[3]);
+
+            glm::vec4 localPos4 = delaunayInverseMatrix * glm::vec4(globalPos, 1.0f);
+            glm::vec3 localPos = glm::vec3(localPos4);
+
+            points.push_back(glm::vec2(localPos.x, localPos.y));
+        }
+    }
+
+    if (points.size() < 3) {
+        return;
+    }
+
+    delaunay.points = points;
+
+    Renderable* render = this->_registry.getComponent<Renderable>(delaunayId);
+    if (render) {
+        render->mesh = this->_generateDelaunayMesh(delaunay, delaunayId);
+    }
+}
+
+ofMesh PrimitiveSystem::_generateParametricCurveMesh(const ParametricCurve& curve, EntityID entityId)
+{
+    ofMesh mesh;
+    mesh.setMode(OF_PRIMITIVE_LINE_STRIP);
+
+    if (curve.controlPoints.size() < 3) {
+        return mesh;
+    }
+
+    std::vector<glm::vec3> curvePoints;
+
+    if (curve.type == ParametricCurve::Type::BEZIER_CUBIC) {
+        if (curve.controlPoints.size() >= 4) {
+            curvePoints = BezierCurve::generateCurve(curve.controlPoints, curve.resolution);
+        }
+    } else if (curve.type == ParametricCurve::Type::CATMULL_ROM) {
+        if (curve.controlPoints.size() >= 4) {
+            curvePoints = CatmullRomCurve::generateCurve(curve.controlPoints, curve.resolution);
+        }
+    }
+
+    for (const auto& point : curvePoints) {
+        mesh.addVertex(point);
+        mesh.addNormal(glm::vec3(0.0f, 1.0f, 0.0f));
+        mesh.addTexCoord(glm::vec2(0.0f, 0.0f));
+    }
+
+    return mesh;
+}
+
+void PrimitiveSystem::_updateCurveFromControlPoints(EntityID curveId, ParametricCurve& curve)
+{
+    std::vector<glm::vec3> points;
+    points.reserve(curve.controlPointEntities.size());
+
+    Transform* curveTransform = this->_registry.getComponent<Transform>(curveId);
+    glm::mat4 curveInverseMatrix = glm::mat4(1.0f);
+
+    if (curveTransform) {
+        curveInverseMatrix = glm::inverse(curveTransform->globalMatrix);
+    }
+
+    for (EntityID pointId : curve.controlPointEntities) {
+        Transform* transform = this->_registry.getComponent<Transform>(pointId);
+        if (transform) {
+            glm::vec3 globalPos = glm::vec3(transform->globalMatrix[3]);
+
+            glm::vec4 localPos4 = curveInverseMatrix * glm::vec4(globalPos, 1.0f);
+            glm::vec3 localPos = glm::vec3(localPos4);
+
+            points.push_back(localPos);
+        }
+    }
+
+    int minPoints = (curve.type == ParametricCurve::Type::BEZIER_CUBIC) ? 4 : 4;
+    if (points.size() < static_cast<size_t>(minPoints)) {
+        return;
+    }
+
+    curve.controlPoints = points;
+
+    Renderable* render = this->_registry.getComponent<Renderable>(curveId);
+    if (render) {
+        render->mesh = this->_generateParametricCurveMesh(curve, curveId);
+    }
+}
+
+std::vector<glm::vec2> PrimitiveSystem::_extractDelaunayControlPoints(const DelaunayMesh& delaunay, const glm::mat4& inverseMatrix)
+{
+    std::vector<glm::vec2> currentPoints;
+    currentPoints.reserve(delaunay.controlPointEntities.size());
+
+    for (EntityID pointId : delaunay.controlPointEntities) {
+        Transform* transform = this->_registry.getComponent<Transform>(pointId);
+        if (transform) {
+            glm::vec3 globalPos = glm::vec3(transform->globalMatrix[3]);
+            glm::vec4 localPos4 = inverseMatrix * glm::vec4(globalPos, 1.0f);
+            glm::vec3 localPos = glm::vec3(localPos4);
+            currentPoints.push_back(glm::vec2(localPos.x, localPos.y));
+        }
+    }
+
+    return currentPoints;
+}
+
+std::vector<glm::vec3> PrimitiveSystem::_extractCurveControlPoints(const ParametricCurve& curve, const glm::mat4& inverseMatrix)
+{
+    std::vector<glm::vec3> currentPoints;
+    currentPoints.reserve(curve.controlPointEntities.size());
+
+    for (EntityID pointId : curve.controlPointEntities) {
+        Transform* transform = this->_registry.getComponent<Transform>(pointId);
+        if (transform) {
+            glm::vec3 globalPos = glm::vec3(transform->globalMatrix[3]);
+            glm::vec4 localPos4 = inverseMatrix * glm::vec4(globalPos, 1.0f);
+            glm::vec3 localPos = glm::vec3(localPos4);
+            currentPoints.push_back(localPos);
+        }
+    }
+
+    return currentPoints;
+}
+
+bool PrimitiveSystem::_needsDelaunayUpdate(const std::vector<glm::vec2>& currentPoints, const DelaunayMesh& delaunay)
+{
+    if (currentPoints.size() != delaunay.points.size()) {
+        return true;
+    }
+
+    constexpr float EPSILON = 1e-5f;
+    for (size_t i = 0; i < currentPoints.size(); ++i) {
+        float dx = std::abs(currentPoints[i].x - delaunay.points[i].x);
+        float dy = std::abs(currentPoints[i].y - delaunay.points[i].y);
+        if (dx > EPSILON || dy > EPSILON) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool PrimitiveSystem::_needsCurveUpdate(const std::vector<glm::vec3>& currentPoints, const ParametricCurve& curve)
+{
+    if (currentPoints.size() != curve.controlPoints.size()) {
+        return true;
+    }
+
+    constexpr float EPSILON = 1e-5f;
+    for (size_t i = 0; i < currentPoints.size(); ++i) {
+        float dx = std::abs(currentPoints[i].x - curve.controlPoints[i].x);
+        float dy = std::abs(currentPoints[i].y - curve.controlPoints[i].y);
+        float dz = std::abs(currentPoints[i].z - curve.controlPoints[i].z);
+        if (dx > EPSILON || dy > EPSILON || dz > EPSILON) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void PrimitiveSystem::_addDelaunayTriangles(ofMesh& mesh, const std::vector<Triangle2D>& triangles, const DelaunayMesh& delaunay)
+{
+    for (const auto& tri : triangles) {
+        mesh.addVertex(glm::vec3(tri.p1.x, tri.p1.y, 0.0f));
+        mesh.addVertex(glm::vec3(tri.p2.x, tri.p2.y, 0.0f));
+        mesh.addVertex(glm::vec3(tri.p3.x, tri.p3.y, 0.0f));
+
+        glm::vec3 normal(0.0f, 0.0f, 1.0f);
+        mesh.addNormal(normal);
+        mesh.addNormal(normal);
+        mesh.addNormal(normal);
+
+        float uScale = 1.0f / delaunay.bounds.x;
+        float vScale = 1.0f / delaunay.bounds.y;
+
+        mesh.addTexCoord(glm::vec2(
+            (tri.p1.x + delaunay.bounds.x * 0.5f) * uScale,
+            (tri.p1.y + delaunay.bounds.y * 0.5f) * vScale
+        ));
+        mesh.addTexCoord(glm::vec2(
+            (tri.p2.x + delaunay.bounds.x * 0.5f) * uScale,
+            (tri.p2.y + delaunay.bounds.y * 0.5f) * vScale
+        ));
+        mesh.addTexCoord(glm::vec2(
+            (tri.p3.x + delaunay.bounds.x * 0.5f) * uScale,
+            (tri.p3.y + delaunay.bounds.y * 0.5f) * vScale
+        ));
+
+        int baseIndex = mesh.getNumVertices() - 3;
+        mesh.addIndex(baseIndex);
+        mesh.addIndex(baseIndex + 1);
+        mesh.addIndex(baseIndex + 2);
+    }
+}
+
+void PrimitiveSystem::_addVoronoiCells(ofMesh& mesh, const std::vector<VoronoiCell>& cells, const DelaunayMesh& delaunay)
+{
+    for (const auto& cell : cells) {
+        if (cell.vertices.size() < 2) continue;
+
+        ofColor cellColor = this->_generateColorFromPosition(cell.site);
+
+        for (size_t i = 0; i < cell.vertices.size(); ++i) {
+            const glm::vec2& v1 = cell.vertices[i];
+            const glm::vec2& v2 = cell.vertices[(i + 1) % cell.vertices.size()];
+
+            mesh.addVertex(glm::vec3(v1.x, v1.y, 0.01f));
+            mesh.addVertex(glm::vec3(v2.x, v2.y, 0.01f));
+
+            mesh.addColor(cellColor);
+            mesh.addColor(cellColor);
+
+            glm::vec3 normal(0.0f, 0.0f, 1.0f);
+            mesh.addNormal(normal);
+            mesh.addNormal(normal);
+
+            mesh.addTexCoord(glm::vec2(0.5f, 0.5f));
+            mesh.addTexCoord(glm::vec2(0.5f, 0.5f));
+
+            if (delaunay.displayMode == DelaunayMesh::DisplayMode::VORONOI_ONLY) {
+                int baseIdx = mesh.getNumVertices() - 2;
+                mesh.addIndex(baseIdx);
+                mesh.addIndex(baseIdx + 1);
+            }
+        }
+    }
 }

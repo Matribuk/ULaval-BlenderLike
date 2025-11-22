@@ -180,6 +180,12 @@ bool ApplicationBootstrapper::_InitializeUI()
         *this->_systems.selectionSystem,
         *this->_managers.sceneManager
     );
+    this->_ui.curvesPanel = std::make_unique<CurvesPanel>(
+        this->_entityManager,
+        this->_componentRegistry,
+        *this->_managers.sceneManager,
+        *this->_systems.primitiveSystem
+    );
     this->_ui.viewportPanel = std::make_unique<ViewportPanel>(
         *this->_managers.viewportManager,
         *this->_managers.cameraManager,
@@ -232,9 +238,11 @@ bool ApplicationBootstrapper::_SetupCallbacks()
         *this->_ui.importPanel,
         *this->_ui.primitivesPanel,
         *this->_ui.topologyPanel,
+        *this->_ui.curvesPanel,
         *this->_ui.viewportPanel
     );
     this->_ui.primitivesPanel->setEventLogPanel(this->_ui.eventLogPanel.get());
+    this->_ui.curvesPanel->setEventLogPanel(this->_ui.eventLogPanel.get());
     this->_ui.assetsPanel->loadAssetsFromDataFolder();
     this->_managers.cursorManager->init(static_cast<GLFWwindow*>(ofGetWindowPtr()->getWindowContext()));
 

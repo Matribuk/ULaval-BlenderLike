@@ -51,6 +51,25 @@ void TopologyPanel::_drawDelaunayControls()
             selectedDelaunay->displayMode = static_cast<DelaunayMesh::DisplayMode>(currentDisplayMode);
             this->_primitiveSystem.generateMeshes();
         }
+
+        if (selectedDelaunay->mode == DelaunayMesh::GenerationMode::CUSTOM &&
+            !selectedDelaunay->controlPointEntities.empty()) {
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+
+            if (ImGui::Checkbox("Show Control Points", &selectedDelaunay->showControlPoints)) {
+                for (EntityID pointId : selectedDelaunay->controlPointEntities) {
+                    Renderable* rend = this->_registry.getComponent<Renderable>(pointId);
+                    if (rend) {
+                        rend->visible = selectedDelaunay->showControlPoints;
+                    }
+                }
+            }
+
+            ImGui::TextWrapped("Move control points to update the triangulation in real-time.");
+        }
     } else {
         ImGui::TextDisabled("No DelaunayMesh selected");
         ImGui::TextWrapped("Select a Delaunay entity to change display mode.");
@@ -76,14 +95,19 @@ void TopologyPanel::_generateFromSelectedPoints()
     }
 
     std::vector<glm::vec2> points;
+    std::vector<EntityID> pointEntities;
 
     for (EntityID entityId : selectedEntities) {
         Point* point = this->_registry.getComponent<Point>(entityId);
         Transform* transform = this->_registry.getComponent<Transform>(entityId);
 
         if (point && transform) {
-            glm::vec3 pos = transform->position;
-            points.push_back(glm::vec2(pos.x, pos.y));
+            EntityID parentId = this->_sceneManager.getParent(entityId);
+            if (parentId == INVALID_ENTITY) {
+                glm::vec3 pos = transform->position;
+                points.push_back(glm::vec2(pos.x, pos.y));
+                pointEntities.push_back(entityId);
+            }
         }
     }
 
@@ -95,6 +119,8 @@ void TopologyPanel::_generateFromSelectedPoints()
 
     DelaunayMesh delaunayMesh(points);
     delaunayMesh.mode = DelaunayMesh::GenerationMode::CUSTOM;
+    delaunayMesh.controlPointEntities = pointEntities;
+    delaunayMesh.showControlPoints = true;
 
     this->_registry.registerComponent(entity.getId(), delaunayMesh);
     this->_registry.registerComponent(entity.getId(), Transform());
@@ -105,6 +131,10 @@ void TopologyPanel::_generateFromSelectedPoints()
 
     std::string primitiveName = "Delaunay from Points " + std::to_string(entity.getId());
     this->_sceneManager.registerEntity(entity.getId(), primitiveName);
+
+    for (EntityID pointId : pointEntities) {
+        this->_sceneManager.setParent(pointId, entity.getId());
+    }
 
     this->_primitiveSystem.generateMeshes();
 }

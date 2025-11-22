@@ -44,6 +44,7 @@ class SceneManager {
 
         void setParent(EntityID child, EntityID parent);
         void removeParent(EntityID child);
+        EntityID getParent(EntityID child) const;
 
         const std::vector<EntityID>& getRootEntities() const { return _rootEntities; }
         std::string getEntityName(EntityID id) const;
