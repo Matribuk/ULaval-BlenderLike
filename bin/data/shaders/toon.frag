@@ -5,8 +5,6 @@ uniform vec3 lightPosition;
 uniform vec3 lightColor;
 uniform float lightIntensity;
 uniform vec3 ambientColor;
-uniform vec3 cameraPosition;
-uniform float shininess;
 uniform sampler2D tex0;
 uniform bool hasTexture;  // True if a real texture is bound
 
@@ -24,19 +22,20 @@ void main()
 {
     vec3 N = normalize(vNormal);
     vec3 L = normalize(lightPosition - vPosition);
-    vec3 V = normalize(cameraPosition - vPosition);
-    vec3 R = reflect(-L, N);
 
+    // Calculate diffuse lighting
     float diff = max(dot(N, L), 0.0);
-    float spec = pow(max(dot(R, V), 0.0), shininess);
+
+    // Quantize the lighting into discrete bands (cel-shading effect)
+    float toonLevels = 4.0;
+    float toonDiff = floor(diff * toonLevels) / toonLevels;
 
     // Apply material reflection components to lighting equation
     vec3 ambient = ambientColor * ambientReflection;
-    vec3 diffuse = lightColor * diff * lightIntensity * diffuseReflection;
-    vec3 specular = lightColor * spec * lightIntensity * specularReflection;
+    vec3 diffuse = lightColor * toonDiff * lightIntensity * diffuseReflection;
     vec3 emissive = emissiveReflection;
 
-    vec3 lighting = ambient + diffuse + specular + emissive;
+    vec3 lighting = ambient + diffuse + emissive;
 
     // Use texture if available, otherwise use object color
     vec3 baseColor;
@@ -46,7 +45,12 @@ void main()
         baseColor = color.rgb;
     }
 
+    // Apply toon lighting
     vec3 finalColor = lighting * baseColor;
+
+    // Add edge detection for cartoon outline effect
+    float edge = (diff > 0.1) ? 1.0 : 0.3;
+    finalColor *= edge;
 
     gl_FragColor = vec4(finalColor, 1.0);
 }

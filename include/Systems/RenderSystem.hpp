@@ -37,6 +37,8 @@ class RenderSystem {
         ofCamera _buildCameraFromComponents(Camera& camera, const Transform& transform);
         void _renderEntities();
         void _drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material *material = nullptr, bool isSelected = false);
+        void _drawMeshSinglePass(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material, ofShader* shader, bool isIllumination);
+        void _drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material);
         void _drawBoundingBox(EntityID entityId, const Transform& transform, const BoundingBoxVisualization& bboxVis);
 
         ofShader _skyCubeShader;

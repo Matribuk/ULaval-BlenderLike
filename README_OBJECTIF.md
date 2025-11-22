@@ -119,8 +119,8 @@
   - [ ] Blinn-Phong
 
 ### 7.2 Matériaux
-- [ ] Au moins 2 éléments visuels d'une scène ont une surface avec un matériau
-- [ ] Sélection parmi un ensemble d'au moins 4 matériaux différents
+- [x] Au moins 2 éléments visuels d'une scène ont une surface avec un matériau
+- [x] Sélection parmi un ensemble d'au moins 4 matériaux différents
 
 ### 7.3 Types de lumière
 - [ ] L'application permet d'avoir dans une scène au moins une instance de 4 types de lumières différents :

@@ -14,6 +14,7 @@
 #include "Core/ComponentRegistry.hpp"
 #include "Core/Entity.hpp"
 #include "Core/ProceduralTexture.hpp"
+#include "Core/MaterialPresets.hpp"
 
 #include "Systems/SelectionSystem.hpp"
 
@@ -37,9 +38,13 @@ class MaterialPanel {
         std::set<EntityID> _prevSelectedEntities;
         ProceduralTexture _proceduralTextureGenerator;
 
+        static int _proceduralTextureCounter;  // Unique ID for each procedural texture
+
         void _addMaterialComponent(EntityID entityId);
         bool _checkAllEntitiesHaveSameVisibility(const std::set<EntityID>& entities, bool& outVisibility) const;
         void _loadShaders(Renderable* primaryRenderable);
+        void _loadIlluminationShader(Renderable* primaryRenderable);
+        void _loadEffectShader(Renderable* primaryRenderable);
         void _loadFile(EntityID entityId, Renderable* primaryRenderable, std::string type);
         void _generateProceduralTexture(Renderable* primaryRenderable);
         void _renderVisibilityControl(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
@@ -47,6 +52,9 @@ class MaterialPanel {
         void _renderTextureSection(EntityID primaryEntity, Renderable* primaryRenderable);
         void _renderMeshSection(EntityID primaryEntity, Renderable* primaryRenderable);
         void _renderLightingParameters(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
+        void _renderMaterialPresets(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
+        void _renderMaterialReflectionComponents(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
+        bool _isIlluminationShader(ofShader* shader);
 
         template<typename T>
         void _syncMaterialProperty(const std::set<EntityID>& entities, T Material::* property, const T& value)

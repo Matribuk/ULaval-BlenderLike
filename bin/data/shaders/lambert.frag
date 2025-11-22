@@ -6,6 +6,13 @@ uniform vec3 lightColor;
 uniform float lightIntensity;
 uniform vec3 ambientColor;
 uniform sampler2D tex0;
+uniform bool hasTexture;  // True if a real texture is bound
+
+// Material reflection components
+uniform vec3 ambientReflection;
+uniform vec3 diffuseReflection;
+uniform vec3 specularReflection;
+uniform vec3 emissiveReflection;
 
 varying vec3 vNormal;
 varying vec3 vPosition;
@@ -18,14 +25,20 @@ void main()
 
     float diff = max(dot(N, L), 0.0);
 
-    vec3 ambient = ambientColor;
-    vec3 diffuse = lightColor * diff * lightIntensity;
+    // Apply material reflection components to lighting equation
+    vec3 ambient = ambientColor * ambientReflection;
+    vec3 diffuse = lightColor * diff * lightIntensity * diffuseReflection;
+    vec3 emissive = emissiveReflection;
 
-    vec3 lighting = ambient + diffuse;
+    vec3 lighting = ambient + diffuse + emissive;
 
-    vec4 texColor = texture2D(tex0, vTexCoord);
-    float brightness = dot(texColor.rgb, vec3(0.333));
-    vec3 baseColor = (brightness < 0.01) ? vec3(1.0) : texColor.rgb;
+    // Use texture if available, otherwise use object color
+    vec3 baseColor;
+    if (hasTexture) {
+        baseColor = texture2D(tex0, vTexCoord).rgb;
+    } else {
+        baseColor = color.rgb;
+    }
 
     vec3 finalColor = lighting * baseColor;
 

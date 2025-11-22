@@ -132,57 +132,211 @@ void RenderSystem::_renderEntities()
 
 void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material, bool isSelected)
 {
+    if (!material) {
+        ofPushMatrix();
+        ofMultMatrix(transform);
+        ofSetColor(color);
+        mesh.draw();
+        ofPopMatrix();
+        return;
+    }
+
+    // Build shader pipeline from legacy shaders
+    material->shaderPipeline.clear();
+    if (material->illuminationShader) {
+        material->shaderPipeline.push_back(material->illuminationShader);
+    }
+    if (material->shader) {
+        material->shaderPipeline.push_back(material->shader);
+    }
+
+    // If we have multiple shaders, use FBO-based composition
+    if (material->shaderPipeline.size() > 1) {
+        this->_drawMeshMultiPass(mesh, transform, color, material);
+    }
+    // Single shader or no shader
+    else if (material->illuminationShader) {
+        ofPushMatrix();
+        ofMultMatrix(transform);
+        ofSetColor(color);
+
+        this->_drawMeshSinglePass(mesh, transform, color, material, material->illuminationShader, true);
+
+        ofPopMatrix();
+    } else if (material->shader) {
+        ofPushMatrix();
+        ofMultMatrix(transform);
+        ofSetColor(color);
+
+        this->_drawMeshSinglePass(mesh, transform, color, material, material->shader, false);
+
+        ofPopMatrix();
+    } else {
+        // No shader, just texture or plain
+        ofPushMatrix();
+        ofMultMatrix(transform);
+        ofSetColor(color);
+
+        if (material->texture) {
+            material->texture->bind();
+            mesh.draw();
+            material->texture->unbind();
+        } else {
+            mesh.draw();
+        }
+
+        ofPopMatrix();
+    }
+}
+
+void RenderSystem::_drawMeshSinglePass(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material, ofShader* shader, bool isIllumination)
+{
+    if (!shader) return;
+
+    shader->begin();
+
+    shader->setUniformMatrix4f("modelMatrix", transform);
+
+    Camera* activeCam = this->_cameraManager->getActiveCamera();
+    EntityID activeCameraId = this->_cameraManager->getActiveCameraId();
+    if (activeCam) {
+        shader->setUniformMatrix4f("viewMatrix", activeCam->viewMatrix);
+        shader->setUniformMatrix4f("projMatrix", activeCam->projMatrix);
+
+        Transform* camTransform = this->_registry.getComponent<Transform>(activeCameraId);
+        if (camTransform)
+            shader->setUniform3f("cameraPosition", camTransform->position);
+    }
+
+    if (isIllumination) {
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
+        shader->setUniformMatrix3f("normalMatrix", normalMatrix);
+
+        shader->setUniform3f("lightPosition", material->lightPosition);
+        shader->setUniform3f("lightColor", material->lightColor);
+        shader->setUniform1f("lightIntensity", material->lightIntensity);
+        shader->setUniform3f("ambientColor", material->ambientColor);
+        shader->setUniform1f("shininess", material->shininess);
+
+        // Material reflection components
+        shader->setUniform3f("ambientReflection", material->ambientReflection);
+        shader->setUniform3f("diffuseReflection", material->diffuseReflection);
+        shader->setUniform3f("specularReflection", material->specularReflection);
+        shader->setUniform3f("emissiveReflection", material->emissiveReflection);
+    }
+
+    shader->setUniform4f("color", ofFloatColor(color));
+    shader->setUniform1f("uTime", ofGetElapsedTimef());
+
+    // Pass hasTexture uniform for illumination shaders
+    bool hasTexture = (material->texture != nullptr);
+    shader->setUniform1i("hasTexture", hasTexture ? 1 : 0);
+
+    if (material->texture)
+        shader->setUniformTexture("tex0", *material->texture, 0);
+    else
+        shader->setUniformTexture("tex0", this->_whiteTexture, 0);
+
+    glEnableClientState(GL_NORMAL_ARRAY);
+    mesh.draw();
+    glDisableClientState(GL_NORMAL_ARRAY);
+
+    shader->end();
+}
+
+void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material)
+{
+    // Simple additive blending approach:
+    // Render mesh multiple times with different shaders using additive blending
+
+    if (material->shaderPipeline.empty()) return;
+
+    Camera* activeCam = this->_cameraManager->getActiveCamera();
+    EntityID activeCameraId = this->_cameraManager->getActiveCameraId();
+
     ofPushMatrix();
     ofMultMatrix(transform);
     ofSetColor(color);
 
-    if (material && material->shader) {
-        material->shader->begin();
+    // First pass: clear and render with depth write
+    // Subsequent passes: use additive blending WITHOUT depth test
 
-        material->shader->setUniformMatrix4f("modelMatrix", transform);
+    // Enable blending from the start but configure it per-pass
+    glEnable(GL_BLEND);
 
-        Camera* activeCam = this->_cameraManager->getActiveCamera();
-        EntityID activeCameraId = this->_cameraManager->getActiveCameraId();
+    for (size_t i = 0; i < material->shaderPipeline.size(); ++i) {
+        ofShader* shader = material->shaderPipeline[i];
+        bool isIllumination = (shader == material->illuminationShader);
+
+        // Configure blending and depth mode for each pass
+        if (i == 0) {
+            // First pass: replace mode (source replaces destination)
+            glBlendFunc(GL_ONE, GL_ZERO);
+            glEnable(GL_DEPTH_TEST);   // Enable depth test
+            glDepthMask(GL_TRUE);      // Write to depth buffer
+        } else {
+            // Subsequent passes: true additive blending
+            glBlendFunc(GL_ONE, GL_ONE);
+            glDisable(GL_DEPTH_TEST);  // Disable depth test completely to avoid z-fighting
+            glDepthMask(GL_FALSE);     // Don't write to depth buffer
+        }
+
+        shader->begin();
+
+        shader->setUniformMatrix4f("modelMatrix", transform);
+
         if (activeCam) {
-            material->shader->setUniformMatrix4f("viewMatrix", activeCam->viewMatrix);
-            material->shader->setUniformMatrix4f("projMatrix", activeCam->projMatrix);
+            shader->setUniformMatrix4f("viewMatrix", activeCam->viewMatrix);
+            shader->setUniformMatrix4f("projMatrix", activeCam->projMatrix);
 
             Transform* camTransform = this->_registry.getComponent<Transform>(activeCameraId);
             if (camTransform)
-                material->shader->setUniform3f("cameraPosition", camTransform->position);
+                shader->setUniform3f("cameraPosition", camTransform->position);
         }
 
-        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
-        material->shader->setUniformMatrix3f("normalMatrix", normalMatrix);
+        if (isIllumination) {
+            glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
+            shader->setUniformMatrix3f("normalMatrix", normalMatrix);
 
-        material->shader->setUniform4f("color", ofFloatColor(color));
-        material->shader->setUniform1f("uTime", ofGetElapsedTimef());
+            shader->setUniform3f("lightPosition", material->lightPosition);
+            shader->setUniform3f("lightColor", material->lightColor);
+            shader->setUniform1f("lightIntensity", material->lightIntensity);
+            shader->setUniform3f("ambientColor", material->ambientColor);
+            shader->setUniform1f("shininess", material->shininess);
 
-        material->shader->setUniform3f("lightPosition", material->lightPosition);
-        material->shader->setUniform3f("lightColor", material->lightColor);
-        material->shader->setUniform1f("lightIntensity", material->lightIntensity);
-        material->shader->setUniform3f("ambientColor", material->ambientColor);
-        material->shader->setUniform1f("shininess", material->shininess);
+            shader->setUniform3f("ambientReflection", material->ambientReflection);
+            shader->setUniform3f("diffuseReflection", material->diffuseReflection);
+            shader->setUniform3f("specularReflection", material->specularReflection);
+            shader->setUniform3f("emissiveReflection", material->emissiveReflection);
+        }
+
+        shader->setUniform4f("color", ofFloatColor(color));
+        shader->setUniform1f("uTime", ofGetElapsedTimef());
+
+        // Pass hasTexture uniform for illumination shaders
+        bool hasTexture = (material->texture != nullptr);
+        shader->setUniform1i("hasTexture", hasTexture ? 1 : 0);
 
         if (material->texture)
-            material->shader->setUniformTexture("tex0", *material->texture, 0);
+            shader->setUniformTexture("tex0", *material->texture, 0);
         else
-            material->shader->setUniformTexture("tex0", this->_whiteTexture, 0);
+            shader->setUniformTexture("tex0", this->_whiteTexture, 0);
 
         glEnableClientState(GL_NORMAL_ARRAY);
         mesh.draw();
         glDisableClientState(GL_NORMAL_ARRAY);
 
-        material->shader->end();
-    } else if (material && material->texture) {
-        material->texture->bind();
-        mesh.draw();
-        material->texture->unbind();
-    } else
-        mesh.draw();
+        shader->end();
+    }
+
+    // Restore GL state
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
 
     ofPopMatrix();
 }
+
 
 void RenderSystem::_initSkybox()
 {
