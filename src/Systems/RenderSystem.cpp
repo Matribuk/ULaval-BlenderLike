@@ -141,20 +141,15 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
         return;
     }
 
-    // Build shader pipeline from legacy shaders
     material->shaderPipeline.clear();
-    if (material->illuminationShader) {
+    if (material->illuminationShader)
         material->shaderPipeline.push_back(material->illuminationShader);
-    }
-    if (material->shader) {
+    if (material->shader)
         material->shaderPipeline.push_back(material->shader);
-    }
 
-    // If we have multiple shaders, use FBO-based composition
-    if (material->shaderPipeline.size() > 1) {
+    if (material->shaderPipeline.size() > 1)
         this->_drawMeshMultiPass(mesh, transform, color, material);
-    }
-    // Single shader or no shader
+
     else if (material->illuminationShader) {
         ofPushMatrix();
         ofMultMatrix(transform);
@@ -172,7 +167,6 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
 
         ofPopMatrix();
     } else {
-        // No shader, just texture or plain
         ofPushMatrix();
         ofMultMatrix(transform);
         ofSetColor(color);
@@ -181,9 +175,8 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
             material->texture->bind();
             mesh.draw();
             material->texture->unbind();
-        } else {
+        } else
             mesh.draw();
-        }
 
         ofPopMatrix();
     }
@@ -218,7 +211,6 @@ void RenderSystem::_drawMeshSinglePass(const ofMesh& mesh, const glm::mat4& tran
         shader->setUniform3f("ambientColor", material->ambientColor);
         shader->setUniform1f("shininess", material->shininess);
 
-        // Material reflection components
         shader->setUniform3f("ambientReflection", material->ambientReflection);
         shader->setUniform3f("diffuseReflection", material->diffuseReflection);
         shader->setUniform3f("specularReflection", material->specularReflection);
@@ -228,7 +220,6 @@ void RenderSystem::_drawMeshSinglePass(const ofMesh& mesh, const glm::mat4& tran
     shader->setUniform4f("color", ofFloatColor(color));
     shader->setUniform1f("uTime", ofGetElapsedTimef());
 
-    // Pass hasTexture uniform for illumination shaders
     bool hasTexture = (material->texture != nullptr);
     shader->setUniform1i("hasTexture", hasTexture ? 1 : 0);
 
@@ -246,9 +237,6 @@ void RenderSystem::_drawMeshSinglePass(const ofMesh& mesh, const glm::mat4& tran
 
 void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material)
 {
-    // Simple additive blending approach:
-    // Render mesh multiple times with different shaders using additive blending
-
     if (material->shaderPipeline.empty()) return;
 
     Camera* activeCam = this->_cameraManager->getActiveCamera();
@@ -258,27 +246,20 @@ void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& trans
     ofMultMatrix(transform);
     ofSetColor(color);
 
-    // First pass: clear and render with depth write
-    // Subsequent passes: use additive blending WITHOUT depth test
-
-    // Enable blending from the start but configure it per-pass
     glEnable(GL_BLEND);
 
     for (size_t i = 0; i < material->shaderPipeline.size(); ++i) {
         ofShader* shader = material->shaderPipeline[i];
         bool isIllumination = (shader == material->illuminationShader);
 
-        // Configure blending and depth mode for each pass
         if (i == 0) {
-            // First pass: replace mode (source replaces destination)
             glBlendFunc(GL_ONE, GL_ZERO);
-            glEnable(GL_DEPTH_TEST);   // Enable depth test
-            glDepthMask(GL_TRUE);      // Write to depth buffer
+            glEnable(GL_DEPTH_TEST);
+            glDepthMask(GL_TRUE);
         } else {
-            // Subsequent passes: true additive blending
             glBlendFunc(GL_ONE, GL_ONE);
-            glDisable(GL_DEPTH_TEST);  // Disable depth test completely to avoid z-fighting
-            glDepthMask(GL_FALSE);     // Don't write to depth buffer
+            glDisable(GL_DEPTH_TEST);
+            glDepthMask(GL_FALSE);
         }
 
         shader->begin();
@@ -313,7 +294,6 @@ void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& trans
         shader->setUniform4f("color", ofFloatColor(color));
         shader->setUniform1f("uTime", ofGetElapsedTimef());
 
-        // Pass hasTexture uniform for illumination shaders
         bool hasTexture = (material->texture != nullptr);
         shader->setUniform1i("hasTexture", hasTexture ? 1 : 0);
 
@@ -329,7 +309,6 @@ void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& trans
         shader->end();
     }
 
-    // Restore GL state
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);

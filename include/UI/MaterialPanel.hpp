@@ -38,8 +38,7 @@ class MaterialPanel {
         std::set<EntityID> _prevSelectedEntities;
         ProceduralTexture _proceduralTextureGenerator;
 
-        static int _proceduralTextureCounter;  // Unique ID for each procedural texture
-
+        int _getNextProceduralTextureId();
         void _addMaterialComponent(EntityID entityId);
         bool _checkAllEntitiesHaveSameVisibility(const std::set<EntityID>& entities, bool& outVisibility) const;
         void _loadShaders(Renderable* primaryRenderable);

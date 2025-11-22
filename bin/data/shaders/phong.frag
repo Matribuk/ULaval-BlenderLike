@@ -8,9 +8,7 @@ uniform vec3 ambientColor;
 uniform vec3 cameraPosition;
 uniform float shininess;
 uniform sampler2D tex0;
-uniform bool hasTexture;  // True if a real texture is bound
-
-// Material reflection components
+uniform bool hasTexture;
 uniform vec3 ambientReflection;
 uniform vec3 diffuseReflection;
 uniform vec3 specularReflection;
@@ -30,15 +28,6 @@ void main()
     float diff = max(dot(N, L), 0.0);
     float spec = pow(max(dot(R, V), 0.0), shininess);
 
-    // Apply material reflection components to lighting equation
-    vec3 ambient = ambientColor * ambientReflection;
-    vec3 diffuse = lightColor * diff * lightIntensity * diffuseReflection;
-    vec3 specular = lightColor * spec * lightIntensity * specularReflection;
-    vec3 emissive = emissiveReflection;
-
-    vec3 lighting = ambient + diffuse + specular + emissive;
-
-    // Use texture if available, otherwise use object color
     vec3 baseColor;
     if (hasTexture) {
         baseColor = texture2D(tex0, vTexCoord).rgb;
@@ -46,7 +35,12 @@ void main()
         baseColor = color.rgb;
     }
 
-    vec3 finalColor = lighting * baseColor;
+    vec3 ambient = ambientColor * ambientReflection * baseColor;
+    vec3 diffuse = lightColor * diff * lightIntensity * diffuseReflection * baseColor;
+    vec3 specular = lightColor * spec * lightIntensity * specularReflection;
+    vec3 emissive = emissiveReflection;
+
+    vec3 finalColor = ambient + diffuse + specular + emissive;
 
     gl_FragColor = vec4(finalColor, 1.0);
 }

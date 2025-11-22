@@ -126,8 +126,10 @@
 - [ ] L'application permet d'avoir dans une scène au moins une instance de 4 types de lumières différents :
   - [ ] Ambiante
   - [ ] Directionnelle
-  - [ ] Ponctuelle
+  - [ ] Ponctuelle (en cours - via matériaux émissifs)
   - [ ] Projecteur (spot)
+- [x] Infrastructure prête : booléen `isLightSource` dans Material
+- [ ] Système de multi-lumières à implémenter (voir NEXT_STEPS_LIGHTING.md)
 
 ---
 

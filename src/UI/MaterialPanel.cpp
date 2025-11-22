@@ -1,10 +1,13 @@
 #include "UI/MaterialPanel.hpp"
 
-// Initialize static counter for unique procedural texture names
-int MaterialPanel::_proceduralTextureCounter = 0;
-
 MaterialPanel::MaterialPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem, ResourceManager& resourceManager)
     : _componentRegistry(componentRegistry), _selectionSystem(selectionSystem), _resourceManager(resourceManager){}
+
+int MaterialPanel::_getNextProceduralTextureId()
+{
+    static int counter = 0;
+    return counter++;
+}
 
 bool MaterialPanel::_checkAllEntitiesHaveSameVisibility(const std::set<EntityID>& entities, bool& outVisibility) const
 {
@@ -73,31 +76,30 @@ void MaterialPanel::render()
         ImGui::Text("(%zu entities selected)", selectedEntities.size());
 
     if (primaryRenderable->material) {
-        ImGui::Text("Material:");
+        if (ImGui::CollapsingHeader("Shaders", ImGuiTreeNodeFlags_DefaultOpen)) {
+            this->_renderShaderSection(primaryEntity, primaryRenderable);
+        }
 
-        this->_renderShaderSection(primaryEntity, primaryRenderable);
-
-        // Only show material presets and reflection components if an illumination shader is active
         bool hasIlluminationShader = (primaryRenderable->material->illuminationShader != nullptr);
 
         if (hasIlluminationShader) {
-            ImGui::Separator();
-            this->_renderMaterialPresets(selectedEntities, primaryRenderable);
-
-            ImGui::Separator();
-            this->_renderMaterialReflectionComponents(selectedEntities, primaryRenderable);
-        } else {
-            ImGui::Separator();
-            ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.4f, 1.0f), "Note: Materials require an illumination shader");
-            ImGui::TextWrapped("Load an illumination shader (lambert, phong, or toon) to use materials.");
+            if (ImGui::CollapsingHeader("Material Properties", ImGuiTreeNodeFlags_DefaultOpen)) {
+                this->_renderMaterialPresets(selectedEntities, primaryRenderable);
+                ImGui::Separator();
+                this->_renderMaterialReflectionComponents(selectedEntities, primaryRenderable);
+            }
         }
 
-        ImGui::Separator();
-        this->_renderTextureSection(primaryEntity, primaryRenderable);
-        this->_renderMeshSection(primaryEntity, primaryRenderable);
+        if (ImGui::CollapsingHeader("Texture", ImGuiTreeNodeFlags_DefaultOpen)) {
+            this->_renderTextureSection(primaryEntity, primaryRenderable);
+            this->_renderMeshSection(primaryEntity, primaryRenderable);
+        }
 
-        ImGui::Separator();
-        this->_renderLightingParameters(selectedEntities, primaryRenderable);
+        if (hasIlluminationShader) {
+            if (ImGui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen)) {
+                this->_renderLightingParameters(selectedEntities, primaryRenderable);
+            }
+        }
     }
 }
 
@@ -128,25 +130,21 @@ void MaterialPanel::_loadShaders(Renderable* primaryRenderable)
         std::sort(names.begin(), names.end());
         names.erase(std::unique(names.begin(), names.end()), names.end());
 
-        // Categorize shaders
         std::vector<std::string> illuminationShaders;
         std::vector<std::string> effectShaders;
 
         for (const std::string& n : names) {
             if (n == "skycube") continue;
 
-            // Illumination shaders support materials
-            if (n == "lambert" || n == "phong" || n == "toon") {
+            if (n == "lambert" || n == "phong")
                 illuminationShaders.push_back(n);
-            } else {
+            else
                 effectShaders.push_back(n);
-            }
         }
 
         if (names.empty()) {
             ImGui::TextDisabled("No shaders found in data/shaders");
         } else {
-            // Display illumination shaders
             if (!illuminationShaders.empty()) {
                 ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "Illumination Shaders (support materials):");
                 ImGui::Separator();
@@ -163,7 +161,6 @@ void MaterialPanel::_loadShaders(Renderable* primaryRenderable)
                 }
             }
 
-            // Display effect shaders
             if (!effectShaders.empty()) {
                 if (!illuminationShaders.empty()) {
                     ImGui::Spacing();
@@ -201,8 +198,7 @@ void MaterialPanel::_loadIlluminationShader(Renderable* primaryRenderable)
                 std::string ext = entry.path().extension().string();
                 if (ext == ".vert" || ext == ".frag") {
                     std::string name = entry.path().stem().string();
-                    // Only illumination shaders
-                    if (name == "lambert" || name == "phong" || name == "toon") {
+                    if (name == "lambert" || name == "phong") {
                         illuminationShaders.push_back(name);
                     }
                 }
@@ -246,10 +242,8 @@ void MaterialPanel::_loadEffectShader(Renderable* primaryRenderable)
                 std::string ext = entry.path().extension().string();
                 if (ext == ".vert" || ext == ".frag") {
                     std::string name = entry.path().stem().string();
-                    // Only effect shaders (not illumination, not skycube)
-                    if (name != "lambert" && name != "phong" && name != "toon" && name != "skycube") {
+                    if (name != "lambert" && name != "phong" && name != "skycube")
                         effectShaders.push_back(name);
-                    }
                 }
             }
         }
@@ -360,9 +354,8 @@ void MaterialPanel::_generateProceduralTexture(Renderable* primaryRenderable)
 
             ofTexture generatedTex = this->_proceduralTextureGenerator.generate(type, resolution, resolution, col1, col2);
 
-            // Generate unique name for each procedural texture to avoid sharing between entities
             std::string texName = "procedural_" + std::string(types[selectedType]) + "_" +
-                                  std::to_string(resolution) + "_" + std::to_string(_proceduralTextureCounter++);
+                                  std::to_string(resolution) + "_" + std::to_string(this->_getNextProceduralTextureId());
             ofTexture& storedTex = this->_resourceManager.storeTexture(texName, generatedTex);
             primaryRenderable->material->texture = &storedTex;
 
@@ -399,7 +392,6 @@ void MaterialPanel::_renderShaderSection(EntityID primaryEntity, Renderable* pri
 {
     ImGui::Text("Shaders:");
 
-    // Illumination Shader (used for materials)
     if (primaryRenderable->material->illuminationShader) {
         std::string shaderPath = this->_resourceManager.getShaderPath(*primaryRenderable->material->illuminationShader);
         ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), " - Illumination: %s", shaderPath.c_str());
@@ -416,7 +408,6 @@ void MaterialPanel::_renderShaderSection(EntityID primaryEntity, Renderable* pri
 
     this->_loadIlluminationShader(primaryRenderable);
 
-    // Effect Shader
     if (primaryRenderable->material->shader) {
         std::string shaderPath = this->_resourceManager.getShaderPath(*primaryRenderable->material->shader);
         ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.4f, 1.0f), " - Effect: %s", shaderPath.c_str());
@@ -504,22 +495,18 @@ void MaterialPanel::_renderMaterialPresets(const std::set<EntityID>& selectedEnt
 
     std::vector<std::string> presetNames = MaterialPresets::getPresetNames();
 
-    // Display buttons for quick material application
     int buttonsPerRow = 3;
     int buttonCount = 0;
 
     for (const std::string& name : presetNames) {
-        if (buttonCount > 0 && buttonCount % buttonsPerRow != 0) {
+        if (buttonCount > 0 && buttonCount % buttonsPerRow != 0)
             ImGui::SameLine();
-        }
 
         if (ImGui::Button(name.c_str(), ImVec2(80, 0))) {
-            // Apply preset to all selected entities
             for (EntityID id : selectedEntities) {
                 Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
-                if (renderable && renderable->material) {
+                if (renderable && renderable->material)
                     MaterialPresets::applyPreset(renderable->material, name);
-                }
             }
         }
 
@@ -548,32 +535,60 @@ void MaterialPanel::_renderMaterialPresets(const std::set<EntityID>& selectedEnt
 void MaterialPanel::_renderMaterialReflectionComponents(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable)
 {
     ImGui::Text("Material Reflection Components:");
+    ImGui::TextWrapped("Coefficients de reflexion (0.0 = aucune reflexion, 1.0 = reflexion maximale)");
+    ImGui::Spacing();
 
-    if (ImGui::ColorEdit3("Ambient Reflection", &primaryRenderable->material->ambientReflection.x))
+    float ambientCoef = primaryRenderable->material->ambientReflection.x;
+    if (ImGui::SliderFloat("Ambient Reflection", &ambientCoef, 0.0f, 1.0f)) {
+        primaryRenderable->material->ambientReflection = glm::vec3(ambientCoef);
         this->_syncMaterialProperty(selectedEntities, &Material::ambientReflection, primaryRenderable->material->ambientReflection);
+    }
 
-    if (ImGui::ColorEdit3("Diffuse Reflection", &primaryRenderable->material->diffuseReflection.x))
+    float diffuseCoef = primaryRenderable->material->diffuseReflection.x;
+    if (ImGui::SliderFloat("Diffuse Reflection", &diffuseCoef, 0.0f, 1.0f)) {
+        primaryRenderable->material->diffuseReflection = glm::vec3(diffuseCoef);
         this->_syncMaterialProperty(selectedEntities, &Material::diffuseReflection, primaryRenderable->material->diffuseReflection);
+    }
 
-    if (ImGui::ColorEdit3("Specular Reflection", &primaryRenderable->material->specularReflection.x))
+    float specularCoef = primaryRenderable->material->specularReflection.x;
+    if (ImGui::SliderFloat("Specular Reflection", &specularCoef, 0.0f, 1.0f)) {
+        primaryRenderable->material->specularReflection = glm::vec3(specularCoef);
         this->_syncMaterialProperty(selectedEntities, &Material::specularReflection, primaryRenderable->material->specularReflection);
+    }
 
-    if (ImGui::ColorEdit3("Emissive Reflection", &primaryRenderable->material->emissiveReflection.x))
+    float emissiveCoef = primaryRenderable->material->emissiveReflection.x;
+    if (ImGui::SliderFloat("Emissive Reflection", &emissiveCoef, 0.0f, 1.0f)) {
+        primaryRenderable->material->emissiveReflection = glm::vec3(emissiveCoef);
         this->_syncMaterialProperty(selectedEntities, &Material::emissiveReflection, primaryRenderable->material->emissiveReflection);
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Text("Light Emission (7.3):");
+
+    bool isLightSource = primaryRenderable->material->isLightSource;
+    if (ImGui::Checkbox("Projette de la lumiere", &isLightSource)) {
+        primaryRenderable->material->isLightSource = isLightSource;
+        for (EntityID id : selectedEntities) {
+            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+            if (renderable && renderable->material) {
+                renderable->material->isLightSource = isLightSource;
+            }
+        }
+    }
+
+    if (isLightSource && emissiveCoef > 0.0f) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "(Source de lumiere active)");
+    }
 }
 
 bool MaterialPanel::_isIlluminationShader(ofShader* shader)
 {
     if (!shader) return false;
 
-    // Get the shader path from ResourceManager
     std::string shaderPath = this->_resourceManager.getShaderPath(*shader);
 
-    // Check if the shader is an illumination shader
-    // Illumination shaders: lambert, phong, toon
     return (shaderPath.find("lambert") != std::string::npos ||
-            shaderPath.find("phong") != std::string::npos ||
-            shaderPath.find("toon") != std::string::npos);
+            shaderPath.find("phong") != std::string::npos);
 }
-
-// Note: This function is now used to check illuminationShader specifically
