@@ -3,19 +3,12 @@
 uniform vec4 color;
 uniform float uTime;
 uniform sampler2D tex0;
-<<<<<<< HEAD
 uniform bool hasTexture;
-=======
-uniform bool hasTexture;  // True if a real texture is bound
->>>>>>> 1d070a7 ([ADD] multi prossece shader)
 
 varying vec2 vTexCoord;
 varying vec3 vPosition;
 
-<<<<<<< HEAD
-=======
 // Convert RGB to HSL
->>>>>>> 1d070a7 ([ADD] multi prossece shader)
 vec3 rgb2hsl(vec3 rgb) {
     float maxC = max(max(rgb.r, rgb.g), rgb.b);
     float minC = min(min(rgb.r, rgb.g), rgb.b);
@@ -35,6 +28,7 @@ vec3 rgb2hsl(vec3 rgb) {
         } else {
             h = 4.0 + (rgb.r - rgb.g) / delta;
         }
+
         h /= 6.0;
         if (h < 0.0) h += 1.0;
     }
@@ -42,10 +36,7 @@ vec3 rgb2hsl(vec3 rgb) {
     return vec3(h, s, l);
 }
 
-<<<<<<< HEAD
-=======
 // Convert HSL to RGB
->>>>>>> 1d070a7 ([ADD] multi prossece shader)
 vec3 hsl2rgb(vec3 hsl) {
     float h = hsl.x;
     float s = hsl.y;
@@ -74,24 +65,17 @@ vec3 hsl2rgb(vec3 hsl) {
     return rgb + m;
 }
 
-void main()
-{
-<<<<<<< HEAD
+void main() {
+    // Animated rainbow hue depending on time + vertical position
     float rainbowHue = fract(uTime * 0.1 + vPosition.y * 0.1);
     vec3 rainbowColor = hsl2rgb(vec3(rainbowHue, 0.8, 0.5));
-=======
-    // Generate rainbow hue based on time and vertex position
-    float rainbowHue = fract(uTime * 0.1 + vPosition.y * 0.1);
 
-    // Create rainbow color with full saturation and medium lightness
-    vec3 rainbowColor = hsl2rgb(vec3(rainbowHue, 0.8, 0.5));
-
-    // If texture is present, modulate rainbow with texture
->>>>>>> 1d070a7 ([ADD] multi prossece shader)
     vec3 finalColor = rainbowColor;
+
+    // Combine with texture if present
     if (hasTexture) {
         vec3 texColor = texture2D(tex0, vTexCoord).rgb;
-        finalColor = rainbowColor * texColor;
+        finalColor *= texColor;
     }
 
     gl_FragColor = vec4(finalColor, 1.0);

@@ -7,14 +7,10 @@ uniform float lightIntensity;
 uniform vec3 ambientColor;
 uniform vec3 cameraPosition;
 uniform float shininess;
-uniform sampler2D tex0;
-<<<<<<< HEAD
-uniform bool hasTexture;
-=======
-uniform bool hasTexture;  // True if a real texture is bound
 
-// Material reflection components
->>>>>>> 1d070a7 ([ADD] multi prossece shader)
+uniform sampler2D tex0;
+uniform bool hasTexture;
+
 uniform vec3 ambientReflection;
 uniform vec3 diffuseReflection;
 uniform vec3 specularReflection;
@@ -26,47 +22,28 @@ varying vec2 vTexCoord;
 
 void main()
 {
+    // Normalized vectors
     vec3 N = normalize(vNormal);
     vec3 L = normalize(lightPosition - vPosition);
     vec3 V = normalize(cameraPosition - vPosition);
     vec3 R = reflect(-L, N);
 
+    // Lambert diffuse
     float diff = max(dot(N, L), 0.0);
+
+    // Phong specular
     float spec = pow(max(dot(R, V), 0.0), shininess);
 
-<<<<<<< HEAD
-    vec3 baseColor;
-    if (hasTexture) {
-        baseColor = texture2D(tex0, vTexCoord).rgb;
-    } else {
-        baseColor = color.rgb;
-    }
+    // Fetch texture or fallback to object color
+    vec3 baseColor = hasTexture ? texture2D(tex0, vTexCoord).rgb : color.rgb;
 
-    vec3 ambient = ambientColor * ambientReflection * baseColor;
-    vec3 diffuse = lightColor * diff * lightIntensity * diffuseReflection * baseColor;
-    vec3 specular = lightColor * spec * lightIntensity * specularReflection;
+    // Lighting components (physically consistent)
+    vec3 ambient  = ambientColor * ambientReflection * baseColor;
+    vec3 diffuse  = lightColor * diff * lightIntensity * diffuseReflection * baseColor;
+    vec3 specular = lightColor * spec * lightIntensity * specularReflection; // specular not tinted by baseColor
     vec3 emissive = emissiveReflection;
 
     vec3 finalColor = ambient + diffuse + specular + emissive;
-=======
-    // Apply material reflection components to lighting equation
-    vec3 ambient = ambientColor * ambientReflection;
-    vec3 diffuse = lightColor * diff * lightIntensity * diffuseReflection;
-    vec3 specular = lightColor * spec * lightIntensity * specularReflection;
-    vec3 emissive = emissiveReflection;
-
-    vec3 lighting = ambient + diffuse + specular + emissive;
-
-    // Use texture if available, otherwise use object color
-    vec3 baseColor;
-    if (hasTexture) {
-        baseColor = texture2D(tex0, vTexCoord).rgb;
-    } else {
-        baseColor = color.rgb;
-    }
-
-    vec3 finalColor = lighting * baseColor;
->>>>>>> 1d070a7 ([ADD] multi prossece shader)
 
     gl_FragColor = vec4(finalColor, 1.0);
 }
