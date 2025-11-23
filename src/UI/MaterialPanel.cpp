@@ -1,7 +1,7 @@
 #include "UI/MaterialPanel.hpp"
 
-MaterialPanel::MaterialPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem, ResourceManager& resourceManager)
-    : _componentRegistry(componentRegistry), _selectionSystem(selectionSystem), _resourceManager(resourceManager){}
+MaterialPanel::MaterialPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem, ResourceManager& resourceManager, PrimitiveSystem& primitiveSystem)
+    : _componentRegistry(componentRegistry), _selectionSystem(selectionSystem), _resourceManager(resourceManager), _primitiveSystem(primitiveSystem){}
 
 int MaterialPanel::_getNextProceduralTextureId()
 {
@@ -32,7 +32,6 @@ bool MaterialPanel::_checkAllEntitiesHaveSameVisibility(const std::set<EntityID>
     outVisibility = referenceVisibility;
     return true;
 }
-
 void MaterialPanel::render()
 {
     const std::set<EntityID>& selectedEntities = this->_selectionSystem.getSelectedEntities();
@@ -76,12 +75,14 @@ void MaterialPanel::render()
         ImGui::Text("(%zu entities selected)", selectedEntities.size());
 
     if (primaryRenderable->material) {
+        // Section Shaders
         if (ImGui::CollapsingHeader("Shaders", ImGuiTreeNodeFlags_DefaultOpen)) {
-            this->_renderShaderSection(primaryEntity, primaryRenderable);
+            this->_renderShaderSection(primaryEntity, selectedEntities, primaryRenderable);
         }
 
         bool hasIlluminationShader = (primaryRenderable->material->illuminationShader != nullptr);
 
+        // Section Material Properties (uniquement si illumination shader)
         if (hasIlluminationShader) {
             if (ImGui::CollapsingHeader("Material Properties", ImGuiTreeNodeFlags_DefaultOpen)) {
                 this->_renderMaterialPresets(selectedEntities, primaryRenderable);
@@ -90,16 +91,21 @@ void MaterialPanel::render()
             }
         }
 
-        if (ImGui::CollapsingHeader("Texture", ImGuiTreeNodeFlags_DefaultOpen)) {
+        // Section Texture et Mesh
+        if (ImGui::CollapsingHeader("Texture & Mesh", ImGuiTreeNodeFlags_DefaultOpen)) {
             this->_renderTextureSection(primaryEntity, primaryRenderable);
             this->_renderMeshSection(primaryEntity, primaryRenderable);
         }
 
+        // Section Lighting (uniquement si illumination shader)
         if (hasIlluminationShader) {
             if (ImGui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen)) {
                 this->_renderLightingParameters(selectedEntities, primaryRenderable);
             }
         }
+
+        // Section Relief Mapping
+        this->_renderReliefMappingSection(primaryEntity, selectedEntities, primaryRenderable);
     }
 }
 
@@ -110,7 +116,7 @@ void MaterialPanel::_addMaterialComponent(EntityID entityId)
     this->_componentRegistry.registerComponent<Renderable>(entityId, Renderable(ofMesh(), ofColor::white));
 }
 
-void MaterialPanel::_loadShaders(Renderable* primaryRenderable)
+void MaterialPanel::_loadShaders(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable)
 {
     if (ImGui::Button("Load Shaders"))
         ImGui::OpenPopup("LoadShadersPopup");
@@ -230,7 +236,7 @@ void MaterialPanel::_loadIlluminationShader(Renderable* primaryRenderable)
     }
 }
 
-void MaterialPanel::_loadEffectShader(Renderable* primaryRenderable)
+void MaterialPanel::_loadEffectShader(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable)
 {
     if (ImGui::BeginPopup("LoadEffectShaderPopup")) {
         std::filesystem::path shaderDir = std::filesystem::path(ofToDataPath("shaders"));
@@ -262,7 +268,13 @@ void MaterialPanel::_loadEffectShader(Renderable* primaryRenderable)
                     std::filesystem::path frag = shaderDir / (n + ".frag");
                     if (std::filesystem::exists(vert) && std::filesystem::exists(frag)) {
                         ofShader& loaded = this->_resourceManager.loadShader(vert.string(), frag.string());
-                        primaryRenderable->material->shader = &loaded;
+
+                        for (EntityID id : selectedEntities) {
+                            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+                            if (renderable && renderable->material) {
+                                renderable->material->shader = &loaded;
+                            }
+                        }
                     }
                     ImGui::CloseCurrentPopup();
                 }
@@ -388,10 +400,11 @@ void MaterialPanel::_renderVisibilityControl(const std::set<EntityID>& selectedE
     }
 }
 
-void MaterialPanel::_renderShaderSection(EntityID primaryEntity, Renderable* primaryRenderable)
+void MaterialPanel::_renderShaderSection(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable)
 {
     ImGui::Text("Shaders:");
 
+    // Illumination Shader
     if (primaryRenderable->material->illuminationShader) {
         std::string shaderPath = this->_resourceManager.getShaderPath(*primaryRenderable->material->illuminationShader);
         ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), " - Illumination: %s", shaderPath.c_str());
@@ -408,21 +421,28 @@ void MaterialPanel::_renderShaderSection(EntityID primaryEntity, Renderable* pri
 
     this->_loadIlluminationShader(primaryRenderable);
 
+    // Effect Shader
     if (primaryRenderable->material->shader) {
         std::string shaderPath = this->_resourceManager.getShaderPath(*primaryRenderable->material->shader);
         ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.4f, 1.0f), " - Effect: %s", shaderPath.c_str());
         if (ImGui::Button("Load Effect Shader"))
             ImGui::OpenPopup("LoadEffectShaderPopup");
         ImGui::SameLine();
-        if (ImGui::Button("Clear##EffectShader"))
-            primaryRenderable->material->shader = nullptr;
+        if (ImGui::Button("Clear##EffectShader")) {
+            for (EntityID id : selectedEntities) {
+                Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+                if (renderable && renderable->material) {
+                    renderable->material->shader = nullptr;
+                }
+            }
+        }
     } else {
         ImGui::Text(" - Effect Shader: None");
         if (ImGui::Button("Load Effect Shader"))
             ImGui::OpenPopup("LoadEffectShaderPopup");
     }
 
-    this->_loadEffectShader(primaryRenderable);
+    this->_loadEffectShader(selectedEntities, primaryRenderable);
 }
 
 void MaterialPanel::_renderTextureSection(EntityID primaryEntity, Renderable* primaryRenderable)
@@ -600,4 +620,185 @@ bool MaterialPanel::_isIlluminationShader(ofShader* shader)
 
     return (shaderPath.find("lambert") != std::string::npos ||
             shaderPath.find("phong") != std::string::npos);
+}
+void MaterialPanel::_renderReliefMappingSection(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable)
+{
+    if (ImGui::CollapsingHeader("Relief Mapping", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+        ImGui::Text("Normal Mapping:");
+        ImGui::Indent();
+
+        if (primaryRenderable->material->normalMap) {
+            ofTexture* normalTex = primaryRenderable->material->normalMap;
+            std::string normalTexName = this->_resourceManager.getTexturePath(*normalTex);
+            ImGui::Text(" - Normal Map: %s", normalTexName.c_str());
+
+            ImVec2 thumbSize = ImVec2(64, 64);
+            GLuint texID = normalTex->getTextureData().textureID;
+            ImGui::Image((ImTextureID)(uintptr_t)texID, thumbSize, ImVec2(0,1), ImVec2(1,0));
+
+            if (ImGui::Button("Clear Normal Map")) {
+                for (EntityID id : selectedEntities) {
+                    Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+                    if (renderable && renderable->material) {
+                        renderable->material->normalMap = nullptr;
+                    }
+                }
+            }
+        } else {
+            ImGui::Text(" - Normal Map: None");
+        }
+
+        if (ImGui::Button("Load Normal Map")) {
+            ImGui::OpenPopup("LoadNormalMapPopup");
+        }
+
+        if (ImGui::BeginPopup("LoadNormalMapPopup")) {
+            std::filesystem::path normalMapDir = std::filesystem::path(ofToDataPath("normalmaps"));
+            std::vector<std::string> normalMapFiles;
+
+            if (std::filesystem::exists(normalMapDir) && std::filesystem::is_directory(normalMapDir)) {
+                for (const auto& entry : std::filesystem::directory_iterator(normalMapDir)) {
+                    if (entry.is_regular_file()) {
+                        std::string ext = entry.path().extension().string();
+                        if (ext == ".png" || ext == ".jpg" || ext == ".jpeg") {
+                            normalMapFiles.push_back(entry.path().filename().string());
+                        }
+                    }
+                }
+            }
+
+            if (normalMapFiles.empty()) {
+                ImGui::TextDisabled("No normal maps found in data/normalmaps");
+            } else {
+                for (const std::string& filename : normalMapFiles) {
+                    if (ImGui::Selectable(filename.c_str())) {
+                        std::string path = (normalMapDir / filename).string();
+                        ofTexture& loadedNormalMap = this->_resourceManager.loadTexture(path);
+
+                        for (EntityID id : selectedEntities) {
+                            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+                            if (renderable && renderable->material) {
+                                renderable->material->normalMap = &loadedNormalMap;
+                            }
+                        }
+
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+            }
+
+            ImGui::EndPopup();
+        }
+
+        if (primaryRenderable->material->normalMap) {
+            if (ImGui::SliderFloat("Normal Strength", &primaryRenderable->material->normalStrength, 0.0f, 2.0f)) {
+                this->_syncMaterialProperty(selectedEntities, &Material::normalStrength, primaryRenderable->material->normalStrength);
+            }
+        }
+
+        ImGui::Unindent();
+        ImGui::Separator();
+
+        ImGui::Text("Displacement Mapping:");
+        ImGui::Indent();
+
+        if (primaryRenderable->material->heightMap) {
+            ofTexture* heightTex = primaryRenderable->material->heightMap;
+            std::string heightTexName = this->_resourceManager.getTexturePath(*heightTex);
+            ImGui::Text(" - Height Map: %s", heightTexName.c_str());
+
+            ImVec2 thumbSize = ImVec2(64, 64);
+            GLuint texID = heightTex->getTextureData().textureID;
+            ImGui::Image((ImTextureID)(uintptr_t)texID, thumbSize, ImVec2(0,1), ImVec2(1,0));
+
+            if (ImGui::Button("Clear Height Map")) {
+                for (EntityID id : selectedEntities) {
+                    Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+                    if (renderable && renderable->material) {
+                        renderable->material->heightMap = nullptr;
+
+                        if (renderable->isPrimitive) {
+                            this->_primitiveSystem.regenerateMesh(id);
+                        }
+
+                        this->_componentRegistry.removeComponent<DisplacementMap>(id);
+                    }
+                }
+            }
+        } else {
+            ImGui::Text(" - Height Map: None");
+        }
+
+        if (ImGui::Button("Load Height Map")) {
+            ImGui::OpenPopup("LoadHeightMapPopup");
+        }
+
+        if (ImGui::BeginPopup("LoadHeightMapPopup")) {
+            std::filesystem::path heightMapDir = std::filesystem::path(ofToDataPath("heightmaps"));
+            std::vector<std::string> heightMapFiles;
+
+            if (std::filesystem::exists(heightMapDir) && std::filesystem::is_directory(heightMapDir)) {
+                for (const auto& entry : std::filesystem::directory_iterator(heightMapDir)) {
+                    if (entry.is_regular_file()) {
+                        std::string ext = entry.path().extension().string();
+                        if (ext == ".png" || ext == ".jpg" || ext == ".jpeg") {
+                            heightMapFiles.push_back(entry.path().filename().string());
+                        }
+                    }
+                }
+            }
+
+            if (heightMapFiles.empty()) {
+                ImGui::TextDisabled("No height maps found in data/heightmaps");
+            } else {
+                for (const std::string& filename : heightMapFiles) {
+                    if (ImGui::Selectable(filename.c_str())) {
+                        std::string path = (heightMapDir / filename).string();
+                        ofTexture& loadedHeightMap = this->_resourceManager.loadTexture(path);
+
+                        for (EntityID id : selectedEntities) {
+                            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+                            if (renderable && renderable->material) {
+                                renderable->material->heightMap = &loadedHeightMap;
+                            }
+                        }
+
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+            }
+
+            ImGui::EndPopup();
+        }
+
+        if (primaryRenderable->material->heightMap) {
+            DisplacementMap* displacement = this->_componentRegistry.getComponent<DisplacementMap>(primaryEntity);
+
+            if (!displacement) {
+                if (ImGui::Button("Enable Displacement")) {
+                    this->_componentRegistry.registerComponent(primaryEntity, DisplacementMap(0.5f, 3));
+                }
+            } else {
+                if (ImGui::SliderFloat("Displacement Strength", &displacement->strength, 0.0f, 2.0f)) {
+                    displacement->needsRegeneration = true;
+                }
+
+                if (ImGui::SliderInt("Subdivision Level", &displacement->subdivisionLevel, 0, 5)) {
+                    displacement->needsRegeneration = true;
+                }
+
+                if (ImGui::Button("Apply Displacement")) {
+                    this->_primitiveSystem.applyDisplacement(primaryEntity);
+                }
+
+                ImGui::SameLine();
+                if (ImGui::Button("Remove Displacement Component")) {
+                    this->_componentRegistry.removeComponent<DisplacementMap>(primaryEntity);
+                }
+            }
+        }
+
+        ImGui::Unindent();
+    }
 }

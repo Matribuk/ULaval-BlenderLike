@@ -10,6 +10,7 @@
 #include "Components/Primitive/Line.hpp"
 #include "Components/Primitive/Rectangle.hpp"
 #include "Components/Primitive/Point.hpp"
+#include "Components/DisplacementMap.hpp"
 
 #include "Core/ComponentRegistry.hpp"
 #include "Core/Entity.hpp"
@@ -17,6 +18,7 @@
 #include "Core/MaterialPresets.hpp"
 
 #include "Systems/SelectionSystem.hpp"
+#include "Systems/PrimitiveSystem.hpp"
 
 #include "Manager/ResourceManager.hpp"
 
@@ -25,7 +27,7 @@
 
 class MaterialPanel {
     public:
-        MaterialPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem, ResourceManager& resourceManager);
+        MaterialPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem, ResourceManager& resourceManager, PrimitiveSystem& primitiveSystem);
         ~MaterialPanel() = default;
 
         void render();
@@ -34,6 +36,7 @@ class MaterialPanel {
         ComponentRegistry& _componentRegistry;
         SelectionSystem& _selectionSystem;
         ResourceManager& _resourceManager;
+        PrimitiveSystem& _primitiveSystem;
 
         std::set<EntityID> _prevSelectedEntities;
         ProceduralTexture _proceduralTextureGenerator;
@@ -44,16 +47,18 @@ class MaterialPanel {
         void _loadShaders(Renderable* primaryRenderable);
         void _loadIlluminationShader(Renderable* primaryRenderable);
         void _loadEffectShader(Renderable* primaryRenderable);
+        void _loadShaders(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
         void _loadFile(EntityID entityId, Renderable* primaryRenderable, std::string type);
         void _generateProceduralTexture(Renderable* primaryRenderable);
         void _renderVisibilityControl(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
-        void _renderShaderSection(EntityID primaryEntity, Renderable* primaryRenderable);
+        void _renderShaderSection(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
         void _renderTextureSection(EntityID primaryEntity, Renderable* primaryRenderable);
         void _renderMeshSection(EntityID primaryEntity, Renderable* primaryRenderable);
         void _renderLightingParameters(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
         void _renderMaterialPresets(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
         void _renderMaterialReflectionComponents(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
         bool _isIlluminationShader(ofShader* shader);
+        void _renderReliefMappingSection(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
 
         template<typename T>
         void _syncMaterialProperty(const std::set<EntityID>& entities, T Material::* property, const T& value)
