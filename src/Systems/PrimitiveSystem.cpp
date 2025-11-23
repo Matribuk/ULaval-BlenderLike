@@ -720,3 +720,183 @@ void PrimitiveSystem::_addVoronoiCells(ofMesh& mesh, const std::vector<VoronoiCe
         }
     }
 }
+
+void PrimitiveSystem::regenerateMesh(EntityID entityId)
+{
+    Renderable* render = this->_registry.getComponent<Renderable>(entityId);
+    if (!render || !render->isPrimitive) return;
+
+    if (Box* box = this->_registry.getComponent<Box>(entityId)) {
+        render->mesh = this->_generateBoxMesh(box->dimensions);
+    }
+    else if (Sphere* sphere = this->_registry.getComponent<Sphere>(entityId)) {
+        render->mesh = this->_generateSphereMesh(sphere->radius);
+    }
+    else if (Plane* plane = this->_registry.getComponent<Plane>(entityId)) {
+        render->mesh = this->_generatePlaneMesh(plane->size);
+    }
+    else if (Triangle* triangle = this->_registry.getComponent<Triangle>(entityId)) {
+        render->mesh = this->_generateTriangleMesh(triangle->vertex1, triangle->vertex2, triangle->vertex3);
+    }
+    else if (Circle* circle = this->_registry.getComponent<Circle>(entityId)) {
+        render->mesh = this->_generateCircleMesh(circle->radius, circle->segments);
+    }
+    else if (Line* line = this->_registry.getComponent<Line>(entityId)) {
+        render->mesh = this->_generateLineMesh(line->start, line->end);
+    }
+    else if (Rectangle* rectangle = this->_registry.getComponent<Rectangle>(entityId)) {
+        render->mesh = this->_generateRectangleMesh(rectangle->width, rectangle->height);
+    }
+    else if (Point* point = this->_registry.getComponent<Point>(entityId)) {
+        render->mesh = this->_generatePointMesh(point->size);
+    }
+    else if (DelaunayMesh* delaunay = this->_registry.getComponent<DelaunayMesh>(entityId)) {
+        render->mesh = this->_generateDelaunayMesh(*delaunay, entityId);
+    }
+    else if (ParametricCurve* curve = this->_registry.getComponent<ParametricCurve>(entityId)) {
+        render->mesh = this->_generateParametricCurveMesh(*curve, entityId);
+    }
+}
+
+void PrimitiveSystem::applyDisplacement(EntityID entityId)
+{
+    Renderable* renderable = this->_registry.getComponent<Renderable>(entityId);
+    DisplacementMap* displacement = this->_registry.getComponent<DisplacementMap>(entityId);
+
+    if (!renderable || !displacement || !renderable->material || !renderable->material->heightMap) {
+        return;
+    }
+
+    ofMesh originalMesh = renderable->mesh;
+
+    if (originalMesh.getNumNormals() == 0) {
+        originalMesh.clearNormals();
+        for (size_t i = 0; i < originalMesh.getNumIndices(); i += 3) {
+            glm::vec3 v0 = originalMesh.getVertex(originalMesh.getIndex(i));
+            glm::vec3 v1 = originalMesh.getVertex(originalMesh.getIndex(i + 1));
+            glm::vec3 v2 = originalMesh.getVertex(originalMesh.getIndex(i + 2));
+
+            glm::vec3 edge1 = v1 - v0;
+            glm::vec3 edge2 = v2 - v0;
+            glm::vec3 faceNormal = glm::normalize(glm::cross(edge1, edge2));
+
+            originalMesh.addNormal(faceNormal);
+            originalMesh.addNormal(faceNormal);
+            originalMesh.addNormal(faceNormal);
+        }
+    }
+
+    if (originalMesh.getNumTexCoords() == 0) {
+        glm::vec3 center(0.0f);
+        for (const auto& v : originalMesh.getVertices()) {
+            center += v;
+        }
+        center /= originalMesh.getNumVertices();
+
+        for (const auto& v : originalMesh.getVertices()) {
+            glm::vec3 dir = glm::normalize(v - center);
+            float u = 0.5f + atan2(dir.z, dir.x) / (2.0f * M_PI);
+            float v_coord = 0.5f - asin(dir.y) / M_PI;
+            originalMesh.addTexCoord(glm::vec2(u, v_coord));
+        }
+    }
+
+    ofMesh subdividedMesh = this->_subdivideMesh(originalMesh, displacement->subdivisionLevel);
+
+    ofTexture* heightMap = renderable->material->heightMap;
+    ofPixels heightPixels;
+    heightMap->readToPixels(heightPixels);
+
+    for (size_t i = 0; i < subdividedMesh.getNumVertices(); ++i) {
+        glm::vec3 vertex = subdividedMesh.getVertex(i);
+        glm::vec3 normal = subdividedMesh.getNormal(i);
+        glm::vec2 texCoord = subdividedMesh.getTexCoord(i);
+
+        int x = static_cast<int>(texCoord.x * (heightPixels.getWidth() - 1));
+        int y = static_cast<int>(texCoord.y * (heightPixels.getHeight() - 1));
+
+        x = glm::clamp(x, 0, static_cast<int>(heightPixels.getWidth() - 1));
+        y = glm::clamp(y, 0, static_cast<int>(heightPixels.getHeight() - 1));
+
+        ofColor heightColor = heightPixels.getColor(x, y);
+        float height = heightColor.getBrightness() / 255.0f;
+
+        this->_displaceVertex(vertex, normal, height, displacement->strength);
+        subdividedMesh.setVertex(i, vertex);
+    }
+
+    subdividedMesh.clearNormals();
+    for (size_t i = 0; i < subdividedMesh.getNumIndices(); i += 3) {
+        glm::vec3 v0 = subdividedMesh.getVertex(subdividedMesh.getIndex(i));
+        glm::vec3 v1 = subdividedMesh.getVertex(subdividedMesh.getIndex(i + 1));
+        glm::vec3 v2 = subdividedMesh.getVertex(subdividedMesh.getIndex(i + 2));
+
+        glm::vec3 edge1 = v1 - v0;
+        glm::vec3 edge2 = v2 - v0;
+        glm::vec3 faceNormal = glm::normalize(glm::cross(edge1, edge2));
+
+        subdividedMesh.addNormal(faceNormal);
+        subdividedMesh.addNormal(faceNormal);
+        subdividedMesh.addNormal(faceNormal);
+    }
+
+    renderable->mesh = subdividedMesh;
+    displacement->needsRegeneration = false;
+}
+
+ofMesh PrimitiveSystem::_subdivideMesh(const ofMesh& mesh, int level)
+{
+    if (level <= 0) return mesh;
+
+    ofMesh subdivided;
+    subdivided.setMode(OF_PRIMITIVE_TRIANGLES);
+
+    for (int i = 0; i < mesh.getNumIndices(); i += 3) {
+        glm::vec3 v0 = mesh.getVertex(mesh.getIndex(i));
+        glm::vec3 v1 = mesh.getVertex(mesh.getIndex(i + 1));
+        glm::vec3 v2 = mesh.getVertex(mesh.getIndex(i + 2));
+
+        glm::vec3 n0 = mesh.getNormal(mesh.getIndex(i));
+        glm::vec3 n1 = mesh.getNormal(mesh.getIndex(i + 1));
+        glm::vec3 n2 = mesh.getNormal(mesh.getIndex(i + 2));
+
+        glm::vec2 t0 = mesh.getTexCoord(mesh.getIndex(i));
+        glm::vec2 t1 = mesh.getTexCoord(mesh.getIndex(i + 1));
+        glm::vec2 t2 = mesh.getTexCoord(mesh.getIndex(i + 2));
+
+        glm::vec3 v01 = (v0 + v1) * 0.5f;
+        glm::vec3 v12 = (v1 + v2) * 0.5f;
+        glm::vec3 v20 = (v2 + v0) * 0.5f;
+
+        glm::vec3 n01 = glm::normalize((n0 + n1) * 0.5f);
+        glm::vec3 n12 = glm::normalize((n1 + n2) * 0.5f);
+        glm::vec3 n20 = glm::normalize((n2 + n0) * 0.5f);
+
+        glm::vec2 t01 = (t0 + t1) * 0.5f;
+        glm::vec2 t12 = (t1 + t2) * 0.5f;
+        glm::vec2 t20 = (t2 + t0) * 0.5f;
+
+        auto addTriangle = [&](glm::vec3 va, glm::vec3 vb, glm::vec3 vc,
+                               glm::vec3 na, glm::vec3 nb, glm::vec3 nc,
+                               glm::vec2 ta, glm::vec2 tb, glm::vec2 tc) {
+            int base = subdivided.getNumVertices();
+            subdivided.addVertex(va); subdivided.addNormal(na); subdivided.addTexCoord(ta);
+            subdivided.addVertex(vb); subdivided.addNormal(nb); subdivided.addTexCoord(tb);
+            subdivided.addVertex(vc); subdivided.addNormal(nc); subdivided.addTexCoord(tc);
+            subdivided.addIndex(base); subdivided.addIndex(base + 1); subdivided.addIndex(base + 2);
+        };
+
+        addTriangle(v0, v01, v20, n0, n01, n20, t0, t01, t20);
+        addTriangle(v1, v12, v01, n1, n12, n01, t1, t12, t01);
+        addTriangle(v2, v20, v12, n2, n20, n12, t2, t20, t12);
+        addTriangle(v01, v12, v20, n01, n12, n20, t01, t12, t20);
+    }
+
+    return (level > 1) ? this->_subdivideMesh(subdivided, level - 1) : subdivided;
+}
+
+void PrimitiveSystem::_displaceVertex(glm::vec3& vertex, const glm::vec3& normal, float height, float strength)
+{
+    vertex += normal * (height - 0.5f) * strength;
+}
+
