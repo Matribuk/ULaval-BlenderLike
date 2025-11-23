@@ -1,4 +1,5 @@
 #include "Manager/ActionManager.hpp"
+#include <imgui.h>
 
 ActionManager::ActionManager(
     ComponentRegistry& componentRegistry,
@@ -127,6 +128,9 @@ void ActionManager::_handleCameraMovement(EntityID cameraId, Toolbar* toolbar)
 
 void ActionManager::_handleKeyboardCameraControls()
 {
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.WantCaptureKeyboard) return;
+
     auto& input = InputManager::get();
 
     if (input.isKeyPressed('d')) this->_cameraManager.pan(glm::vec3(1.0f, 0.0f, 0.0f));
