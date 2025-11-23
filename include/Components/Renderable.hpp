@@ -19,6 +19,12 @@ struct Material {
 
     float reflectivity = 0.0f;
     glm::vec3 reflectionTint = glm::vec3(1.0f, 1.0f, 1.0f);
+    ofTexture* normalMap = nullptr;
+    float normalStrength = 1.0f;
+
+    ofTexture* heightMap = nullptr;
+    float displacementStrength = 0.5f;
+    bool useDisplacement = false;
 };
 
 struct Renderable {
