@@ -99,8 +99,6 @@ void SceneManager::render()
 {
     if (!this->_selectionSystem) return;
 
-    EntityID selectedEntity = this->_selectionSystem->getSelectedEntity();
-
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
@@ -112,21 +110,27 @@ void SceneManager::render()
     ImGui::SameLine();
 
     if (ImGui::Button("Delete Selected")) {
-        if (selectedEntity != INVALID_ENTITY) {
-            bool isCamera = this->_componentRegistry.hasComponent<Camera>(selectedEntity);
+        const std::set<EntityID>& selectedEntities = this->_selectionSystem->getSelectedEntities();
+        if (!selectedEntities.empty()) {
+            std::vector<EntityID> entitiesToDelete(selectedEntities.begin(), selectedEntities.end());
 
-            this->_componentRegistry.removeAllComponents(selectedEntity);
-            this->_entityManager.destroyEntity(selectedEntity);
-            unregisterEntity(selectedEntity);
+            for (EntityID id : entitiesToDelete) {
+                bool isCamera = this->_componentRegistry.hasComponent<Camera>(id);
+
+                this->_componentRegistry.removeAllComponents(id);
+                this->_entityManager.destroyEntity(id);
+                unregisterEntity(id);
+
+                if (isCamera && this->_cameraManager) {
+                    this->_cameraManager->removeCamera(id);
+                }
+            }
+
             this->_selectionSystem->clearSelection();
 
-            if (isCamera && this->_cameraManager) {
-                this->_cameraManager->removeCamera(selectedEntity);
-
-                if (this->_cameraManager->getActiveCameraId() == INVALID_ENTITY) {
-                    EntityID newCameraId = this->_cameraManager->addCamera(glm::vec3(0, 5, 10));
-                    this->registerEntity(newCameraId, "Camera " + std::to_string(newCameraId));
-                }
+            if (this->_cameraManager && this->_cameraManager->getActiveCameraId() == INVALID_ENTITY) {
+                EntityID newCameraId = this->_cameraManager->addCamera(glm::vec3(0, 5, 10));
+                this->registerEntity(newCameraId, "Camera " + std::to_string(newCameraId));
             }
         }
     }
