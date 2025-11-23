@@ -337,7 +337,8 @@ void RenderSystem::_drawBoundingBox(EntityID entityId, const Transform& transfor
 
         case BoundingBoxVisualization::Type::SPHERE: {
             glm::vec3 center = (localMin + localMax) * 0.5f;
-            float radius = glm::length(localMax - center);
+            glm::vec3 halfExtents = localMax - center;
+            float radius = glm::max(glm::max(halfExtents.x, halfExtents.y), halfExtents.z);
 
             ofPushMatrix();
             ofMultMatrix(transform.matrix);
