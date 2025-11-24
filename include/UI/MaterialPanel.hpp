@@ -60,6 +60,12 @@ class MaterialPanel {
         bool _isIlluminationShader(ofShader* shader);
         void _renderReliefMappingSection(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
 
+        void _renderNormalMappingControls(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
+        void _renderNormalMapSelector(const std::set<EntityID>& selectedEntities);
+        void _renderDisplacementMappingControls(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
+        void _renderHeightMapSelector(const std::set<EntityID>& selectedEntities);
+        void _renderDisplacementControls(EntityID primaryEntity, DisplacementMap* displacement);
+
         template<typename T>
         void _syncMaterialProperty(const std::set<EntityID>& entities, T Material::* property, const T& value)
         {

@@ -624,181 +624,203 @@ bool MaterialPanel::_isIlluminationShader(ofShader* shader)
 void MaterialPanel::_renderReliefMappingSection(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable)
 {
     if (ImGui::CollapsingHeader("Relief Mapping", ImGuiTreeNodeFlags_DefaultOpen)) {
-
-        ImGui::Text("Normal Mapping:");
-        ImGui::Indent();
-
-        if (primaryRenderable->material->normalMap) {
-            ofTexture* normalTex = primaryRenderable->material->normalMap;
-            std::string normalTexName = this->_resourceManager.getTexturePath(*normalTex);
-            ImGui::Text(" - Normal Map: %s", normalTexName.c_str());
-
-            ImVec2 thumbSize = ImVec2(64, 64);
-            GLuint texID = normalTex->getTextureData().textureID;
-            ImGui::Image((ImTextureID)(uintptr_t)texID, thumbSize, ImVec2(0,1), ImVec2(1,0));
-
-            if (ImGui::Button("Clear Normal Map")) {
-                for (EntityID id : selectedEntities) {
-                    Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
-                    if (renderable && renderable->material) {
-                        renderable->material->normalMap = nullptr;
-                    }
-                }
-            }
-        } else {
-            ImGui::Text(" - Normal Map: None");
-        }
-
-        if (ImGui::Button("Load Normal Map")) {
-            ImGui::OpenPopup("LoadNormalMapPopup");
-        }
-
-        if (ImGui::BeginPopup("LoadNormalMapPopup")) {
-            std::filesystem::path normalMapDir = std::filesystem::path(ofToDataPath("normalmaps"));
-            std::vector<std::string> normalMapFiles;
-
-            if (std::filesystem::exists(normalMapDir) && std::filesystem::is_directory(normalMapDir)) {
-                for (const auto& entry : std::filesystem::directory_iterator(normalMapDir)) {
-                    if (entry.is_regular_file()) {
-                        std::string ext = entry.path().extension().string();
-                        if (ext == ".png" || ext == ".jpg" || ext == ".jpeg") {
-                            normalMapFiles.push_back(entry.path().filename().string());
-                        }
-                    }
-                }
-            }
-
-            if (normalMapFiles.empty()) {
-                ImGui::TextDisabled("No normal maps found in data/normalmaps");
-            } else {
-                for (const std::string& filename : normalMapFiles) {
-                    if (ImGui::Selectable(filename.c_str())) {
-                        std::string path = (normalMapDir / filename).string();
-                        ofTexture& loadedNormalMap = this->_resourceManager.loadTexture(path);
-
-                        for (EntityID id : selectedEntities) {
-                            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
-                            if (renderable && renderable->material) {
-                                renderable->material->normalMap = &loadedNormalMap;
-                            }
-                        }
-
-                        ImGui::CloseCurrentPopup();
-                    }
-                }
-            }
-
-            ImGui::EndPopup();
-        }
-
-        if (primaryRenderable->material->normalMap) {
-            if (ImGui::SliderFloat("Normal Strength", &primaryRenderable->material->normalStrength, 0.0f, 2.0f)) {
-                this->_syncMaterialProperty(selectedEntities, &Material::normalStrength, primaryRenderable->material->normalStrength);
-            }
-        }
-
-        ImGui::Unindent();
+        this->_renderNormalMappingControls(primaryEntity, selectedEntities, primaryRenderable);
         ImGui::Separator();
+        this->_renderDisplacementMappingControls(primaryEntity, selectedEntities, primaryRenderable);
+    }
+}
 
-        ImGui::Text("Displacement Mapping:");
-        ImGui::Indent();
+void MaterialPanel::_renderNormalMappingControls(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable)
+{
+    ImGui::Text("Normal Mapping:");
+    ImGui::Indent();
 
-        if (primaryRenderable->material->heightMap) {
-            ofTexture* heightTex = primaryRenderable->material->heightMap;
-            std::string heightTexName = this->_resourceManager.getTexturePath(*heightTex);
-            ImGui::Text(" - Height Map: %s", heightTexName.c_str());
+    if (primaryRenderable->material->normalMap) {
+        ofTexture* normalTex = primaryRenderable->material->normalMap;
+        std::string normalTexName = this->_resourceManager.getTexturePath(*normalTex);
+        ImGui::Text(" - Normal Map: %s", normalTexName.c_str());
 
-            ImVec2 thumbSize = ImVec2(64, 64);
-            GLuint texID = heightTex->getTextureData().textureID;
-            ImGui::Image((ImTextureID)(uintptr_t)texID, thumbSize, ImVec2(0,1), ImVec2(1,0));
+        ImVec2 thumbSize = ImVec2(64, 64);
+        GLuint texID = normalTex->getTextureData().textureID;
+        ImGui::Image((ImTextureID)(uintptr_t)texID, thumbSize, ImVec2(0,1), ImVec2(1,0));
 
-            if (ImGui::Button("Clear Height Map")) {
-                for (EntityID id : selectedEntities) {
-                    Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
-                    if (renderable && renderable->material) {
-                        renderable->material->heightMap = nullptr;
+        if (ImGui::Button("Clear Normal Map")) {
+            for (EntityID id : selectedEntities) {
+                Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+                if (renderable && renderable->material) {
+                    renderable->material->normalMap = nullptr;
+                }
+            }
+        }
+    } else {
+        ImGui::Text(" - Normal Map: None");
+    }
 
-                        if (renderable->isPrimitive) {
-                            this->_primitiveSystem.regenerateMesh(id);
-                        }
+    if (ImGui::Button("Load Normal Map")) {
+        ImGui::OpenPopup("LoadNormalMapPopup");
+    }
 
-                        this->_componentRegistry.removeComponent<DisplacementMap>(id);
+    this->_renderNormalMapSelector(selectedEntities);
+
+    if (primaryRenderable->material->normalMap) {
+        if (ImGui::SliderFloat("Normal Strength", &primaryRenderable->material->normalStrength, 0.0f, 2.0f)) {
+            this->_syncMaterialProperty(selectedEntities, &Material::normalStrength, primaryRenderable->material->normalStrength);
+        }
+    }
+
+    ImGui::Unindent();
+}
+
+void MaterialPanel::_renderNormalMapSelector(const std::set<EntityID>& selectedEntities)
+{
+    if (ImGui::BeginPopup("LoadNormalMapPopup")) {
+        std::filesystem::path normalMapDir = std::filesystem::path(ofToDataPath("normalmaps"));
+        std::vector<std::string> normalMapFiles;
+
+        if (std::filesystem::exists(normalMapDir) && std::filesystem::is_directory(normalMapDir)) {
+            for (const auto& entry : std::filesystem::directory_iterator(normalMapDir)) {
+                if (entry.is_regular_file()) {
+                    std::string ext = entry.path().extension().string();
+                    if (ext == ".png" || ext == ".jpg" || ext == ".jpeg") {
+                        normalMapFiles.push_back(entry.path().filename().string());
                     }
                 }
             }
+        }
+
+        if (normalMapFiles.empty()) {
+            ImGui::TextDisabled("No normal maps found in data/normalmaps");
         } else {
-            ImGui::Text(" - Height Map: None");
-        }
+            for (const std::string& filename : normalMapFiles) {
+                if (ImGui::Selectable(filename.c_str())) {
+                    std::string path = (normalMapDir / filename).string();
+                    ofTexture& loadedNormalMap = this->_resourceManager.loadTexture(path);
 
-        if (ImGui::Button("Load Height Map")) {
-            ImGui::OpenPopup("LoadHeightMapPopup");
-        }
-
-        if (ImGui::BeginPopup("LoadHeightMapPopup")) {
-            std::filesystem::path heightMapDir = std::filesystem::path(ofToDataPath("heightmaps"));
-            std::vector<std::string> heightMapFiles;
-
-            if (std::filesystem::exists(heightMapDir) && std::filesystem::is_directory(heightMapDir)) {
-                for (const auto& entry : std::filesystem::directory_iterator(heightMapDir)) {
-                    if (entry.is_regular_file()) {
-                        std::string ext = entry.path().extension().string();
-                        if (ext == ".png" || ext == ".jpg" || ext == ".jpeg") {
-                            heightMapFiles.push_back(entry.path().filename().string());
+                    for (EntityID id : selectedEntities) {
+                        Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+                        if (renderable && renderable->material) {
+                            renderable->material->normalMap = &loadedNormalMap;
                         }
+                    }
+
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
+void MaterialPanel::_renderDisplacementMappingControls(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable)
+{
+    ImGui::Text("Displacement Mapping:");
+    ImGui::Indent();
+
+    if (primaryRenderable->material->heightMap) {
+        ofTexture* heightTex = primaryRenderable->material->heightMap;
+        std::string heightTexName = this->_resourceManager.getTexturePath(*heightTex);
+        ImGui::Text(" - Height Map: %s", heightTexName.c_str());
+
+        ImVec2 thumbSize = ImVec2(64, 64);
+        GLuint texID = heightTex->getTextureData().textureID;
+        ImGui::Image((ImTextureID)(uintptr_t)texID, thumbSize, ImVec2(0,1), ImVec2(1,0));
+
+        if (ImGui::Button("Clear Height Map")) {
+            for (EntityID id : selectedEntities) {
+                Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+                if (renderable && renderable->material) {
+                    renderable->material->heightMap = nullptr;
+
+                    if (renderable->isPrimitive) {
+                        this->_primitiveSystem.regenerateMesh(id);
+                    }
+
+                    this->_componentRegistry.removeComponent<DisplacementMap>(id);
+                }
+            }
+        }
+    } else {
+        ImGui::Text(" - Height Map: None");
+    }
+
+    if (ImGui::Button("Load Height Map")) {
+        ImGui::OpenPopup("LoadHeightMapPopup");
+    }
+
+    this->_renderHeightMapSelector(selectedEntities);
+
+    if (primaryRenderable->material->heightMap) {
+        DisplacementMap* displacement = this->_componentRegistry.getComponent<DisplacementMap>(primaryEntity);
+        this->_renderDisplacementControls(primaryEntity, displacement);
+    }
+
+    ImGui::Unindent();
+}
+
+void MaterialPanel::_renderHeightMapSelector(const std::set<EntityID>& selectedEntities)
+{
+    if (ImGui::BeginPopup("LoadHeightMapPopup")) {
+        std::filesystem::path heightMapDir = std::filesystem::path(ofToDataPath("heightmaps"));
+        std::vector<std::string> heightMapFiles;
+
+        if (std::filesystem::exists(heightMapDir) && std::filesystem::is_directory(heightMapDir)) {
+            for (const auto& entry : std::filesystem::directory_iterator(heightMapDir)) {
+                if (entry.is_regular_file()) {
+                    std::string ext = entry.path().extension().string();
+                    if (ext == ".png" || ext == ".jpg" || ext == ".jpeg") {
+                        heightMapFiles.push_back(entry.path().filename().string());
                     }
                 }
             }
+        }
 
-            if (heightMapFiles.empty()) {
-                ImGui::TextDisabled("No height maps found in data/heightmaps");
-            } else {
-                for (const std::string& filename : heightMapFiles) {
-                    if (ImGui::Selectable(filename.c_str())) {
-                        std::string path = (heightMapDir / filename).string();
-                        ofTexture& loadedHeightMap = this->_resourceManager.loadTexture(path);
+        if (heightMapFiles.empty()) {
+            ImGui::TextDisabled("No height maps found in data/heightmaps");
+        } else {
+            for (const std::string& filename : heightMapFiles) {
+                if (ImGui::Selectable(filename.c_str())) {
+                    std::string path = (heightMapDir / filename).string();
+                    ofTexture& loadedHeightMap = this->_resourceManager.loadTexture(path);
 
-                        for (EntityID id : selectedEntities) {
-                            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
-                            if (renderable && renderable->material) {
-                                renderable->material->heightMap = &loadedHeightMap;
-                            }
+                    for (EntityID id : selectedEntities) {
+                        Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+                        if (renderable && renderable->material) {
+                            renderable->material->heightMap = &loadedHeightMap;
                         }
-
-                        ImGui::CloseCurrentPopup();
                     }
-                }
-            }
 
-            ImGui::EndPopup();
-        }
-
-        if (primaryRenderable->material->heightMap) {
-            DisplacementMap* displacement = this->_componentRegistry.getComponent<DisplacementMap>(primaryEntity);
-
-            if (!displacement) {
-                if (ImGui::Button("Enable Displacement")) {
-                    this->_componentRegistry.registerComponent(primaryEntity, DisplacementMap(0.5f, 3));
-                }
-            } else {
-                if (ImGui::SliderFloat("Displacement Strength", &displacement->strength, 0.0f, 2.0f)) {
-                    displacement->needsRegeneration = true;
-                }
-
-                if (ImGui::SliderInt("Subdivision Level", &displacement->subdivisionLevel, 0, 5)) {
-                    displacement->needsRegeneration = true;
-                }
-
-                if (ImGui::Button("Apply Displacement")) {
-                    this->_primitiveSystem.applyDisplacement(primaryEntity);
-                }
-
-                ImGui::SameLine();
-                if (ImGui::Button("Remove Displacement Component")) {
-                    this->_componentRegistry.removeComponent<DisplacementMap>(primaryEntity);
+                    ImGui::CloseCurrentPopup();
                 }
             }
         }
 
-        ImGui::Unindent();
+        ImGui::EndPopup();
+    }
+}
+
+void MaterialPanel::_renderDisplacementControls(EntityID primaryEntity, DisplacementMap* displacement)
+{
+    if (!displacement) {
+        if (ImGui::Button("Enable Displacement")) {
+            this->_componentRegistry.registerComponent(primaryEntity, DisplacementMap(0.5f, 3));
+        }
+    } else {
+        if (ImGui::SliderFloat("Displacement Strength", &displacement->strength, 0.0f, 2.0f)) {
+            displacement->needsRegeneration = true;
+        }
+
+        if (ImGui::SliderInt("Subdivision Level", &displacement->subdivisionLevel, 0, 5)) {
+            displacement->needsRegeneration = true;
+        }
+
+        if (ImGui::Button("Apply Displacement")) {
+            this->_primitiveSystem.applyDisplacement(primaryEntity);
+        }
+
+        ImGui::SameLine();
+        if (ImGui::Button("Remove Displacement Component")) {
+            this->_componentRegistry.removeComponent<DisplacementMap>(primaryEntity);
+        }
     }
 }

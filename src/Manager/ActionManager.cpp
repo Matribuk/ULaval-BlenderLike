@@ -1,5 +1,4 @@
 #include "Manager/ActionManager.hpp"
-#include <imgui.h>
 
 ActionManager::ActionManager(
     ComponentRegistry& componentRegistry,

@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <imgui.h>
 
 class ActionManager {
     public:
