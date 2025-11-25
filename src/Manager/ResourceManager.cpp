@@ -142,9 +142,9 @@ ofShader& ResourceManager::loadShader(std::string vertexPath, std::string fragme
 
         shader.bindDefaults();
         shader.linkProgram();
-        if (!shader.isLoaded()) {
-            ofLogError() << "Shader failed to load!";
-        }
+        if (!shader.isLoaded())
+            ofLogError("ResourceManager") << "Shader failed to load: " << key;
+
         this->_shaders[key] = shader;
     }
 

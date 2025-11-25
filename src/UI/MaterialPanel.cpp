@@ -487,6 +487,15 @@ void MaterialPanel::_renderLightingParameters(const std::set<EntityID>& selected
         this->_syncMaterialProperty(selectedEntities, &Material::shininess, primaryRenderable->material->shininess);
 
     ImGui::Separator();
+    ImGui::Text("Reflection Parameters:");
+
+    if (ImGui::SliderFloat("Reflectivity", &primaryRenderable->material->reflectivity, 0.0f, 1.0f))
+        this->_syncMaterialProperty(selectedEntities, &Material::reflectivity, primaryRenderable->material->reflectivity);
+
+    if (ImGui::ColorEdit3("Reflection Tint", &primaryRenderable->material->reflectionTint.x))
+        this->_syncMaterialProperty(selectedEntities, &Material::reflectionTint, primaryRenderable->material->reflectionTint);
+
+    ImGui::Separator();
 }
 
 void MaterialPanel::_renderMaterialPresets(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable)

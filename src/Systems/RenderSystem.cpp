@@ -234,7 +234,6 @@ void RenderSystem::_drawMeshSinglePass(const ofMesh& mesh, const glm::mat4& tran
 
     shader->end();
 }
-
 void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material)
 {
     if (material->shaderPipeline.empty()) return;
@@ -285,10 +284,15 @@ void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& trans
             shader->setUniform3f("ambientColor", material->ambientColor);
             shader->setUniform1f("shininess", material->shininess);
 
+            // Réflections matérielles de base
             shader->setUniform3f("ambientReflection", material->ambientReflection);
             shader->setUniform3f("diffuseReflection", material->diffuseReflection);
             shader->setUniform3f("specularReflection", material->specularReflection);
             shader->setUniform3f("emissiveReflection", material->emissiveReflection);
+            
+            // Support des réflections miroir/cubemap
+            shader->setUniform1f("reflectivity", material->reflectivity);
+            shader->setUniform3f("reflectionTint", material->reflectionTint);
         }
 
         shader->setUniform4f("color", ofFloatColor(color));
@@ -302,11 +306,30 @@ void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& trans
         else
             shader->setUniformTexture("tex0", this->_whiteTexture, 0);
 
+        // Support de la cubemap d'environnement
+        bool hasEnvMap = false;
+        GLint envMapLoc = glGetUniformLocation(shader->getProgram(), "envMap");
+        if (envMapLoc != -1 && this->_skyboxCubemap.isLoaded()) {
+            this->_skyboxCubemap.bind(1);
+            shader->setUniform1i("envMap", 1);
+            hasEnvMap = true;
+        }
+
         glEnableClientState(GL_NORMAL_ARRAY);
         mesh.draw();
         glDisableClientState(GL_NORMAL_ARRAY);
 
         shader->end();
+        
+        // Nettoyage des textures
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        if (hasEnvMap) {
+            glActiveTexture(GL_TEXTURE1);
+            this->_skyboxCubemap.unbind();
+            glActiveTexture(GL_TEXTURE0);
+        }
     }
 
     glDisable(GL_BLEND);
@@ -315,7 +338,6 @@ void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& trans
 
     ofPopMatrix();
 }
-
 
 void RenderSystem::_initSkybox()
 {
@@ -370,7 +392,8 @@ void RenderSystem::_renderSkyboxCubemap()
 void RenderSystem::loadCubemap(const std::string& folderPath)
 {
     bool success = this->_skyboxCubemap.loadFromFolder(folderPath);
-    if (!success) std::cout << "[SKYBOX] Failed to load cubemap from: " << folderPath << std::endl;
+    if (!success)
+        ofLogError("RenderSystem") << "Failed to load cubemap from: " << folderPath;
 }
 
 void RenderSystem::_initWhiteTexture()
