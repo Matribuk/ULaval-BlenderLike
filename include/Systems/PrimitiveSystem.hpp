@@ -13,6 +13,7 @@
 #include "Components/Renderable.hpp"
 #include "Components/CustomBounds.hpp"
 #include "Components/Transform.hpp"
+#include "Components/DisplacementMap.hpp"
 
 #include "Core/ComponentRegistry.hpp"
 #include "Core/EntityManager.hpp"
@@ -29,6 +30,8 @@ class PrimitiveSystem {
 
         void generateMeshes();
         void updateControlPointBasedMeshes();
+        void applyDisplacement(EntityID entityId);
+        void regenerateMesh(EntityID entityId);
 
     private:
         ComponentRegistry& _registry;
@@ -58,4 +61,7 @@ class PrimitiveSystem {
         bool _needsCurveUpdate(const std::vector<glm::vec3>& currentPoints, const ParametricCurve& curve);
         void _addDelaunayTriangles(ofMesh& mesh, const std::vector<Triangle2D>& triangles, const DelaunayMesh& delaunay);
         void _addVoronoiCells(ofMesh& mesh, const std::vector<VoronoiCell>& cells, const DelaunayMesh& delaunay);
+
+        ofMesh _subdivideMesh(const ofMesh& mesh, int level);
+        void _displaceVertex(glm::vec3& vertex, const glm::vec3& normal, float height, float strength);
 };

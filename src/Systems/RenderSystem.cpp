@@ -179,6 +179,14 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
             hasEnvMap = true;
         }
 
+        if (material->normalMap) {
+            material->shader->setUniformTexture("normalMap", *material->normalMap, 1);
+            material->shader->setUniform1i("useNormalMap", 1);
+            material->shader->setUniform1f("normalStrength", material->normalStrength);
+        } else {
+            material->shader->setUniform1i("useNormalMap", 0);
+        }
+
         glEnableClientState(GL_NORMAL_ARRAY);
         mesh.draw();
         glDisableClientState(GL_NORMAL_ARRAY);
@@ -329,7 +337,8 @@ void RenderSystem::_drawBoundingBox(EntityID entityId, const Transform& transfor
 
         case BoundingBoxVisualization::Type::SPHERE: {
             glm::vec3 center = (localMin + localMax) * 0.5f;
-            float radius = glm::length(localMax - center);
+            glm::vec3 halfExtents = localMax - center;
+            float radius = glm::max(glm::max(halfExtents.x, halfExtents.y), halfExtents.z);
 
             ofPushMatrix();
             ofMultMatrix(transform.matrix);
