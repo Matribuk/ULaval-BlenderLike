@@ -1,79 +1,49 @@
 #include "MaterialPresets.hpp"
 
-const std::map<std::string, MaterialPreset>& MaterialPresets::getPresets() {
+const std::map<std::string, MaterialPreset>& MaterialPresets::getPresets()
+{
     static const std::map<std::string, MaterialPreset> presets = {
-        // 1. Metal - High specular, low diffuse, high shininess
         {"Metal", {
             "Metal",
-            glm::vec3(0.1f, 0.1f, 0.1f),    // Low ambient
-            glm::vec3(0.3f, 0.3f, 0.3f),    // Low diffuse
-            glm::vec3(0.9f, 0.9f, 0.9f),    // High specular (shiny)
-            glm::vec3(0.0f, 0.0f, 0.0f),    // No emissive
-            128.0f                           // Very high shininess
+            glm::vec3(0.02f, 0.02f, 0.02f),
+            glm::vec3(0.04f, 0.04f, 0.04f),
+            glm::vec3(0.9f, 0.9f, 0.9f),
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            64.0f
         }},
 
-        // 2. Plastic - Moderate specular, high diffuse, medium shininess
         {"Plastic", {
             "Plastic",
-            glm::vec3(0.2f, 0.2f, 0.2f),    // Moderate ambient
-            glm::vec3(0.7f, 0.7f, 0.7f),    // High diffuse
-            glm::vec3(0.5f, 0.5f, 0.5f),    // Moderate specular
-            glm::vec3(0.0f, 0.0f, 0.0f),    // No emissive
-            32.0f                            // Medium shininess
+            glm::vec3(0.03f, 0.03f, 0.03f),
+            glm::vec3(0.45f, 0.45f, 0.45f),
+            glm::vec3(0.6f, 0.6f, 0.6f),
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            64.0f
         }},
 
-        // 3. Wood - Low specular, high diffuse, low shininess
         {"Wood", {
             "Wood",
-            glm::vec3(0.3f, 0.2f, 0.1f),    // Warm ambient (brownish)
-            glm::vec3(0.6f, 0.4f, 0.2f),    // Warm diffuse (brownish)
-            glm::vec3(0.1f, 0.1f, 0.1f),    // Very low specular (matte)
-            glm::vec3(0.0f, 0.0f, 0.0f),    // No emissive
-            4.0f                             // Very low shininess
+            glm::vec3(0.08f, 0.05f, 0.02f),
+            glm::vec3(0.5f, 0.34f, 0.18f),
+            glm::vec3(0.01f, 0.01f, 0.01f),
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            4.0f
         }},
 
-        // 4. Emissive - Glowing material with emissive component
         {"Emissive", {
             "Emissive",
-            glm::vec3(0.1f, 0.1f, 0.1f),    // Low ambient
-            glm::vec3(0.3f, 0.3f, 0.3f),    // Low diffuse
-            glm::vec3(0.0f, 0.0f, 0.0f),    // No specular
-            glm::vec3(0.5f, 0.5f, 0.5f),    // High emissive (glowing)
-            1.0f                             // Minimal shininess
-        }},
-
-        // Additional presets for variety
-        {"Gold", {
-            "Gold",
-            glm::vec3(0.24725f, 0.1995f, 0.0745f),
-            glm::vec3(0.75164f, 0.60648f, 0.22648f),
-            glm::vec3(0.628281f, 0.555802f, 0.366065f),
-            glm::vec3(0.0f, 0.0f, 0.0f),
-            51.2f
-        }},
-
-        {"Silver", {
-            "Silver",
-            glm::vec3(0.19225f, 0.19225f, 0.19225f),
-            glm::vec3(0.50754f, 0.50754f, 0.50754f),
-            glm::vec3(0.508273f, 0.508273f, 0.508273f),
-            glm::vec3(0.0f, 0.0f, 0.0f),
-            51.2f
-        }},
-
-        {"Rubber", {
-            "Rubber",
             glm::vec3(0.02f, 0.02f, 0.02f),
-            glm::vec3(0.5f, 0.5f, 0.5f),
             glm::vec3(0.1f, 0.1f, 0.1f),
             glm::vec3(0.0f, 0.0f, 0.0f),
-            10.0f
+            glm::vec3(1.0f, 1.0f, 1.0f),
+            1.0f
         }}
     };
     return presets;
 }
 
-void MaterialPresets::applyPreset(Material* material, const std::string& presetName) {
+void MaterialPresets::applyPreset(Material* material, const std::string& presetName)
+{
     const auto& presets = getPresets();
     auto it = presets.find(presetName);
     if (it != presets.end() && material) {
@@ -86,11 +56,11 @@ void MaterialPresets::applyPreset(Material* material, const std::string& presetN
     }
 }
 
-std::vector<std::string> MaterialPresets::getPresetNames() {
+std::vector<std::string> MaterialPresets::getPresetNames()
+{
     std::vector<std::string> names;
     const auto& presets = getPresets();
-    for (const auto& pair : presets) {
-        names.push_back(pair.first);
-    }
+
+    for (const auto& pair : presets) names.push_back(pair.first);
     return names;
 }

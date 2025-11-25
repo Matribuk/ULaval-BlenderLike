@@ -51,6 +51,62 @@ bool Cubemap::load(
     return success;
 }
 
+bool Cubemap::allocateRenderTarget(int size)
+{
+    if (this->_textureID != 0) {
+        glDeleteTextures(1, &this->_textureID);
+        this->_textureID = 0;
+    }
+
+    glGenTextures(1, &this->_textureID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, this->_textureID);
+
+    for (int i = 0; i < 6; ++i)
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, size, size, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+    if (this->_fbo == 0) glGenFramebuffers(1, &this->_fbo);
+    if (this->_rbo == 0) glGenRenderbuffers(1, &this->_rbo);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, this->_fbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, this->_rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, size, size);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, this->_rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    this->_size = size;
+    this->_loaded = true;
+    return true;
+}
+
+void Cubemap::beginFaceRender(GLenum face)
+{
+    if (!this->_loaded || this->_fbo == 0) return;
+
+    GLint vp[4];
+    glGetIntegerv(GL_VIEWPORT, vp);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, this->_fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, face, this->_textureID, 0);
+    GLenum drawBufs[1] = { GL_COLOR_ATTACHMENT0 };
+    glDrawBuffers(1, drawBufs);
+    glViewport(0, 0, this->_size, this->_size);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void Cubemap::endFaceRender()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 bool Cubemap::loadFromFolder(const std::string& folderPath, const std::string& extension)
 {
     std::string right  = folderPath + "/right."  + extension;

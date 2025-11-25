@@ -29,77 +29,53 @@ varying vec2 vTexCoord;
 
 void main()
 {
-    // Normalized vectors
     vec3 N = normalize(vNormal);
     vec3 V = normalize(cameraPosition - vPosition);
-<<<<<<< HEAD
-    vec3 R = reflect(-L, N);
 
-    // Lambert diffuse
-    float diff = max(dot(N, L), 0.0);
-
-    // Phong specular
-    float spec = pow(max(dot(R, V), 0.0), shininess);
-
-    // Fetch texture or fallback to object color
     vec3 baseColor = hasTexture ? texture2D(tex0, vTexCoord).rgb : color.rgb;
-
-    // Lighting components (physically consistent)
-    vec3 ambient  = ambientColor * ambientReflection * baseColor;
-    vec3 diffuse  = lightColor * diff * lightIntensity * diffuseReflection * baseColor;
-    vec3 specular = lightColor * spec * lightIntensity * specularReflection; // specular not tinted by baseColor
-    vec3 emissive = emissiveReflection;
-=======
-
-    vec3 baseColor;
-    if (hasTexture) baseColor = texture2D(tex0, vTexCoord).rgb;
-    else baseColor = color.rgb;
-
     vec3 ambient = ambientColor * ambientReflection * baseColor;
-    vec3 diffuse = vec3(0.0, 0.0, 0.0);
-    vec3 specular = vec3(0.0, 0.0, 0.0);
->>>>>>> fff7a7a ([ADD] 7.3)
+    vec3 diffuse = vec3(0.0);
+    vec3 specular = vec3(0.0);
 
-    for (int i = 0; i < 8; i++) {
-        if (i >= numLights) continue;
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+        if (i >= numLights) break;
 
-        vec3 L;
-        float attenuation = 1.0;
         int lightType = lightTypes[i];
+        vec3 L = vec3(0.0);
+        float attenuation = 1.0;
 
         if (lightType == 0) {
             ambient += lightColors[i] * lightIntensities[i] * ambientReflection * baseColor;
-        } else {
-            if (lightType == 1) {
-                L = normalize(-lightDirections[i]);
-            } else if (lightType == 2) {
-                vec3 lightVec = lightPositions[i] - vPosition;
-                float distance = length(lightVec);
-                L = normalize(lightVec);
-                attenuation = 1.0 / (1.0 + lightAttenuations[i] * distance * distance);
-            } else if (lightType == 3) {
-                vec3 lightVec = lightPositions[i] - vPosition;
-                float distance = length(lightVec);
-                L = normalize(lightVec);
-
-                float theta = dot(L, normalize(-lightDirections[i]));
-                float cutoff = cos(radians(lightSpotAngles[i]));
-
-                if (theta > cutoff) {
-                    float spotEffect = pow(theta, 2.0);
-                    attenuation = spotEffect / (1.0 + lightAttenuations[i] * distance * distance);
-                } else {
-                    attenuation = 0.0;
-                }
-            }
-
-            float diff = max(dot(N, L), 0.0);
-            vec3 H = normalize(L + V);
-            float spec = pow(max(dot(N, H), 0.0), shininess);
-
-            diffuse += lightColors[i] * diff * lightIntensities[i] * attenuation * diffuseReflection * baseColor;
-            specular += lightColors[i] * spec * lightIntensities[i] * attenuation * specularReflection;
+            continue;
         }
+
+        if (lightType == 1) L = normalize(-lightDirections[i]);
+        else if (lightType == 2) {
+            vec3 lightVec = lightPositions[i] - vPosition;
+            float dist = length(lightVec);
+            L = normalize(lightVec);
+            attenuation = 1.0 / (1.0 + lightAttenuations[i] * dist * dist);
+        } else if (lightType == 3) {
+            vec3 lightVec = lightPositions[i] - vPosition;
+            float dist = length(lightVec);
+            L = normalize(lightVec);
+
+            float theta = dot(L, normalize(-lightDirections[i]));
+            float cutoff = cos(radians(lightSpotAngles[i]));
+
+            if (theta > cutoff) {
+                float spotEffect = pow(theta, 2.0);
+                attenuation = spotEffect / (1.0 + lightAttenuations[i] * dist * dist);
+            } else attenuation = 0.0;
+        }
+
+        float diff = max(dot(N, L), 0.0);
+
+        vec3 H = normalize(L + V);
+        float spec = pow(max(dot(N, H), 0.0), shininess);
+
+        diffuse += lightColors[i] * diff * lightIntensities[i] * attenuation * diffuseReflection * baseColor;
+        specular += lightColors[i] * spec * lightIntensities[i] * attenuation * specularReflection;
     }
 
     vec3 emissive = emissiveReflection;

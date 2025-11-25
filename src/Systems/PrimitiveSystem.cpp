@@ -1,7 +1,12 @@
 #include "Systems/PrimitiveSystem.hpp"
+#include "Manager/ResourceManager.hpp"
 
 PrimitiveSystem::PrimitiveSystem(ComponentRegistry& registry, EntityManager& entityMgr)
     : _registry(registry), _entityManager(entityMgr) {}
+
+void PrimitiveSystem::setResourceManager(ResourceManager* resourceManager) {
+    this->_resourceManager = resourceManager;
+}
 
 void PrimitiveSystem::generateMeshes() {
     for (EntityID id : this->_entityManager.getAllEntities()) {
@@ -37,6 +42,10 @@ void PrimitiveSystem::generateMeshes() {
         }
         else if (ParametricCurve* curve = this->_registry.getComponent<ParametricCurve>(id)) {
             render->mesh = this->_generateParametricCurveMesh(*curve, id);
+        }
+
+        if (render->material && this->_resourceManager) {
+            render->material->illuminationShader = this->_resourceManager->getDefaultIlluminationShader();
         }
     }
 }
@@ -764,10 +773,16 @@ void PrimitiveSystem::applyDisplacement(EntityID entityId)
     DisplacementMap* displacement = this->_registry.getComponent<DisplacementMap>(entityId);
 
     if (!renderable || !displacement || !renderable->material || !renderable->material->heightMap) {
+        std::cout << "[PrimitiveSystem] applyDisplacement: missing renderable/displacement/heightMap for entity " << entityId << std::endl;
         return;
     }
 
     ofMesh originalMesh = renderable->mesh;
+
+    std::cout << "[PrimitiveSystem] applyDisplacement: entity=" << entityId
+              << " vertices=" << originalMesh.getNumVertices()
+              << " texcoords=" << originalMesh.getNumTexCoords()
+              << " normals=" << originalMesh.getNumNormals() << std::endl;
 
     if (originalMesh.getNumNormals() == 0) {
         originalMesh.clearNormals();
@@ -806,6 +821,8 @@ void PrimitiveSystem::applyDisplacement(EntityID entityId)
     ofTexture* heightMap = renderable->material->heightMap;
     ofPixels heightPixels;
     heightMap->readToPixels(heightPixels);
+
+    std::cout << "[PrimitiveSystem] heightMap size=" << heightPixels.getWidth() << "x" << heightPixels.getHeight() << std::endl;
 
     for (size_t i = 0; i < subdividedMesh.getNumVertices(); ++i) {
         glm::vec3 vertex = subdividedMesh.getVertex(i);

@@ -1,27 +1,23 @@
 #pragma once
 #include <ofMain.h>
+#include "Core/Cubemap.hpp"
 
 struct Material {
-
-    // Shader pipeline (multi-process)
     std::vector<ofShader*> shaderPipeline;
+    std::vector<ofShader*> effects;
 
-    // Main shaders
     ofShader* shader = nullptr;
     ofShader* illuminationShader = nullptr;
 
-    // Textures
     ofTexture* texture = nullptr;
     ofTexture* normalMap = nullptr;
     ofTexture* heightMap = nullptr;
 
-    // Noise properties
     float scale = 5.0f;
     float octaves = 4.0f;
     float persistence = 0.5f;
     float borderWidth = 0.05f;
 
-    // Lighting
     glm::vec3 lightPosition = glm::vec3(5.0f, 5.0f, 5.0f);
     glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
     float lightIntensity = 1.0f;
@@ -37,11 +33,13 @@ struct Material {
     glm::vec3 reflectionTint = glm::vec3(1.0f, 1.0f, 1.0f);
     float normalStrength = 1.0f;
 
-    // Displacement
     float displacementStrength = 0.5f;
     bool useDisplacement = false;
 
-    // Light emission
+    Cubemap* dynamicCubemap = nullptr;
+    bool useDynamicCubemap = false;
+    int dynamicCubemapSize = 256;
+
     bool isLightSource = false;
 };
 
@@ -58,29 +56,40 @@ struct Renderable {
 
     Renderable() = default;
 
-    Renderable(const ofMesh& m, const ofColor& c = ofColor(255, 255, 255),
-               bool v = true, ofShader* s = nullptr, ofTexture* t = nullptr,
-               bool primitive = false)
-        : mesh(m), color(c), visible(v), isPrimitive(primitive) {
+    Renderable(
+        const ofMesh& m,
+        const ofColor& c = ofColor(255, 255, 255),
+        bool v = true,
+        ofShader* s = nullptr,
+        ofTexture* t = nullptr,
+        bool primitive = false
+    ) :
+        mesh(m),
+        color(c),
+        visible(v),
+        isPrimitive(primitive)
+    {
 
         material = new Material();
         material->shader = s;
+        if (s) material->effects.push_back(s);
         material->texture = t;
     }
 
-    // Copy constructor
     Renderable(const Renderable& other)
-        : mesh(other.mesh), color(other.color), visible(other.visible),
-          showOutline(other.showOutline), isPrimitive(other.isPrimitive) {
-
-        if (other.material)
-            material = new Material(*other.material);
-        else
-            material = nullptr;
+    :
+        mesh(other.mesh),
+        color(other.color),
+        visible(other.visible),
+        showOutline(other.showOutline),
+        isPrimitive(other.isPrimitive)
+    {
+        if (other.material) material = new Material(*other.material);
+        else material = nullptr;
     }
 
-    // Copy assignment
-    Renderable& operator=(const Renderable& other) {
+    Renderable& operator=(const Renderable& other)
+    {
         if (this != &other) {
             mesh = other.mesh;
             color = other.color;
@@ -88,16 +97,12 @@ struct Renderable {
             showOutline = other.showOutline;
             isPrimitive = other.isPrimitive;
 
-            if (material)
-                delete material;
+            if (material) delete material;
 
             material = other.material ? new Material(*other.material) : nullptr;
         }
         return *this;
     }
 
-    // Destructor
-    ~Renderable() {
-        delete material;
-    }
+    ~Renderable() { delete material; }
 };

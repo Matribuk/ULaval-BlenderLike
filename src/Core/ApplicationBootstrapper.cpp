@@ -100,6 +100,7 @@ bool ApplicationBootstrapper::_InitializeSystems()
 bool ApplicationBootstrapper::_InitializeManagers()
 {
     this->_managers.resourceManager = std::make_unique<ResourceManager>();
+    this->_systems.primitiveSystem->setResourceManager(this->_managers.resourceManager.get());
 
     this->_managers.sceneManager = std::make_unique<SceneManager>(
         this->_entityManager,
@@ -141,7 +142,8 @@ bool ApplicationBootstrapper::_InitializeManagers()
         this->_eventManager,
         *this->_managers.cameraManager,
         *this->_managers.viewportManager,
-        *this->_systems.selectionSystem
+        *this->_systems.selectionSystem,
+        *this->_managers.sceneManager
     );
 
     this->_managers.uiManager = std::make_unique<UIManager>(
@@ -295,6 +297,13 @@ bool ApplicationBootstrapper::_CreateScene()
         *this->_systems.renderSystem,
         glm::vec3{0, 5, 10}
     );
+
+    Entity lightEntity = this->_entityManager.createEntity();
+    this->_componentRegistry.registerComponent(lightEntity.getId(), Transform(glm::vec3(0, 10, 0)));
+    this->_componentRegistry.registerComponent(lightEntity.getId(),
+        LightSource(LightType::DIRECTIONAL, glm::vec3(0, 10, 0), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f)
+    );
+    this->_managers.sceneManager->registerEntity(lightEntity.getId(), "Directional Light");
 
     this->_systems.primitiveSystem->generateMeshes();
 

@@ -49,52 +49,6 @@ void RenderSystem::_setupRenderState()
     glEnable(GL_NORMALIZE);
 }
 
-ofCamera RenderSystem::_buildCameraFromComponents(Camera& camera, const Transform& transform)
-{
-    glm::vec3 camPos = transform.position;
-    glm::vec3 forward = glm::normalize(camera.forward);
-    glm::vec3 up = glm::normalize(-camera.up);
-
-    glm::vec3 lookTarget = (camera.focusMode) ? (camera.target) : (camPos + forward);
-
-    camera.viewMatrix = glm::lookAt(camPos, lookTarget, up);
-    if (camera.aspectRatio <= 0.0f) camera.aspectRatio = static_cast<float>(ofGetWidth()) / static_cast<float>(ofGetHeight());
-    camera.projMatrix = glm::perspective(glm::radians(camera.fov), camera.aspectRatio, camera.nearClip, camera.farClip);
-
-    ofCamera cam;
-    cam.setPosition(camPos);
-    cam.lookAt(lookTarget, up);
-    cam.setNearClip(camera.nearClip);
-    cam.setFarClip(camera.farClip);
-    cam.setAspectRatio(camera.aspectRatio);
-
-    if (camera.isOrtho) {
-        float halfWidth = camera.orthoScale * camera.aspectRatio;
-        float halfHeight = camera.orthoScale;
-        camera.projMatrix = glm::ortho(
-            -halfWidth, halfWidth,
-            -halfHeight, halfHeight,
-            camera.nearClip,
-            camera.farClip
-        );
-
-        cam.enableOrtho();
-        cam.setupPerspective(false);
-    } else {
-        camera.projMatrix = glm::perspective(
-            glm::radians(camera.fov),
-            camera.aspectRatio,
-            camera.nearClip,
-            camera.farClip
-        );
-
-        cam.disableOrtho();
-        cam.setFov(camera.fov);
-    }
-
-    return cam;
-}
-
 void RenderSystem::_renderEntities()
 {
     const std::set<EntityID>& selectedEntities = this->_selectionSystem->getSelectedEntities();
@@ -152,13 +106,20 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
         return;
     }
 
+    // Build shader pipeline: illumination shader + effect shaders
     material->shaderPipeline.clear();
-    if (material->illuminationShader) material->shaderPipeline.push_back(material->illuminationShader);
-    if (material->shader) material->shaderPipeline.push_back(material->shader);
+    if (material->illuminationShader) {
+        material->shaderPipeline.push_back(material->illuminationShader);
+    }
+    for (ofShader* effect : material->effects) {
+        material->shaderPipeline.push_back(effect);
+    }
 
-    if (material->shaderPipeline.size() > 1)
+    // Multi-pass rendering if we have multiple shaders
+    if (material->shaderPipeline.size() > 1) {
         this->_drawMeshMultiPass(mesh, transform, color, material);
-
+    }
+    // Single illumination shader
     else if (material->illuminationShader) {
         ofPushMatrix();
         ofMultMatrix(transform);
@@ -167,15 +128,19 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
         this->_drawMeshSinglePass(mesh, transform, color, material, material->illuminationShader, true);
 
         ofPopMatrix();
-    } else if (material->shader) {
+    }
+    // Single effect shader (no illumination)
+    else if (!material->effects.empty()) {
         ofPushMatrix();
         ofMultMatrix(transform);
         ofSetColor(color);
 
-        this->_drawMeshSinglePass(mesh, transform, color, material, material->shader, false);
+        this->_drawMeshSinglePass(mesh, transform, color, material, material->effects[0], false);
 
         ofPopMatrix();
-    } else {
+    }
+    // No shaders, just draw with texture or color
+    else {
         ofPushMatrix();
         ofMultMatrix(transform);
         ofSetColor(color);
@@ -184,7 +149,9 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
             material->texture->bind();
             mesh.draw();
             material->texture->unbind();
-        } else mesh.draw();
+        } else {
+            mesh.draw();
+        }
 
         ofPopMatrix();
     }
@@ -208,10 +175,10 @@ void RenderSystem::_drawMeshSinglePass(const ofMesh& mesh, const glm::mat4& tran
         if (camTransform) shader->setUniform3f("cameraPosition", camTransform->position);
     }
 
-    if (isIllumination) {
-        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
-        shader->setUniformMatrix3f("normalMatrix", normalMatrix);
+    glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
+    shader->setUniformMatrix3f("normalMatrix", normalMatrix);
 
+    if (isIllumination) {
         std::vector<LightSource> lights;
         this->_collectLights(lights);
         this->_setLightUniforms(shader, lights);
@@ -287,24 +254,21 @@ void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& trans
                 shader->setUniform3f("cameraPosition", camTransform->position);
         }
 
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
+        shader->setUniformMatrix3f("normalMatrix", normalMatrix);
+
+        std::vector<LightSource> lights;
+        this->_collectLights(lights);
+        this->_setLightUniforms(shader, lights);
+
+        shader->setUniform3f("ambientColor", material->ambientColor);
+        shader->setUniform1f("shininess", material->shininess);
+        shader->setUniform3f("ambientReflection", material->ambientReflection);
+        shader->setUniform3f("diffuseReflection", material->diffuseReflection);
+        shader->setUniform3f("specularReflection", material->specularReflection);
+        shader->setUniform3f("emissiveReflection", material->emissiveReflection);
+
         if (isIllumination) {
-            glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
-            shader->setUniformMatrix3f("normalMatrix", normalMatrix);
-
-            std::vector<LightSource> lights;
-            this->_collectLights(lights);
-            this->_setLightUniforms(shader, lights);
-
-            shader->setUniform3f("ambientColor", material->ambientColor);
-            shader->setUniform1f("shininess", material->shininess);
-
-            // Réflections matérielles de base
-            shader->setUniform3f("ambientReflection", material->ambientReflection);
-            shader->setUniform3f("diffuseReflection", material->diffuseReflection);
-            shader->setUniform3f("specularReflection", material->specularReflection);
-            shader->setUniform3f("emissiveReflection", material->emissiveReflection);
-            
-            // Support des réflections miroir/cubemap
             shader->setUniform1f("reflectivity", material->reflectivity);
             shader->setUniform3f("reflectionTint", material->reflectionTint);
         }
@@ -317,10 +281,8 @@ void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& trans
 
         if (material->texture)
             shader->setUniformTexture("tex0", *material->texture, 0);
-        else
-            shader->setUniformTexture("tex0", this->_whiteTexture, 0);
+        else shader->setUniformTexture("tex0", this->_whiteTexture, 0);
 
-        // Support de la cubemap d'environnement
         bool hasEnvMap = false;
         GLint envMapLoc = glGetUniformLocation(shader->getProgram(), "envMap");
         if (envMapLoc != -1 && this->_skyboxCubemap.isLoaded()) {
@@ -333,17 +295,14 @@ void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& trans
             shader->setUniformTexture("normalMap", *material->normalMap, 2);
             shader->setUniform1i("useNormalMap", 1);
             shader->setUniform1f("normalStrength", material->normalStrength);
-        } else {
-            shader->setUniform1i("useNormalMap", 0);
-        }
+        } else shader->setUniform1i("useNormalMap", 0);
 
         glEnableClientState(GL_NORMAL_ARRAY);
         mesh.draw();
         glDisableClientState(GL_NORMAL_ARRAY);
 
         shader->end();
-        
-        // Nettoyage des textures
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, 0);
 
