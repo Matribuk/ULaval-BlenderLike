@@ -103,15 +103,6 @@ void MaterialPanel::render()
             this->_renderTextureSection(primaryEntity, primaryRenderable);
             this->_renderMeshSection(primaryEntity, primaryRenderable);
         }
-        
-        // Section Lighting (uniquement si illumination shader)
-        if (hasIlluminationShader) {
-            if (ImGui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen)) {
-                this->_renderLightingParameters(selectedEntities, primaryRenderable);
-            }
-        }
-        
-        // Section Relief Mapping
         this->_renderReliefMappingSection(primaryEntity, selectedEntities, primaryRenderable);
     }
 }
@@ -532,18 +523,11 @@ void MaterialPanel::_renderMeshSection(EntityID primaryEntity, Renderable* prima
 
 void MaterialPanel::_renderLightingParameters(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable)
 {
-    if (!primaryRenderable->material->shader) return;
+    ImGui::TextWrapped("Use the Light Panel to add and configure lights in the scene.");
+    ImGui::Spacing();
+    ImGui::Separator();
 
-    ImGui::Text("Lighting Parameters:");
-
-    if (ImGui::DragFloat3("Light Position", &primaryRenderable->material->lightPosition.x, 0.1f))
-        this->_syncMaterialProperty(selectedEntities, &Material::lightPosition, primaryRenderable->material->lightPosition);
-
-    if (ImGui::ColorEdit3("Light Color", &primaryRenderable->material->lightColor.x))
-        this->_syncMaterialProperty(selectedEntities, &Material::lightColor, primaryRenderable->material->lightColor);
-
-    if (ImGui::SliderFloat("Light Intensity", &primaryRenderable->material->lightIntensity, 0.0f, 5.0f))
-        this->_syncMaterialProperty(selectedEntities, &Material::lightIntensity, primaryRenderable->material->lightIntensity);
+    ImGui::Text("Material Surface Properties:");
 
     if (ImGui::ColorEdit3("Ambient Color", &primaryRenderable->material->ambientColor.x))
         this->_syncMaterialProperty(selectedEntities, &Material::ambientColor, primaryRenderable->material->ambientColor);
@@ -551,16 +535,15 @@ void MaterialPanel::_renderLightingParameters(const std::set<EntityID>& selected
     if (ImGui::SliderFloat("Shininess", &primaryRenderable->material->shininess, 1.0f, 128.0f))
         this->_syncMaterialProperty(selectedEntities, &Material::shininess, primaryRenderable->material->shininess);
 
+    ImGui::Spacing();
     ImGui::Separator();
-    ImGui::Text("Reflection Parameters:");
+    ImGui::Text("Reflection Properties:");
 
     if (ImGui::SliderFloat("Reflectivity", &primaryRenderable->material->reflectivity, 0.0f, 1.0f))
         this->_syncMaterialProperty(selectedEntities, &Material::reflectivity, primaryRenderable->material->reflectivity);
 
     if (ImGui::ColorEdit3("Reflection Tint", &primaryRenderable->material->reflectionTint.x))
         this->_syncMaterialProperty(selectedEntities, &Material::reflectionTint, primaryRenderable->material->reflectionTint);
-
-    ImGui::Separator();
 }
 
 void MaterialPanel::_renderMaterialPresets(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable)
@@ -945,23 +928,6 @@ void MaterialPanel::_renderMaterialReflectionComponents(const std::set<EntityID>
 
     ImGui::Spacing();
     ImGui::Separator();
-    ImGui::Text("Light Emission (7.3):");
-
-    bool isLightSource = primaryRenderable->material->isLightSource;
-    if (ImGui::Checkbox("Projette de la lumiere", &isLightSource)) {
-        primaryRenderable->material->isLightSource = isLightSource;
-        for (EntityID id : selectedEntities) {
-            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
-            if (renderable && renderable->material) {
-                renderable->material->isLightSource = isLightSource;
-            }
-        }
-    }
-
-    if (isLightSource && emissiveCoef > 0.0f) {
-        ImGui::SameLine();
-        ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "(Source de lumiere active)");
-    }
 }
 
 bool MaterialPanel::_isIlluminationShader(ofShader* shader)

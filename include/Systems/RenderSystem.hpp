@@ -8,6 +8,7 @@
 #include "Components/Transform.hpp"
 #include "Components/BoundingBoxVisualization.hpp"
 #include "Components/CustomBounds.hpp"
+#include "Components/LightSource.hpp"
 
 #include "Manager/CameraManager.hpp"
 
@@ -40,6 +41,9 @@ class RenderSystem {
         void _drawMeshSinglePass(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material, ofShader* shader, bool isIllumination);
         void _drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material);
         void _drawBoundingBox(EntityID entityId, const Transform& transform, const BoundingBoxVisualization& bboxVis);
+        void _collectLights(std::vector<LightSource>& lights);
+        void _setLightUniforms(ofShader* shader, const std::vector<LightSource>& lights);
+        void _drawLightDirectionIndicator(const LightSource& light, const glm::mat4& transform);
 
         ofShader _skyCubeShader;
         ofVboMesh _skyQuad;

@@ -44,6 +44,7 @@ class PrimitivesPanel {
         );
 
         void render();
+        void renderContent();
         void setEventLogPanel(EventLogPanel* eventLog);
 
     private:

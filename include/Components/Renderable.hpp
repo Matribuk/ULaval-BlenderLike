@@ -28,13 +28,11 @@ struct Material {
     glm::vec3 ambientColor = glm::vec3(0.1f, 0.1f, 0.1f);
     float shininess = 32.0f;
 
-    // Reflection properties (fusion des deux branches)
-    glm::vec3 ambientReflection = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 diffuseReflection = glm::vec3(0.55f, 0.55f, 0.55f);
-    glm::vec3 specularReflection = glm::vec3(0.70f, 0.70f, 0.70f);
+    glm::vec3 ambientReflection = glm::vec3(0.1f, 0.1f, 0.1f);
+    glm::vec3 diffuseReflection = glm::vec3(0.8f, 0.8f, 0.8f);
+    glm::vec3 specularReflection = glm::vec3(0.5f, 0.5f, 0.5f);
     glm::vec3 emissiveReflection = glm::vec3(0.0f, 0.0f, 0.0f);
 
-    // Advanced material properties
     float reflectivity = 0.0f;
     glm::vec3 reflectionTint = glm::vec3(1.0f, 1.0f, 1.0f);
     float normalStrength = 1.0f;

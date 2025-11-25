@@ -20,62 +20,48 @@ PrimitivesPanel::PrimitivesPanel(
 
 void PrimitivesPanel::render()
 {
-    if (ImGui::Begin("Primitives", nullptr, ImGuiWindowFlags_NoCollapse)) {
-        ImGui::Text("Add a Geometric Primitive");
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        if (ImGui::Button("Cube", ImVec2(-1, 60)))
-            this->_createPrimitive(PrimitiveType::Cube);
-
-        if (ImGui::Button("Sphere", ImVec2(-1, 60)))
-            this->_createPrimitive(PrimitiveType::Sphere);
-
-
-        ImGui::Spacing();
-        ImGui::Text("Add a Vector Primitive");
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        if (ImGui::Button("Plane", ImVec2(-1, 60)))
-            this->_createPrimitive(PrimitiveType::Plane);
-
-        if (ImGui::Button("Triangle", ImVec2(-1, 60)))
-            this->_createPrimitive(PrimitiveType::Triangle);
-
-        if (ImGui::Button("Circle", ImVec2(-1, 60)))
-            this->_createPrimitive(PrimitiveType::Circle);
-
-        if (ImGui::Button("Line", ImVec2(-1, 60)))
-            this->_createPrimitive(PrimitiveType::Line);
-
-        if (ImGui::Button("Rectangle", ImVec2(-1, 60)))
-            this->_createPrimitive(PrimitiveType::Rectangle);
-
-        if (ImGui::Button("Point", ImVec2(-1, 60)))
-            this->_createPrimitive(PrimitiveType::Point);
-
-        ImGui::Spacing();
-        ImGui::Text("Add a Computational Geometry Primitive");
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        if (ImGui::Button("Delaunay Triangulation", ImVec2(-1, 60)))
-            this->_createPrimitive(PrimitiveType::DelaunayTriangulation);
-
-        ImGui::Spacing();
-        ImGui::Text("Add a Parametric Curve");
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        if (ImGui::Button("Bezier Curve", ImVec2(-1, 60)))
-            this->_createPrimitive(PrimitiveType::BezierCurve);
-
-        if (ImGui::Button("Catmull-Rom Spline", ImVec2(-1, 60)))
-            this->_createPrimitive(PrimitiveType::CatmullRomCurve);
-
-    }
+    if (ImGui::Begin("Primitives", nullptr, ImGuiWindowFlags_NoCollapse)) this->renderContent();
     ImGui::End();
+}
+
+void PrimitivesPanel::renderContent()
+{
+    ImGui::Text("Add a Geometric Primitive");
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    if (ImGui::Button("Cube", ImVec2(-1, 60))) this->_createPrimitive(PrimitiveType::Cube);
+    if (ImGui::Button("Sphere", ImVec2(-1, 60))) this->_createPrimitive(PrimitiveType::Sphere);
+
+    ImGui::Spacing();
+    ImGui::Text("Add a Vector Primitive");
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    if (ImGui::Button("Plane", ImVec2(-1, 60))) this->_createPrimitive(PrimitiveType::Plane);
+    if (ImGui::Button("Triangle", ImVec2(-1, 60))) this->_createPrimitive(PrimitiveType::Triangle);
+    if (ImGui::Button("Circle", ImVec2(-1, 60))) this->_createPrimitive(PrimitiveType::Circle);
+    if (ImGui::Button("Line", ImVec2(-1, 60))) this->_createPrimitive(PrimitiveType::Line);
+    if (ImGui::Button("Rectangle", ImVec2(-1, 60))) this->_createPrimitive(PrimitiveType::Rectangle);
+    if (ImGui::Button("Point", ImVec2(-1, 60))) this->_createPrimitive(PrimitiveType::Point);
+
+    ImGui::Spacing();
+    ImGui::Text("Add a Computational Geometry Primitive");
+    ImGui::Separator();
+
+    if (ImGui::Button("Delaunay Triangulation", ImVec2(-1, 60)))
+        this->_createPrimitive(PrimitiveType::DelaunayTriangulation);
+
+    ImGui::Spacing();
+    ImGui::Text("Add a Parametric Curve");
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    if (ImGui::Button("Bezier Curve", ImVec2(-1, 60)))
+        this->_createPrimitive(PrimitiveType::BezierCurve);
+
+    if (ImGui::Button("Catmull-Rom Spline", ImVec2(-1, 60)))
+        this->_createPrimitive(PrimitiveType::CatmullRomCurve);
 }
 
 
@@ -235,31 +221,25 @@ void PrimitivesPanel::_createPrimitive(PrimitiveType type)
 
     this->_componentRegistry.registerComponent(entity.getId(), Renderable(ofMesh(), defaultColor, true, nullptr, nullptr, true));
     this->_componentRegistry.registerComponent(entity.getId(), Selectable());
-
     this->_componentRegistry.registerComponent(entity.getId(), BoundingBoxVisualization(bboxType, false));
-
     this->_sceneManager.registerEntity(entity.getId(), primitiveName);
-
     this->_primitiveSystem.generateMeshes();
 
     if (type == PrimitiveType::BezierCurve || type == PrimitiveType::CatmullRomCurve) {
         ParametricCurve* curve = this->_componentRegistry.getComponent<ParametricCurve>(entity.getId());
         if (curve && !curve->controlPointEntities.empty()) {
-            for (EntityID pointId : curve->controlPointEntities) {
+            for (EntityID pointId : curve->controlPointEntities)
                 this->_sceneManager.setParent(pointId, entity.getId());
-            }
         }
     } else if (type == PrimitiveType::DelaunayTriangulation) {
         DelaunayMesh* delaunay = this->_componentRegistry.getComponent<DelaunayMesh>(entity.getId());
         if (delaunay && !delaunay->controlPointEntities.empty()) {
-            for (EntityID pointId : delaunay->controlPointEntities) {
+            for (EntityID pointId : delaunay->controlPointEntities)
                 this->_sceneManager.setParent(pointId, entity.getId());
-            }
         }
     }
 
     this->_primitiveSystem.generateMeshes();
 
-    if (this->_eventLogPanel)
-        this->_eventLogPanel->addLog("Created " + primitiveName + " (default parameters)", ofColor::cyan);
+    if (this->_eventLogPanel) this->_eventLogPanel->addLog("Created " + primitiveName + " (default parameters)", ofColor::cyan);
 }
