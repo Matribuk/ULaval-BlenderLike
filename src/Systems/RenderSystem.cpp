@@ -45,7 +45,9 @@ void RenderSystem::render()
 
 void RenderSystem::_setupRenderState()
 {
-    glDisable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
     glEnable(GL_NORMALIZE);
 }
 
@@ -106,20 +108,13 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
         return;
     }
 
-    // Build shader pipeline: illumination shader + effect shaders
     material->shaderPipeline.clear();
-    if (material->illuminationShader) {
+    if (material->illuminationShader)
         material->shaderPipeline.push_back(material->illuminationShader);
-    }
-    for (ofShader* effect : material->effects) {
-        material->shaderPipeline.push_back(effect);
-    }
+    for (ofShader* effect : material->effects) material->shaderPipeline.push_back(effect);
 
-    // Multi-pass rendering if we have multiple shaders
-    if (material->shaderPipeline.size() > 1) {
+    if (material->shaderPipeline.size() > 1)
         this->_drawMeshMultiPass(mesh, transform, color, material);
-    }
-    // Single illumination shader
     else if (material->illuminationShader) {
         ofPushMatrix();
         ofMultMatrix(transform);
@@ -128,9 +123,7 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
         this->_drawMeshSinglePass(mesh, transform, color, material, material->illuminationShader, true);
 
         ofPopMatrix();
-    }
-    // Single effect shader (no illumination)
-    else if (!material->effects.empty()) {
+    } else if (!material->effects.empty()) {
         ofPushMatrix();
         ofMultMatrix(transform);
         ofSetColor(color);
@@ -138,9 +131,7 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
         this->_drawMeshSinglePass(mesh, transform, color, material, material->effects[0], false);
 
         ofPopMatrix();
-    }
-    // No shaders, just draw with texture or color
-    else {
+    } else {
         ofPushMatrix();
         ofMultMatrix(transform);
         ofSetColor(color);
@@ -149,9 +140,7 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
             material->texture->bind();
             mesh.draw();
             material->texture->unbind();
-        } else {
-            mesh.draw();
-        }
+        } else mesh.draw();
 
         ofPopMatrix();
     }
@@ -236,7 +225,7 @@ void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& trans
             glEnable(GL_DEPTH_TEST);
             glDepthMask(GL_TRUE);
         } else {
-            glBlendFunc(GL_ONE, GL_ONE);
+            glBlendFunc(GL_DST_COLOR, GL_ZERO);
             glDisable(GL_DEPTH_TEST);
             glDepthMask(GL_FALSE);
         }
@@ -309,8 +298,12 @@ void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& trans
         if (hasEnvMap) {
             glActiveTexture(GL_TEXTURE1);
             this->_skyboxCubemap.unbind();
-            glActiveTexture(GL_TEXTURE0);
         }
+
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        glActiveTexture(GL_TEXTURE0);
     }
 
     glDisable(GL_BLEND);

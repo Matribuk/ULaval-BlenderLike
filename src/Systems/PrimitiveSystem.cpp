@@ -191,12 +191,12 @@ ofMesh PrimitiveSystem::_generateSphereMesh(float radius)
             int next = current + sectors + 1;
 
             mesh.addIndex(current);
-            mesh.addIndex(next);
             mesh.addIndex(current + 1);
+            mesh.addIndex(next);
 
             mesh.addIndex(current + 1);
-            mesh.addIndex(next);
             mesh.addIndex(next + 1);
+            mesh.addIndex(next);
         }
     }
 
@@ -779,11 +779,6 @@ void PrimitiveSystem::applyDisplacement(EntityID entityId)
 
     ofMesh originalMesh = renderable->mesh;
 
-    std::cout << "[PrimitiveSystem] applyDisplacement: entity=" << entityId
-              << " vertices=" << originalMesh.getNumVertices()
-              << " texcoords=" << originalMesh.getNumTexCoords()
-              << " normals=" << originalMesh.getNumNormals() << std::endl;
-
     if (originalMesh.getNumNormals() == 0) {
         originalMesh.clearNormals();
         for (size_t i = 0; i < originalMesh.getNumIndices(); i += 3) {
@@ -821,8 +816,6 @@ void PrimitiveSystem::applyDisplacement(EntityID entityId)
     ofTexture* heightMap = renderable->material->heightMap;
     ofPixels heightPixels;
     heightMap->readToPixels(heightPixels);
-
-    std::cout << "[PrimitiveSystem] heightMap size=" << heightPixels.getWidth() << "x" << heightPixels.getHeight() << std::endl;
 
     for (size_t i = 0; i < subdividedMesh.getNumVertices(); ++i) {
         glm::vec3 vertex = subdividedMesh.getVertex(i);
