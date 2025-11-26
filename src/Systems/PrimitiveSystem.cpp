@@ -1,7 +1,12 @@
 #include "Systems/PrimitiveSystem.hpp"
+#include "Manager/ResourceManager.hpp"
 
 PrimitiveSystem::PrimitiveSystem(ComponentRegistry& registry, EntityManager& entityMgr)
     : _registry(registry), _entityManager(entityMgr) {}
+
+void PrimitiveSystem::setResourceManager(ResourceManager* resourceManager) {
+    this->_resourceManager = resourceManager;
+}
 
 void PrimitiveSystem::generateMeshes() {
     for (EntityID id : this->_entityManager.getAllEntities()) {
@@ -37,6 +42,10 @@ void PrimitiveSystem::generateMeshes() {
         }
         else if (ParametricCurve* curve = this->_registry.getComponent<ParametricCurve>(id)) {
             render->mesh = this->_generateParametricCurveMesh(*curve, id);
+        }
+
+        if (render->material && this->_resourceManager) {
+            render->material->illuminationShader = this->_resourceManager->getDefaultIlluminationShader();
         }
     }
 }
@@ -182,12 +191,12 @@ ofMesh PrimitiveSystem::_generateSphereMesh(float radius)
             int next = current + sectors + 1;
 
             mesh.addIndex(current);
-            mesh.addIndex(next);
             mesh.addIndex(current + 1);
+            mesh.addIndex(next);
 
             mesh.addIndex(current + 1);
-            mesh.addIndex(next);
             mesh.addIndex(next + 1);
+            mesh.addIndex(next);
         }
     }
 
@@ -764,6 +773,7 @@ void PrimitiveSystem::applyDisplacement(EntityID entityId)
     DisplacementMap* displacement = this->_registry.getComponent<DisplacementMap>(entityId);
 
     if (!renderable || !displacement || !renderable->material || !renderable->material->heightMap) {
+        std::cout << "[PrimitiveSystem] applyDisplacement: missing renderable/displacement/heightMap for entity " << entityId << std::endl;
         return;
     }
 

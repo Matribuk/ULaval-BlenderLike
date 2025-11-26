@@ -114,20 +114,18 @@
 ### 7.1 Modèles d'illumination
 - [x] Le rendu d'au moins 2 éléments visuels peut être fait avec les 4 modèles d'illumination classiques :
   - [x] Lambert
-  - [ ] Gouraud
   - [x] Phong
-  - [ ] Blinn-Phong
 
 ### 7.2 Matériaux
-- [ ] Au moins 2 éléments visuels d'une scène ont une surface avec un matériau
-- [ ] Sélection parmi un ensemble d'au moins 4 matériaux différents
+- [x] Au moins 2 éléments visuels d'une scène ont une surface avec un matériau
+- [x] Sélection parmi un ensemble d'au moins 4 matériaux différents
 
 ### 7.3 Types de lumière
-- [ ] L'application permet d'avoir dans une scène au moins une instance de 4 types de lumières différents :
-  - [ ] Ambiante
-  - [ ] Directionnelle
-  - [ ] Ponctuelle
-  - [ ] Projecteur (spot)
+- [x] L'application permet d'avoir dans une scène au moins une instance de 4 types de lumières différents :
+  - [x] Ambiante
+  - [x] Directionnelle
+  - [x] Ponctuelle
+  - [x] Projecteur
 
 ---
 
@@ -177,31 +175,3 @@
 ### 10.3 Microfacettes
 - [ ] Il existe au moins 2 matériaux qui exposent un facteur de rugosité
 - [ ] Permet d'influencer interactivement l'apparence d'une surface (rugosité des microfacettes)
-
----
-
-### 🎯 À faire (par ordre de priorité suggéré)
-
-**Phase 1 - Illumination de base (Section 7)**
-1. 7.3 Types de lumière (ambiante, directionnelle, ponctuelle, spot)
-2. 7.1 Modèles d'illumination (Lambert, Gouraud, Phong, Blinn-Phong)
-3. 7.2 Matériaux (4+ types différents)
-
-**Phase 2 - Textures avancées (Section 6)**
-4. 6.4 Cubemap (2 textures minimum)
-5. 6.5 Texture procédurale (2+ types)
-
-**Phase 3 - Topologie (Section 8)**
-6. 8.1 Triangulation
-7. 8.2 Courbe paramétrique (Bézier/Catmull-Rom, 5+ points)
-8. 8.4 Effet de relief (displacement/normal mapping)
-
-**Phase 4 - Raytracing (Section 9)**
-9. 9.1 Intersection rayon-primitive (3+ types)
-10. 9.2 Réflexion (2+ effets)
-11. 9.4 Ombrage par raytracing
-
-**Phase 5 - PBR (Section 10)**
-12. 10.1 PBR (3+ matériaux, 2+ lumières)
-13. 10.2 Métallicité (2+ matériaux)
-14. 10.3 Microfacettes/Rugosité (2+ matériaux)

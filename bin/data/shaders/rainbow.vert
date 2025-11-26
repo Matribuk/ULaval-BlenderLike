@@ -1,13 +1,11 @@
 #version 120
 
-uniform mat4 modelMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 projMatrix;
-
 varying vec2 vTexCoord;
+varying vec3 vPosition;
 
 void main()
 {
     vTexCoord = gl_MultiTexCoord0.xy;
-    gl_Position = projMatrix * viewMatrix * modelMatrix * gl_Vertex;
+    vPosition = gl_Vertex.xyz;
+    gl_Position = ftransform();
 }

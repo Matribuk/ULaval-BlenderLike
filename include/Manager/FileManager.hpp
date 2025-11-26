@@ -38,8 +38,8 @@ class FileManager {
         void handleAssetDrop(const AssetInfo* asset, SceneManager& sceneManager, ResourceManager& resourceManager, EventLogPanel& eventLog);
 
     private:
-        EntityID _createImagePlaneEntity(ofTexture& texture, const std::string& name, const glm::vec3& position = glm::vec3(0, 0, 0));
-        std::pair<EntityID, std::string> _importMesh(const std::string& filename);
+        EntityID _createImagePlaneEntity(ofTexture& texture, const std::string& name, ResourceManager& resourceManager, const glm::vec3& position = glm::vec3(0, 0, 0));
+        std::pair<EntityID, std::string> _importMesh(const std::string& filename, ResourceManager& resourceManager);
         std::pair<std::string, std::string> _copyFileToDataFolder(const std::string& sourcePath);
         std::shared_ptr<ofTexture> _importImageTexture(const std::string& filename);
         ComponentRegistry& _componentRegistry;

@@ -15,6 +15,7 @@ class ResourceManager {
         ofTexture& loadTexture(std::string path);
         ofTexture& storeTexture(const std::string& name, const ofTexture& texture);
         ofShader& loadShader(std::string vertexPath, std::string fragmentPath);
+        ofShader* getDefaultIlluminationShader();
         std::string getMeshPath(ofMesh& target);
         std::string getTexturePath(ofTexture& target);
         std::string getShaderPath(ofShader& target);

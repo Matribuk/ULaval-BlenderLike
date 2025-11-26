@@ -16,8 +16,7 @@ void PropertiesManager::render()
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse;
 
-    if (ImGui::Begin("Inspector", nullptr, flags))
-    {
+    if (ImGui::Begin("Inspector", nullptr, flags)) {
         float halfHeight = (ofGetWindowHeight() - 60) * 0.4f;
 
         ImGui::BeginChild("SceneHierarchy", ImVec2(0, halfHeight), true);
@@ -44,46 +43,67 @@ void PropertiesManager::render()
             ImGui::Unindent(10.0f);
         }
 
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
+        EntityID selected = this->_selectionSystem.getSelectedEntity();
+        bool isLight = (selected != INVALID_ENTITY && this->_componentRegistry.hasComponent<LightSource>(selected));
 
-        if (ImGui::SmallButton("x##DeleteColor"))
-        this->_deleteComponnent("Color");
+        if (!isLight) {
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
 
-        ImGui::SameLine();
+            if (ImGui::SmallButton("x##DeleteColor")) this->_deleteComponnent("Color");
 
-        if (ImGui::CollapsingHeader("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::Indent(10.0f);
-            ImGui::BeginChild("ColorPanelContent", ImVec2(0, 400), false);
-            this->_colorPanel->render();
-            ImGui::EndChild();
-            ImGui::Unindent(10.0f);
+            ImGui::SameLine();
+
+            if (ImGui::CollapsingHeader("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::Indent(10.0f);
+                ImGui::BeginChild("ColorPanelContent", ImVec2(0, 400), false);
+                this->_colorPanel->render();
+                ImGui::EndChild();
+                ImGui::Unindent(10.0f);
+            }
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+
+            if (ImGui::SmallButton("x##DeleteMaterial")) this->_deleteComponnent("Material");
+
+            ImGui::SameLine();
+
+            if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::Indent(10.0f);
+                this->_materialPanel->render();
+                ImGui::Unindent(10.0f);
+            }
         }
 
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
+        if (selected != INVALID_ENTITY && this->_componentRegistry.hasComponent<DelaunayMesh>(selected)) {
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
 
-        if (ImGui::SmallButton("x##DeleteMaterial"))
-        this->_deleteComponnent("Material");
-
-        ImGui::SameLine();
-
-        if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::Indent(10.0f);
-            this->_materialPanel->render();
-            ImGui::Unindent(10.0f);
+            if (ImGui::CollapsingHeader("Delaunay Mesh", ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::Indent(10.0f);
+                this->_delaunayPanel->render();
+                ImGui::Unindent(10.0f);
+            }
         }
 
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
+        if (selected != INVALID_ENTITY && this->_componentRegistry.hasComponent<LightSource>(selected)) {
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
 
-        if (ImGui::CollapsingHeader("Delaunay Mesh", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::Indent(10.0f);
-            this->_delaunayPanel->render();
-            ImGui::Unindent(10.0f);
+            if (ImGui::SmallButton("x##DeleteLight")) this->_deleteComponnent("Light");
+
+            ImGui::SameLine();
+
+            if (ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::Indent(10.0f);
+                this->_lightPanel->renderProperties();
+                ImGui::Unindent(10.0f);
+            }
         }
 
         ImGui::EndChild();
@@ -93,12 +113,18 @@ void PropertiesManager::render()
     ImGui::PopStyleColor(1);
 }
 
-void PropertiesManager::setupUI(TranformPanel& tranformPanel, MaterialPanel& materialPanel, ColorPanel& colorPanel, DelaunayPanel& delaunayPanel)
-{
+void PropertiesManager::setupUI(
+    TranformPanel& tranformPanel,
+    MaterialPanel& materialPanel,
+    ColorPanel& colorPanel,
+    DelaunayPanel& delaunayPanel,
+    LightPanel& lightPanel
+) {
     this->_tranformPanel = &tranformPanel;
     this->_materialPanel = &materialPanel;
     this->_colorPanel = &colorPanel;
     this->_delaunayPanel = &delaunayPanel;
+    this->_lightPanel = &lightPanel;
 }
 
 void PropertiesManager::_deleteComponnent(std::string componentName)
@@ -111,5 +137,8 @@ void PropertiesManager::_deleteComponnent(std::string componentName)
 
     if (componentName == "Material" && this->_componentRegistry.hasComponent<Renderable>(selected))
         this->_componentRegistry.removeComponent<Renderable>(selected);
+
+    if (componentName == "Light" && this->_componentRegistry.hasComponent<LightSource>(selected))
+        this->_componentRegistry.removeComponent<LightSource>(selected);
 
 }

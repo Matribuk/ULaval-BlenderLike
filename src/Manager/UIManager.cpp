@@ -17,11 +17,9 @@ void UIManager::render()
 
     this->_toolbar->render();
     this->_propertiesManager.render();
-    this->_primitivesPanel->render();
-    this->_topologyPanel->draw();
+    this->_entitiesPanel->render();
     this->_curvesPanel->render();
     this->_viewportManager.renderAll();
-    this->_assetsPanel->render();
     this->_exportPanel->render();
     this->_importPanel->render();
     this->_instructionsPanel->render();
@@ -30,7 +28,7 @@ void UIManager::render()
     this->_viewportPanel->render();
 
     if (this->_shouldFocusPrimitives) {
-        ImGui::SetWindowFocus("Primitives");
+        ImGui::SetWindowFocus("Entities");
         this->_shouldFocusPrimitives = false;
     }
 
@@ -79,17 +77,15 @@ void UIManager::setupDockspace()
     ImGui::PopStyleVar(3);
 }
 
-void UIManager::setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, InstructionsPanel& instructionsPanel, EventLogPanel& eventLogPanel, AssetsPanel& assetsPanel, ExportPanel& exportPanel, ImportPanel& importPanel, PrimitivesPanel& primitivesPanel, TopologyPanel& topologyPanel, CurvesPanel& curvesPanel, ViewportPanel& viewportPanel)
+void UIManager::setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, InstructionsPanel& instructionsPanel, EventLogPanel& eventLogPanel, ExportPanel& exportPanel, ImportPanel& importPanel, EntitiesPanel& entitiesPanel, CurvesPanel& curvesPanel, ViewportPanel& viewportPanel)
 {
     this->_toolbar = &toolbar;
     this->_skyboxPanel = &skyboxPanel;
     this->_instructionsPanel = &instructionsPanel;
     this->_eventLogPanel = &eventLogPanel;
-    this->_assetsPanel = &assetsPanel;
     this->_exportPanel = &exportPanel;
     this->_importPanel = &importPanel;
-    this->_primitivesPanel = &primitivesPanel;
-    this->_topologyPanel = &topologyPanel;
+    this->_entitiesPanel = &entitiesPanel;
     this->_curvesPanel = &curvesPanel;
     this->_viewportPanel = &viewportPanel;
 }
@@ -108,10 +104,8 @@ void UIManager::_setupInitialLayout()
 
     this->_dockMainId = dockMain;
 
-    ImGui::DockBuilderDockWindow("Primitives", dockRight);
-    ImGui::DockBuilderDockWindow("Topology", dockRight);
+    ImGui::DockBuilderDockWindow("Entities", dockRight);
     ImGui::DockBuilderDockWindow("Parametric Curves", dockRight);
-    ImGui::DockBuilderDockWindow("Assets", dockRight);
     ImGui::DockBuilderDockWindow("Viewport Manager", dockRight);
     ImGui::DockBuilderDockWindow("Toolbar", dockUp);
     ImGui::DockBuilderDockWindow("Inspector", dockLeft);

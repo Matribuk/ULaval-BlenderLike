@@ -27,6 +27,7 @@ class TopologyPanel {
         ~TopologyPanel() = default;
 
         void draw();
+        void drawContent();
 
     private:
         ComponentRegistry& _registry;

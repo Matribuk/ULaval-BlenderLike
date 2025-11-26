@@ -150,3 +150,9 @@ ofShader& ResourceManager::loadShader(std::string vertexPath, std::string fragme
 
     return this->_shaders[key];
 }
+
+ofShader* ResourceManager::getDefaultIlluminationShader() {
+    std::string vertPath = ofToDataPath("shaders/lambert.vert");
+    std::string fragPath = ofToDataPath("shaders/lambert.frag");
+    return &this->loadShader(vertPath, fragPath);
+}
