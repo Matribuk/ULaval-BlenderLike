@@ -55,6 +55,7 @@ struct Renderable {
     Material* material{nullptr};
 
     Renderable() = default;
+    ~Renderable();
 
     Renderable(
         const ofMesh& m,
@@ -63,46 +64,9 @@ struct Renderable {
         ofShader* s = nullptr,
         ofTexture* t = nullptr,
         bool primitive = false
-    ) :
-        mesh(m),
-        color(c),
-        visible(v),
-        isPrimitive(primitive)
-    {
+    );
 
-        material = new Material();
-        material->shader = s;
-        if (s) material->effects.push_back(s);
-        material->texture = t;
-    }
+    Renderable(const Renderable& other);
 
-    Renderable(const Renderable& other)
-    :
-        mesh(other.mesh),
-        color(other.color),
-        visible(other.visible),
-        showOutline(other.showOutline),
-        isPrimitive(other.isPrimitive)
-    {
-        if (other.material) material = new Material(*other.material);
-        else material = nullptr;
-    }
-
-    Renderable& operator=(const Renderable& other)
-    {
-        if (this != &other) {
-            mesh = other.mesh;
-            color = other.color;
-            visible = other.visible;
-            showOutline = other.showOutline;
-            isPrimitive = other.isPrimitive;
-
-            if (material) delete material;
-
-            material = other.material ? new Material(*other.material) : nullptr;
-        }
-        return *this;
-    }
-
-    ~Renderable() { delete material; }
+    Renderable& operator=(const Renderable& other);
 };
