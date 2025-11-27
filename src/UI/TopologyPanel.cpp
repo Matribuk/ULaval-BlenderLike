@@ -6,23 +6,25 @@ TopologyPanel::TopologyPanel(
     PrimitiveSystem& primitiveSys,
     SelectionSystem& selectionSys,
     SceneManager& sceneMgr
-)
-    : _registry(registry),
-      _entityManager(entityMgr),
-      _primitiveSystem(primitiveSys),
-      _selectionSystem(selectionSys),
-      _sceneManager(sceneMgr)
-{
-}
+) :
+    _registry(registry),
+    _entityManager(entityMgr),
+    _primitiveSystem(primitiveSys),
+    _selectionSystem(selectionSys),
+    _sceneManager(sceneMgr)
+{}
 
 void TopologyPanel::draw()
 {
     ImGui::Begin("Topology");
+    this->drawContent();
+    ImGui::End();
+}
 
+void TopologyPanel::drawContent()
+{
     ImGui::SeparatorText("Delaunay / Voronoi");
     this->_drawDelaunayControls();
-
-    ImGui::End();
 }
 
 void TopologyPanel::_drawDelaunayControls()
@@ -79,9 +81,8 @@ void TopologyPanel::_drawDelaunayControls()
     ImGui::Separator();
     ImGui::Spacing();
 
-    if (ImGui::Button("Generate from Selected Points", ImVec2(-1, 0))) {
+    if (ImGui::Button("Generate from Selected Points", ImVec2(-1, 0)))
         this->_generateFromSelectedPoints();
-    }
 
     ImGui::TextWrapped("Select Point entities in the scene, then click to create a triangulation from them.");
 }
@@ -90,9 +91,7 @@ void TopologyPanel::_generateFromSelectedPoints()
 {
     auto selectedEntities = this->_selectionSystem.getSelectedEntities();
 
-    if (selectedEntities.empty()) {
-        return;
-    }
+    if (selectedEntities.empty()) return;
 
     std::vector<glm::vec2> points;
     std::vector<EntityID> pointEntities;
@@ -111,9 +110,7 @@ void TopologyPanel::_generateFromSelectedPoints()
         }
     }
 
-    if (points.size() < 3) {
-        return;
-    }
+    if (points.size() < 3) return;
 
     Entity entity = this->_entityManager.createEntity();
 

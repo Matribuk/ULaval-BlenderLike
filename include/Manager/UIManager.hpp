@@ -6,9 +6,7 @@
 #include "UI/EventLogPanel.hpp"
 #include "UI/ExportPanel.hpp"
 #include "UI/ImportPanel.hpp"
-#include "UI/AssetsPanel.hpp"
-#include "UI/PrimitivesPanel.hpp"
-#include "UI/TopologyPanel.hpp"
+#include "UI/EntitiesPanel.hpp"
 #include "UI/CurvesPanel.hpp"
 #include "UI/ViewportPanel.hpp"
 
@@ -39,11 +37,9 @@ class UIManager {
             SkyboxPanel& skyboxPanel,
             InstructionsPanel& instructionsPanel,
             EventLogPanel& eventLogPanel,
-            AssetsPanel& assetsPanel,
             ExportPanel& exportPanel,
             ImportPanel& importPanel,
-            PrimitivesPanel& primitivesPanel,
-            TopologyPanel& topologyPanel,
+            EntitiesPanel& entitiesPanel,
             CurvesPanel& curvesPanel,
             ViewportPanel& viewportPanel
         );
@@ -58,11 +54,9 @@ class UIManager {
         SkyboxPanel* _skyboxPanel;
         InstructionsPanel* _instructionsPanel;
         EventLogPanel* _eventLogPanel;
-        AssetsPanel* _assetsPanel;
         ExportPanel* _exportPanel;
         ImportPanel* _importPanel;
-        PrimitivesPanel* _primitivesPanel;
-        TopologyPanel* _topologyPanel;
+        EntitiesPanel* _entitiesPanel;
         CurvesPanel* _curvesPanel;
         ViewportPanel* _viewportPanel;
 

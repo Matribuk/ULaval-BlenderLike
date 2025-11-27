@@ -45,54 +45,10 @@ void RenderSystem::render()
 
 void RenderSystem::_setupRenderState()
 {
-    glDisable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
     glEnable(GL_NORMALIZE);
-}
-
-ofCamera RenderSystem::_buildCameraFromComponents(Camera& camera, const Transform& transform)
-{
-    glm::vec3 camPos = transform.position;
-    glm::vec3 forward = glm::normalize(camera.forward);
-    glm::vec3 up = glm::normalize(-camera.up);
-
-    glm::vec3 lookTarget = (camera.focusMode) ? (camera.target) : (camPos + forward);
-
-    camera.viewMatrix = glm::lookAt(camPos, lookTarget, up);
-    if (camera.aspectRatio <= 0.0f) camera.aspectRatio = static_cast<float>(ofGetWidth()) / static_cast<float>(ofGetHeight());
-    camera.projMatrix = glm::perspective(glm::radians(camera.fov), camera.aspectRatio, camera.nearClip, camera.farClip);
-
-    ofCamera cam;
-    cam.setPosition(camPos);
-    cam.lookAt(lookTarget, up);
-    cam.setNearClip(camera.nearClip);
-    cam.setFarClip(camera.farClip);
-    cam.setAspectRatio(camera.aspectRatio);
-
-    if (camera.isOrtho) {
-        float halfWidth = camera.orthoScale * camera.aspectRatio;
-        float halfHeight = camera.orthoScale;
-        camera.projMatrix = glm::ortho(
-            -halfWidth, halfWidth,
-            -halfHeight, halfHeight,
-            camera.nearClip,
-            camera.farClip
-        );
-
-        cam.enableOrtho();
-        cam.setupPerspective(false);
-    } else {
-        camera.projMatrix = glm::perspective(
-            glm::radians(camera.fov),
-            camera.aspectRatio,
-            camera.nearClip,
-            camera.farClip
-        );
-
-        cam.disableOrtho();
-        cam.setFov(camera.fov);
-    }
-
-    return cam;
 }
 
 void RenderSystem::_renderEntities()
@@ -101,14 +57,25 @@ void RenderSystem::_renderEntities()
 
     for (EntityID id : this->_entityManager.getAllEntities()) {
         Transform* transform = this->_registry.getComponent<Transform>(id);
-        Renderable* render   = this->_registry.getComponent<Renderable>(id);
+        if (!transform) continue;
 
-        if (!transform || !render || !render->visible) continue;
-
+        Renderable* render = this->_registry.getComponent<Renderable>(id);
         bool isSelected = (selectedEntities.find(id) != selectedEntities.end());
-        this->_drawMesh(render->mesh, transform->matrix, render->color, render->material, false);
 
-        if (isSelected) {
+        if (render && render->visible)
+            this->_drawMesh(render->mesh, transform->matrix, render->color, render->material, false);
+
+        LightSource* light = this->_registry.getComponent<LightSource>(id);
+        if (light) {
+            if (light->type == LightType::DIRECTIONAL || light->type == LightType::SPOT) {
+                if (light->enabled) {
+                    glm::mat4 lightTransform = glm::translate(glm::mat4(1.0f), transform->position);
+                    this->_drawLightDirectionIndicator(*light, lightTransform);
+                }
+            }
+        }
+
+        if (isSelected && render) {
             BoundingBoxVisualization* bboxVis = this->_registry.getComponent<BoundingBoxVisualization>(id);
 
             if (!bboxVis) {
@@ -117,9 +84,9 @@ void RenderSystem::_renderEntities()
                 defaultBBox.visible = true;
                 defaultBBox.color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
                 this->_drawBoundingBox(id, *transform, defaultBBox);
-            } else if (bboxVis->type != BoundingBoxVisualization::Type::NONE) {
+            } else if (bboxVis->type != BoundingBoxVisualization::Type::NONE)
                 this->_drawBoundingBox(id, *transform, *bboxVis);
-            } else {
+            else {
                 BoundingBoxVisualization defaultBBox;
                 defaultBBox.type = BoundingBoxVisualization::Type::AABB;
                 defaultBBox.visible = true;
@@ -132,66 +99,198 @@ void RenderSystem::_renderEntities()
 
 void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material, bool isSelected)
 {
+    if (!material) {
+        ofPushMatrix();
+        ofMultMatrix(transform);
+        ofSetColor(color);
+        mesh.draw();
+        ofPopMatrix();
+        return;
+    }
+
+    material->shaderPipeline.clear();
+    if (material->illuminationShader)
+        material->shaderPipeline.push_back(material->illuminationShader);
+    for (ofShader* effect : material->effects) material->shaderPipeline.push_back(effect);
+
+    if (material->shaderPipeline.size() > 1)
+        this->_drawMeshMultiPass(mesh, transform, color, material);
+    else if (material->illuminationShader) {
+        ofPushMatrix();
+        ofMultMatrix(transform);
+        ofSetColor(color);
+
+        this->_drawMeshSinglePass(mesh, transform, color, material, material->illuminationShader, true);
+
+        ofPopMatrix();
+    } else if (!material->effects.empty()) {
+        ofPushMatrix();
+        ofMultMatrix(transform);
+        ofSetColor(color);
+
+        this->_drawMeshSinglePass(mesh, transform, color, material, material->effects[0], false);
+
+        ofPopMatrix();
+    } else {
+        ofPushMatrix();
+        ofMultMatrix(transform);
+        ofSetColor(color);
+
+        if (material->texture) {
+            material->texture->bind();
+            mesh.draw();
+            material->texture->unbind();
+        } else mesh.draw();
+
+        ofPopMatrix();
+    }
+}
+
+void RenderSystem::_drawMeshSinglePass(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material, ofShader* shader, bool isIllumination)
+{
+    if (!shader) return;
+
+    shader->begin();
+
+    shader->setUniformMatrix4f("modelMatrix", transform);
+
+    Camera* activeCam = this->_cameraManager->getActiveCamera();
+    EntityID activeCameraId = this->_cameraManager->getActiveCameraId();
+    if (activeCam) {
+        shader->setUniformMatrix4f("viewMatrix", activeCam->viewMatrix);
+        shader->setUniformMatrix4f("projMatrix", activeCam->projMatrix);
+
+        Transform* camTransform = this->_registry.getComponent<Transform>(activeCameraId);
+        if (camTransform) shader->setUniform3f("cameraPosition", camTransform->position);
+    }
+
+    glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
+    shader->setUniformMatrix3f("normalMatrix", normalMatrix);
+
+    if (isIllumination) {
+        std::vector<LightSource> lights;
+        this->_collectLights(lights);
+        this->_setLightUniforms(shader, lights);
+
+        shader->setUniform3f("ambientColor", material->ambientColor);
+        shader->setUniform1f("shininess", material->shininess);
+
+        shader->setUniform3f("ambientReflection", material->ambientReflection);
+        shader->setUniform3f("diffuseReflection", material->diffuseReflection);
+        shader->setUniform3f("specularReflection", material->specularReflection);
+        shader->setUniform3f("emissiveReflection", material->emissiveReflection);
+    }
+
+    shader->setUniform4f("color", ofFloatColor(color));
+    shader->setUniform1f("uTime", ofGetElapsedTimef());
+
+    bool hasTexture = (material->texture != nullptr);
+    shader->setUniform1i("hasTexture", hasTexture ? 1 : 0);
+
+    if (material->texture) shader->setUniformTexture("tex0", *material->texture, 0);
+    else shader->setUniformTexture("tex0", this->_whiteTexture, 0);
+
+    if (material->normalMap) {
+        shader->setUniformTexture("normalMap", *material->normalMap, 2);
+        shader->setUniform1i("useNormalMap", 1);
+        shader->setUniform1f("normalStrength", material->normalStrength);
+    } else
+        shader->setUniform1i("useNormalMap", 0);
+
+    glEnableClientState(GL_NORMAL_ARRAY);
+    mesh.draw();
+    glDisableClientState(GL_NORMAL_ARRAY);
+
+    shader->end();
+}
+void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material)
+{
+    if (material->shaderPipeline.empty()) return;
+
+    Camera* activeCam = this->_cameraManager->getActiveCamera();
+    EntityID activeCameraId = this->_cameraManager->getActiveCameraId();
+
     ofPushMatrix();
     ofMultMatrix(transform);
     ofSetColor(color);
 
-    if (material && material->shader) {
-        material->shader->begin();
+    glEnable(GL_BLEND);
 
-        material->shader->setUniformMatrix4f("modelMatrix", transform);
+    for (size_t i = 0; i < material->shaderPipeline.size(); ++i) {
+        ofShader* shader = material->shaderPipeline[i];
+        bool isIllumination = (shader == material->illuminationShader);
 
-        Camera* activeCam = this->_cameraManager->getActiveCamera();
-        EntityID activeCameraId = this->_cameraManager->getActiveCameraId();
+        if (i == 0) {
+            glBlendFunc(GL_ONE, GL_ZERO);
+            glEnable(GL_DEPTH_TEST);
+            glDepthMask(GL_TRUE);
+        } else {
+            glBlendFunc(GL_DST_COLOR, GL_ZERO);
+            glDisable(GL_DEPTH_TEST);
+            glDepthMask(GL_FALSE);
+        }
+
+        shader->begin();
+
+        shader->setUniformMatrix4f("modelMatrix", transform);
+
         if (activeCam) {
-            material->shader->setUniformMatrix4f("viewMatrix", activeCam->viewMatrix);
-            material->shader->setUniformMatrix4f("projMatrix", activeCam->projMatrix);
+            shader->setUniformMatrix4f("viewMatrix", activeCam->viewMatrix);
+            shader->setUniformMatrix4f("projMatrix", activeCam->projMatrix);
 
             Transform* camTransform = this->_registry.getComponent<Transform>(activeCameraId);
             if (camTransform)
-                material->shader->setUniform3f("cameraPosition", camTransform->position);
+                shader->setUniform3f("cameraPosition", camTransform->position);
         }
 
         glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
-        material->shader->setUniformMatrix3f("normalMatrix", normalMatrix);
+        shader->setUniformMatrix3f("normalMatrix", normalMatrix);
 
-        material->shader->setUniform4f("color", ofFloatColor(color));
-        material->shader->setUniform1f("uTime", ofGetElapsedTimef());
+        std::vector<LightSource> lights;
+        this->_collectLights(lights);
+        this->_setLightUniforms(shader, lights);
 
-        material->shader->setUniform3f("lightPosition", material->lightPosition);
-        material->shader->setUniform3f("lightColor", material->lightColor);
-        material->shader->setUniform1f("lightIntensity", material->lightIntensity);
-        material->shader->setUniform3f("ambientColor", material->ambientColor);
-        material->shader->setUniform1f("shininess", material->shininess);
-        material->shader->setUniform1f("reflectivity", material->reflectivity);
-        material->shader->setUniform3f("reflectionTint", material->reflectionTint);
+        shader->setUniform3f("ambientColor", material->ambientColor);
+        shader->setUniform1f("shininess", material->shininess);
+        shader->setUniform3f("ambientReflection", material->ambientReflection);
+        shader->setUniform3f("diffuseReflection", material->diffuseReflection);
+        shader->setUniform3f("specularReflection", material->specularReflection);
+        shader->setUniform3f("emissiveReflection", material->emissiveReflection);
+
+        if (isIllumination) {
+            shader->setUniform1f("reflectivity", material->reflectivity);
+            shader->setUniform3f("reflectionTint", material->reflectionTint);
+        }
+
+        shader->setUniform4f("color", ofFloatColor(color));
+        shader->setUniform1f("uTime", ofGetElapsedTimef());
+
+        bool hasTexture = (material->texture != nullptr);
+        shader->setUniform1i("hasTexture", hasTexture ? 1 : 0);
 
         if (material->texture)
-            material->shader->setUniformTexture("tex0", *material->texture, 0);
-        else
-            material->shader->setUniformTexture("tex0", this->_whiteTexture, 0);
+            shader->setUniformTexture("tex0", *material->texture, 0);
+        else shader->setUniformTexture("tex0", this->_whiteTexture, 0);
 
         bool hasEnvMap = false;
-        GLint envMapLoc = glGetUniformLocation(material->shader->getProgram(), "envMap");
+        GLint envMapLoc = glGetUniformLocation(shader->getProgram(), "envMap");
         if (envMapLoc != -1 && this->_skyboxCubemap.isLoaded()) {
             this->_skyboxCubemap.bind(1);
-            material->shader->setUniform1i("envMap", 1);
+            shader->setUniform1i("envMap", 1);
             hasEnvMap = true;
         }
 
         if (material->normalMap) {
-            material->shader->setUniformTexture("normalMap", *material->normalMap, 1);
-            material->shader->setUniform1i("useNormalMap", 1);
-            material->shader->setUniform1f("normalStrength", material->normalStrength);
-        } else {
-            material->shader->setUniform1i("useNormalMap", 0);
-        }
+            shader->setUniformTexture("normalMap", *material->normalMap, 2);
+            shader->setUniform1i("useNormalMap", 1);
+            shader->setUniform1f("normalStrength", material->normalStrength);
+        } else shader->setUniform1i("useNormalMap", 0);
 
         glEnableClientState(GL_NORMAL_ARRAY);
         mesh.draw();
         glDisableClientState(GL_NORMAL_ARRAY);
 
-        material->shader->end();
+        shader->end();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -199,17 +298,21 @@ void RenderSystem::_drawMesh(const ofMesh& mesh, const glm::mat4& transform, con
         if (hasEnvMap) {
             glActiveTexture(GL_TEXTURE1);
             this->_skyboxCubemap.unbind();
-            glActiveTexture(GL_TEXTURE0);
         }
-    } else if (material && material->texture) {
-        material->texture->bind();
-        mesh.draw();
-        material->texture->unbind();
-    } else
-        mesh.draw();
+
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        glActiveTexture(GL_TEXTURE0);
+    }
+
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
 
     ofPopMatrix();
 }
+
 
 void RenderSystem::_initSkybox()
 {
@@ -353,4 +456,116 @@ void RenderSystem::_drawBoundingBox(EntityID entityId, const Transform& transfor
     }
 
     ofPopStyle();
+}
+
+void RenderSystem::_collectLights(std::vector<LightSource>& lights)
+{
+    lights.clear();
+
+    for (EntityID id : this->_entityManager.getAllEntities()) {
+        LightSource* light = this->_registry.getComponent<LightSource>(id);
+        if (light && light->enabled) {
+            Transform* transform = this->_registry.getComponent<Transform>(id);
+            if (transform) light->position = transform->position;
+
+            lights.push_back(*light);
+        }
+
+        Renderable* renderable = this->_registry.getComponent<Renderable>(id);
+        if (renderable && renderable->material && renderable->material->isLightSource) {
+            float emissiveIntensity = (renderable->material->emissiveReflection.x +
+                                       renderable->material->emissiveReflection.y +
+                                       renderable->material->emissiveReflection.z) / 3.0f;
+
+            if (emissiveIntensity > 0.0f) {
+                Transform* transform = this->_registry.getComponent<Transform>(id);
+                glm::vec3 lightPos(0.0f);
+                if (transform) lightPos = transform->position;
+
+                LightSource emissiveLight(LightType::POINT, lightPos,
+                                          renderable->material->emissiveReflection,
+                                          emissiveIntensity);
+                lights.push_back(emissiveLight);
+            }
+        }
+    }
+
+}
+
+void RenderSystem::_setLightUniforms(ofShader* shader, const std::vector<LightSource>& lights)
+{
+    int numLights = std::min(static_cast<int>(lights.size()), 8);
+    shader->setUniform1i("numLights", numLights);
+
+    for (int i = 0; i < numLights; ++i) {
+        const LightSource& light = lights[i];
+
+        std::string indexStr = "[" + std::to_string(i) + "]";
+
+        shader->setUniform1i("lightTypes" + indexStr, static_cast<int>(light.type));
+        shader->setUniform3f("lightPositions" + indexStr, light.position);
+        shader->setUniform3f("lightDirections" + indexStr, light.direction);
+        shader->setUniform3f("lightColors" + indexStr, light.color);
+        shader->setUniform1f("lightIntensities" + indexStr, light.intensity);
+        shader->setUniform1f("lightSpotAngles" + indexStr, light.spotAngle);
+        shader->setUniform1f("lightAttenuations" + indexStr, light.attenuation);
+    }
+}
+
+void RenderSystem::_drawLightDirectionIndicator(const LightSource& light, const glm::mat4& transform)
+{
+    ofPushMatrix();
+    ofMultMatrix(transform);
+
+    glm::vec3 lightColor = light.color * 255.0f;
+    ofSetColor(lightColor.x, lightColor.y, lightColor.z);
+    ofSetLineWidth(2.0f);
+
+    glm::vec3 direction = glm::normalize(light.direction);
+    if (glm::length(direction) < 0.01f) direction = glm::vec3(0, -1, 0);
+
+    float arrowLength = 3.0f;
+    float arrowHeadSize = 0.3f;
+
+    if (light.type == LightType::DIRECTIONAL) {
+        for (int i = 0; i < 3; i++) {
+            float offset = (i - 1) * 0.3f;
+
+            glm::vec3 start(offset, 0, 0);
+            glm::vec3 end = start + direction * arrowLength;
+
+            ofDrawLine(start, end);
+
+            glm::vec3 perpX(arrowHeadSize, 0, 0);
+            glm::vec3 perpY(0, arrowHeadSize, 0);
+
+            ofDrawLine(end, end - direction * arrowHeadSize + perpX);
+            ofDrawLine(end, end - direction * arrowHeadSize - perpX);
+        }
+    } else if (light.type == LightType::SPOT) {
+        float coneAngle = glm::radians(glm::clamp(light.spotAngle, 1.0f, 89.0f));
+        float radius = tan(coneAngle) * arrowLength;
+        int numArrows = 8;
+
+        glm::vec3 right = glm::normalize(glm::cross(direction, glm::vec3(0, 1, 0)));
+        if (glm::length(right) < 0.01f) right = glm::normalize(glm::cross(direction, glm::vec3(1, 0, 0)));
+        glm::vec3 up = glm::normalize(glm::cross(right, direction));
+
+        for (int i = 0; i < numArrows; i++) {
+            float angle = (i / (float)numArrows) * TWO_PI;
+
+            glm::vec3 offset = (right * cos(angle) + up * sin(angle)) * radius;
+            glm::vec3 endPos = direction * arrowLength + offset;
+
+            ofDrawLine(glm::vec3(0, 0, 0), endPos);
+
+            glm::vec3 arrowDir = glm::normalize(endPos);
+            glm::vec3 perpX = glm::normalize(glm::cross(arrowDir, up)) * arrowHeadSize;
+
+            ofDrawLine(endPos, endPos - arrowDir * arrowHeadSize + perpX);
+            ofDrawLine(endPos, endPos - arrowDir * arrowHeadSize - perpX);
+        }
+    }
+
+    ofPopMatrix();
 }

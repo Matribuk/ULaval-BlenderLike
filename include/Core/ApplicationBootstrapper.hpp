@@ -40,6 +40,8 @@
 #include "UI/TopologyPanel.hpp"
 #include "UI/CurvesPanel.hpp"
 #include "UI/ViewportPanel.hpp"
+#include "UI/LightPanel.hpp"
+#include "UI/EntitiesPanel.hpp"
 
 #include "Components/Transform.hpp"
 #include "Components/Renderable.hpp"
@@ -47,6 +49,7 @@
 #include "Components/Primitive/Sphere.hpp"
 #include "Components/Primitive/Plane.hpp"
 #include "Components/Selectable.hpp"
+#include "Components/LightSource.hpp"
 
 #include <iostream>
 #include <memory>
@@ -90,6 +93,8 @@ struct UIContext {
     std::unique_ptr<TopologyPanel> topologyPanel;
     std::unique_ptr<CurvesPanel> curvesPanel;
     std::unique_ptr<ViewportPanel> viewportPanel;
+    std::unique_ptr<LightPanel> lightPanel;
+    std::unique_ptr<EntitiesPanel> entitiesPanel;
 };
 
 class ApplicationBootstrapper {

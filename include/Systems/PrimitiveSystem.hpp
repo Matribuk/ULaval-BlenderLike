@@ -23,11 +23,14 @@
 #include <cmath>
 #include <random>
 
+class ResourceManager;
+
 class PrimitiveSystem {
     public:
         PrimitiveSystem(ComponentRegistry& registry, EntityManager& entityMgr);
         ~PrimitiveSystem() = default;
 
+        void setResourceManager(ResourceManager* resourceManager);
         void generateMeshes();
         void updateControlPointBasedMeshes();
         void applyDisplacement(EntityID entityId);
@@ -36,6 +39,7 @@ class PrimitiveSystem {
     private:
         ComponentRegistry& _registry;
         EntityManager& _entityManager;
+        ResourceManager* _resourceManager = nullptr;
 
         ofMesh _generateBoxMesh(const glm::vec3& dims);
         ofMesh _generateSphereMesh(float radius);

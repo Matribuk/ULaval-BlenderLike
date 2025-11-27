@@ -34,11 +34,11 @@ void TransformSystem::setCameraPosition(EntityID entityId, const glm::vec3 movem
     if (!transform) return;
 
     glm::vec3 right   = getRight(entityId);
-    glm::vec3 up      = getUp(entityId);
+    glm::vec3 worldUp = glm::vec3(0, 1, 0);
     glm::vec3 forward = getForward(entityId);
 
     transform->position += movement.x * deltaTime * right
-                         + movement.y * deltaTime * up
+                         + movement.y * deltaTime * worldUp
                          + movement.z * deltaTime * forward;
 
     transform->isDirty = true;

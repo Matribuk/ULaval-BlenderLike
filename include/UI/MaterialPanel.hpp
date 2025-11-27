@@ -15,6 +15,7 @@
 #include "Core/ComponentRegistry.hpp"
 #include "Core/Entity.hpp"
 #include "Core/ProceduralTexture.hpp"
+#include "Core/MaterialPresets.hpp"
 
 #include "Systems/SelectionSystem.hpp"
 #include "Systems/PrimitiveSystem.hpp"
@@ -40,18 +41,20 @@ class MaterialPanel {
         std::set<EntityID> _prevSelectedEntities;
         ProceduralTexture _proceduralTextureGenerator;
 
+        int _getNextProceduralTextureId();
         void _addMaterialComponent(EntityID entityId);
         bool _checkAllEntitiesHaveSameVisibility(const std::set<EntityID>& entities, bool& outVisibility) const;
-        void _loadShaders(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
+        void _loadIlluminationShader(Renderable* primaryRenderable);
+        void _loadEffectShader(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
         void _loadFile(EntityID entityId, Renderable* primaryRenderable, std::string type);
         void _generateProceduralTexture(Renderable* primaryRenderable);
         void _renderVisibilityControl(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
         void _renderShaderSection(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
         void _renderTextureSection(EntityID primaryEntity, Renderable* primaryRenderable);
         void _renderMeshSection(EntityID primaryEntity, Renderable* primaryRenderable);
-        void _renderLightingParameters(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
+        void _renderMaterialPresets(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
+        void _renderMaterialReflectionComponents(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
         void _renderReliefMappingSection(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
-
         void _renderNormalMappingControls(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
         void _renderNormalMapSelector(const std::set<EntityID>& selectedEntities);
         void _renderDisplacementMappingControls(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable);
@@ -63,9 +66,8 @@ class MaterialPanel {
         {
             for (EntityID id : entities) {
                 Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
-                if (renderable && renderable->material) {
+                if (renderable && renderable->material)
                     renderable->material->*property = value;
-                }
             }
         }
 };

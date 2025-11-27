@@ -4,10 +4,10 @@ ApplicationBootstrapper::ApplicationBootstrapper(
     EntityManager& entityManager,
     ComponentRegistry& componentRegistry,
     EventManager& eventManager
-)
-    : _entityManager(entityManager)
-    , _componentRegistry(componentRegistry)
-    , _eventManager(eventManager)
+) :
+    _entityManager(entityManager),
+    _componentRegistry(componentRegistry),
+    _eventManager(eventManager)
 {}
 
 bool ApplicationBootstrapper::bootstrap()
@@ -100,6 +100,7 @@ bool ApplicationBootstrapper::_InitializeSystems()
 bool ApplicationBootstrapper::_InitializeManagers()
 {
     this->_managers.resourceManager = std::make_unique<ResourceManager>();
+    this->_systems.primitiveSystem->setResourceManager(this->_managers.resourceManager.get());
 
     this->_managers.sceneManager = std::make_unique<SceneManager>(
         this->_entityManager,
@@ -141,7 +142,8 @@ bool ApplicationBootstrapper::_InitializeManagers()
         this->_eventManager,
         *this->_managers.cameraManager,
         *this->_managers.viewportManager,
-        *this->_systems.selectionSystem
+        *this->_systems.selectionSystem,
+        *this->_managers.sceneManager
     );
 
     this->_managers.uiManager = std::make_unique<UIManager>(
@@ -192,6 +194,14 @@ bool ApplicationBootstrapper::_InitializeUI()
         *this->_systems.renderSystem,
         *this->_managers.sceneManager
     );
+    this->_ui.lightPanel = std::make_unique<LightPanel>(
+        this->_componentRegistry,
+        this->_entityManager,
+        *this->_systems.selectionSystem,
+        *this->_managers.sceneManager
+    );
+
+    this->_ui.entitiesPanel = std::make_unique<EntitiesPanel>();
 
     return true;
 }
@@ -219,7 +229,8 @@ bool ApplicationBootstrapper::_SetupCallbacks()
         *this->_ui.transformPanel,
         *this->_ui.materialPanel,
         *this->_ui.colorPanel,
-        *this->_ui.delaunayPanel
+        *this->_ui.delaunayPanel,
+        *this->_ui.lightPanel
     );
 
     this->_ui.colorPanel->setEyedropperModeCallback([this](bool active) {
@@ -228,16 +239,22 @@ bool ApplicationBootstrapper::_SetupCallbacks()
     });
 
     this->_managers.actionManager->registerAllActions();
+
+    this->_ui.entitiesPanel->setupPanels(
+        *this->_ui.assetsPanel,
+        *this->_ui.lightPanel,
+        *this->_ui.primitivesPanel,
+        *this->_ui.topologyPanel
+    );
+
     this->_managers.uiManager->setupUI(
         *this->_ui.toolbar,
         *this->_ui.skyboxPanel,
         *this->_ui.instructionsPanel,
         *this->_ui.eventLogPanel,
-        *this->_ui.assetsPanel,
         *this->_ui.exportPanel,
         *this->_ui.importPanel,
-        *this->_ui.primitivesPanel,
-        *this->_ui.topologyPanel,
+        *this->_ui.entitiesPanel,
         *this->_ui.curvesPanel,
         *this->_ui.viewportPanel
     );
@@ -250,8 +267,7 @@ bool ApplicationBootstrapper::_SetupCallbacks()
         Viewport* activeViewport = this->_managers.viewportManager->getActiveViewport();
         if (activeViewport) {
             EntityID cameraId = activeViewport->getCamera();
-            if (cameraId != INVALID_ENTITY)
-                this->_managers.cameraManager->toggleProjection(cameraId);
+            if (cameraId != INVALID_ENTITY) this->_managers.cameraManager->toggleProjection(cameraId);
         }
     });
 
@@ -281,6 +297,13 @@ bool ApplicationBootstrapper::_CreateScene()
         *this->_systems.renderSystem,
         glm::vec3{0, 5, 10}
     );
+
+    Entity lightEntity = this->_entityManager.createEntity();
+    this->_componentRegistry.registerComponent(lightEntity.getId(), Transform(glm::vec3(0, 10, 0)));
+    this->_componentRegistry.registerComponent(lightEntity.getId(),
+        LightSource(LightType::DIRECTIONAL, glm::vec3(0, 10, 0), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f)
+    );
+    this->_managers.sceneManager->registerEntity(lightEntity.getId(), "Directional Light");
 
     this->_systems.primitiveSystem->generateMeshes();
 

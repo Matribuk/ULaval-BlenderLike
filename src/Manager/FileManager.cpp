@@ -21,7 +21,7 @@ void FileManager::exportMesh(EntityID entity, const std::string& filename)
 }
 
 
-std::pair<EntityID, std::string> FileManager::_importMesh(const std::string& filename)
+std::pair<EntityID, std::string> FileManager::_importMesh(const std::string& filename, ResourceManager& resourceManager)
 {
     if (FileManager::isImageFile(filename))
         return {INVALID_ENTITY, ""};
@@ -62,7 +62,12 @@ std::pair<EntityID, std::string> FileManager::_importMesh(const std::string& fil
 
         glm::vec3 scaledSize = size * scaleFactor;
         this->_componentRegistry.registerComponent(entity.getId(), Box(scaledSize));
-        this->_componentRegistry.registerComponent(entity.getId(), Renderable(mesh, ofColor::white));
+
+        Renderable renderable(mesh, ofColor::white);
+        if (renderable.material) {
+            renderable.material->illuminationShader = resourceManager.getDefaultIlluminationShader();
+        }
+        this->_componentRegistry.registerComponent(entity.getId(), renderable);
         this->_componentRegistry.registerComponent(entity.getId(), Selectable());
     }
 
@@ -82,7 +87,7 @@ std::shared_ptr<ofTexture> FileManager::_importImageTexture(const std::string& f
     return texture;
 }
 
-EntityID FileManager::_createImagePlaneEntity(ofTexture& texture, const std::string& name, const glm::vec3& position)
+EntityID FileManager::_createImagePlaneEntity(ofTexture& texture, const std::string& name, ResourceManager& resourceManager, const glm::vec3& position)
 {
     if (!texture.isAllocated())
         return INVALID_ENTITY;
@@ -100,6 +105,9 @@ EntityID FileManager::_createImagePlaneEntity(ofTexture& texture, const std::str
     ));
 
     Renderable renderable(planeMesh, ofColor::white, true, nullptr, &texture);
+    if (renderable.material) {
+        renderable.material->illuminationShader = resourceManager.getDefaultIlluminationShader();
+    }
     this->_componentRegistry.registerComponent(entity.getId(), renderable);
     this->_componentRegistry.registerComponent(entity.getId(), Selectable());
 
@@ -203,6 +211,7 @@ void FileManager::handleAssetDrop(const AssetInfo* asset, SceneManager& sceneMan
         EntityID entityId = this->_createImagePlaneEntity(
             entityTexture,
             asset->name,
+            resourceManager,
             glm::vec3(0, 0, 0)
         );
 
@@ -211,7 +220,7 @@ void FileManager::handleAssetDrop(const AssetInfo* asset, SceneManager& sceneMan
             eventLog.addLog("Plane created: " + asset->name, ofColor::lime);
         }
     } else if (!asset->isImage && !asset->filepath.empty()) {
-        std::pair<EntityID, std::string> result = this->_importMesh(asset->filepath);
+        std::pair<EntityID, std::string> result = this->_importMesh(asset->filepath, resourceManager);
         if (result.first != INVALID_ENTITY) {
             sceneManager.registerEntity(result.first, asset->name);
             eventLog.addLog("3D model created: " + asset->name, ofColor::lime);
