@@ -42,6 +42,7 @@
 #include "UI/ViewportPanel.hpp"
 #include "UI/LightPanel.hpp"
 #include "UI/EntitiesPanel.hpp"
+#include "UI/RaytracingPanel.hpp"
 
 #include "Components/Transform.hpp"
 #include "Components/Renderable.hpp"
@@ -95,6 +96,7 @@ struct UIContext {
     std::unique_ptr<ViewportPanel> viewportPanel;
     std::unique_ptr<LightPanel> lightPanel;
     std::unique_ptr<EntitiesPanel> entitiesPanel;
+    std::unique_ptr<RaytracingPanel> raytracingPanel;
 };
 
 class ApplicationBootstrapper {

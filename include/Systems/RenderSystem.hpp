@@ -19,6 +19,14 @@
 
 class SelectionSystem;
 
+struct ShadowMap {
+    ofFbo fbo;
+    int lightIndex;
+    glm::mat4 lightSpaceMatrix;
+    glm::mat4 lightViewMatrix;
+    glm::mat4 lightProjMatrix;
+};
+
 class RenderSystem {
     public:
         RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr);
@@ -27,6 +35,21 @@ class RenderSystem {
         void render();
         void loadCubemap(const std::string& folderPath);
         void setup(CameraManager& cameraManager, SelectionSystem& selectionSystem);
+
+        void setShadowsEnabled(bool enabled) { _shadowsEnabled = enabled; }
+        bool getShadowsEnabled() const { return _shadowsEnabled; }
+        void setShadowBias(float bias) { _shadowBias = bias; }
+        void setUsePCF(bool usePCF) { _usePCF = usePCF; }
+        void setShadowMapResolution(int resolution);
+
+        void setRaytracingEnabled(bool enabled) { _raytracingEnabled = enabled; }
+        bool getRaytracingEnabled() const { return _raytracingEnabled; }
+        void setRaytracedShadowsEnabled(bool enabled) { _raytracedShadowsEnabled = enabled; }
+        bool getRaytracedShadowsEnabled() const { return _raytracedShadowsEnabled; }
+        void setRaytracedReflectionsEnabled(bool enabled) { _raytracedReflectionsEnabled = enabled; }
+        bool getRaytracedReflectionsEnabled() const { return _raytracedReflectionsEnabled; }
+        void setMaxRayBounces(int bounces) { _maxRayBounces = bounces; }
+        int getMaxRayBounces() const { return _maxRayBounces; }
 
     private:
         ComponentRegistry& _registry;
@@ -56,4 +79,27 @@ class RenderSystem {
         void _initSkybox();
         void _renderSkyboxCubemap();
         void _initWhiteTexture();
+
+        bool _shadowsEnabled = true;
+        float _shadowBias = 0.005f;
+        bool _usePCF = true;
+        int _shadowMapResolution = 2048;
+        std::vector<ShadowMap> _shadowMaps;
+        ofShader _depthShader;
+        bool _shadowSystemInitialized = false;
+
+        void _initShadowSystem();
+        void _updateShadowMaps(const std::vector<LightSource>& lights);
+        void _renderSceneToShadowMap(ShadowMap& shadowMap);
+        glm::mat4 _computeLightSpaceMatrix(const LightSource& light);
+        void _setShadowUniforms(ofShader* shader, const std::vector<LightSource>& lights);
+
+        bool _raytracingEnabled = false;
+        bool _raytracedShadowsEnabled = false;
+        bool _raytracedReflectionsEnabled = false;
+        int _maxRayBounces = 1;
+        int _maxPrimitives = 32;
+
+        void _setPrimitiveUniforms(ofShader* shader);
+        void _setRaytracingUniforms(ofShader* shader);
 };

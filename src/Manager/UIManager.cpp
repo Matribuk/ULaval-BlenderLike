@@ -26,6 +26,7 @@ void UIManager::render()
     this->_eventLogPanel->render();
     this->_skyboxPanel->render();
     this->_viewportPanel->render();
+    this->_raytracingPanel->render();
 
     if (this->_shouldFocusPrimitives) {
         ImGui::SetWindowFocus("Entities");
@@ -77,7 +78,7 @@ void UIManager::setupDockspace()
     ImGui::PopStyleVar(3);
 }
 
-void UIManager::setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, InstructionsPanel& instructionsPanel, EventLogPanel& eventLogPanel, ExportPanel& exportPanel, ImportPanel& importPanel, EntitiesPanel& entitiesPanel, CurvesPanel& curvesPanel, ViewportPanel& viewportPanel)
+void UIManager::setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, InstructionsPanel& instructionsPanel, EventLogPanel& eventLogPanel, ExportPanel& exportPanel, ImportPanel& importPanel, EntitiesPanel& entitiesPanel, CurvesPanel& curvesPanel, ViewportPanel& viewportPanel, RaytracingPanel& raytracingPanel)
 {
     this->_toolbar = &toolbar;
     this->_skyboxPanel = &skyboxPanel;
@@ -88,6 +89,7 @@ void UIManager::setupUI(Toolbar& toolbar, SkyboxPanel& skyboxPanel, Instructions
     this->_entitiesPanel = &entitiesPanel;
     this->_curvesPanel = &curvesPanel;
     this->_viewportPanel = &viewportPanel;
+    this->_raytracingPanel = &raytracingPanel;
 }
 
 void UIManager::_setupInitialLayout()
@@ -113,6 +115,7 @@ void UIManager::_setupInitialLayout()
     ImGui::DockBuilderDockWindow("Event Log", dockDown);
     ImGui::DockBuilderDockWindow("Instructions", dockDown);
     ImGui::DockBuilderDockWindow("Skybox Settings", dockDown);
+    ImGui::DockBuilderDockWindow("Raytracing", dockDown);
 
     ImGui::DockBuilderFinish(this->_dockspaceId);
 }

@@ -1,4 +1,16 @@
 #include "Systems/RenderSystem.hpp"
+#include "Components/Primitive/Sphere.hpp"
+#include "Components/Primitive/Box.hpp"
+#include "Components/Primitive/Plane.hpp"
+
+struct RaytracingPrimitive {
+    int type;
+    glm::vec3 position;
+    glm::vec3 param1;
+    glm::vec3 param2;
+    glm::vec4 color;
+    float reflectivity;
+};
 
 RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr)
     : _registry(registry), _entityManager(entityMgr)
@@ -6,6 +18,7 @@ RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr
     this->_initSkybox();
     this->loadCubemap("cubemaps/parc");
     this->_initWhiteTexture();
+    this->_initShadowSystem();
 }
 
 void RenderSystem::render()
@@ -18,6 +31,12 @@ void RenderSystem::render()
     if (!camTransform) {
         std::cout << "Active camera has no Transform component" << std::endl;
         return;
+    }
+
+    if (this->_shadowsEnabled && this->_shadowSystemInitialized) {
+        std::vector<LightSource> lights;
+        this->_collectLights(lights);
+        this->_updateShadowMaps(lights);
     }
 
     this->_setupRenderState();
@@ -171,6 +190,10 @@ void RenderSystem::_drawMeshSinglePass(const ofMesh& mesh, const glm::mat4& tran
         std::vector<LightSource> lights;
         this->_collectLights(lights);
         this->_setLightUniforms(shader, lights);
+        this->_setShadowUniforms(shader, lights);
+
+        this->_setPrimitiveUniforms(shader);
+        this->_setRaytracingUniforms(shader);
 
         shader->setUniform3f("ambientColor", material->ambientColor);
         shader->setUniform1f("shininess", material->shininess);
@@ -179,6 +202,9 @@ void RenderSystem::_drawMeshSinglePass(const ofMesh& mesh, const glm::mat4& tran
         shader->setUniform3f("diffuseReflection", material->diffuseReflection);
         shader->setUniform3f("specularReflection", material->specularReflection);
         shader->setUniform3f("emissiveReflection", material->emissiveReflection);
+
+        shader->setUniform1f("reflectivity", material->reflectivity);
+        shader->setUniform3f("reflectionTint", material->reflectionTint);
     }
 
     shader->setUniform4f("color", ofFloatColor(color));
@@ -189,6 +215,12 @@ void RenderSystem::_drawMeshSinglePass(const ofMesh& mesh, const glm::mat4& tran
 
     if (material->texture) shader->setUniformTexture("tex0", *material->texture, 0);
     else shader->setUniformTexture("tex0", this->_whiteTexture, 0);
+
+    // Bind cubemap for reflections (if shader uses it)
+    if (this->_skyboxCubemap.isLoaded()) {
+        this->_skyboxCubemap.bind(1);
+        shader->setUniform1i("envMap", 1);
+    }
 
     if (material->normalMap) {
         shader->setUniformTexture("normalMap", *material->normalMap, 2);
@@ -202,6 +234,11 @@ void RenderSystem::_drawMeshSinglePass(const ofMesh& mesh, const glm::mat4& tran
     glDisableClientState(GL_NORMAL_ARRAY);
 
     shader->end();
+
+    // Unbind cubemap
+    if (this->_skyboxCubemap.isLoaded()) {
+        this->_skyboxCubemap.unbind();
+    }
 }
 void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& transform, const ofColor& color, Material* material)
 {
@@ -249,6 +286,7 @@ void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& trans
         std::vector<LightSource> lights;
         this->_collectLights(lights);
         this->_setLightUniforms(shader, lights);
+        this->_setShadowUniforms(shader, lights);
 
         shader->setUniform3f("ambientColor", material->ambientColor);
         shader->setUniform1f("shininess", material->shininess);
@@ -568,4 +606,288 @@ void RenderSystem::_drawLightDirectionIndicator(const LightSource& light, const 
     }
 
     ofPopMatrix();
+}
+
+// ============================================================================
+// Shadow Mapping Implementation
+// ============================================================================
+
+void RenderSystem::_initShadowSystem()
+{
+    if (this->_shadowSystemInitialized) return;
+
+    // Load depth shader
+    this->_depthShader.load("shaders/depth.vert", "shaders/depth.frag");
+
+    if (!this->_depthShader.isLoaded()) {
+        ofLogError("RenderSystem") << "Failed to load depth shader for shadow mapping";
+        this->_shadowsEnabled = false;
+        return;
+    }
+
+    ofLogNotice("RenderSystem") << "Shadow mapping system initialized";
+    this->_shadowSystemInitialized = true;
+}
+
+void RenderSystem::setShadowMapResolution(int resolution)
+{
+    if (resolution < 512 || resolution > 8192) {
+        ofLogWarning("RenderSystem") << "Shadow map resolution must be between 512 and 8192";
+        return;
+    }
+
+    this->_shadowMapResolution = resolution;
+
+    // Recreate shadow maps with new resolution
+    for (auto& shadowMap : this->_shadowMaps) {
+        shadowMap.fbo.clear();
+        ofFbo::Settings settings;
+        settings.width = this->_shadowMapResolution;
+        settings.height = this->_shadowMapResolution;
+        settings.useDepth = true;
+        settings.depthStencilAsTexture = true;
+        settings.textureTarget = GL_TEXTURE_2D;
+        settings.internalformat = GL_RGBA;
+        settings.minFilter = GL_LINEAR;
+        settings.maxFilter = GL_LINEAR;
+        settings.wrapModeHorizontal = GL_CLAMP_TO_EDGE;
+        settings.wrapModeVertical = GL_CLAMP_TO_EDGE;
+
+        shadowMap.fbo.allocate(settings);
+    }
+}
+
+void RenderSystem::_updateShadowMaps(const std::vector<LightSource>& lights)
+{
+    if (!this->_shadowsEnabled || !this->_shadowSystemInitialized) return;
+
+    // Clear old shadow maps
+    this->_shadowMaps.clear();
+
+    // Create shadow map for each light that can cast shadows
+    for (size_t i = 0; i < lights.size(); ++i) {
+        const LightSource& light = lights[i];
+
+        // Only directional, point, and spot lights can cast shadows
+        if (!light.enabled) continue;
+        if (light.type == LightType::AMBIENT) continue;
+
+        ShadowMap shadowMap;
+        shadowMap.lightIndex = i;
+
+        // Allocate FBO
+        ofFbo::Settings settings;
+        settings.width = this->_shadowMapResolution;
+        settings.height = this->_shadowMapResolution;
+        settings.useDepth = true;
+        settings.depthStencilAsTexture = true;
+        settings.textureTarget = GL_TEXTURE_2D;
+        settings.internalformat = GL_RGBA;
+        settings.minFilter = GL_LINEAR;
+        settings.maxFilter = GL_LINEAR;
+        settings.wrapModeHorizontal = GL_CLAMP_TO_EDGE;
+        settings.wrapModeVertical = GL_CLAMP_TO_EDGE;
+
+        shadowMap.fbo.allocate(settings);
+
+        // Compute light space matrix
+        shadowMap.lightSpaceMatrix = this->_computeLightSpaceMatrix(light);
+
+        // Render scene to shadow map
+        this->_renderSceneToShadowMap(shadowMap);
+
+        this->_shadowMaps.push_back(shadowMap);
+    }
+}
+
+glm::mat4 RenderSystem::_computeLightSpaceMatrix(const LightSource& light)
+{
+    glm::mat4 lightProjection;
+    glm::mat4 lightView;
+
+    // Define shadow volume based on light type
+    if (light.type == LightType::DIRECTIONAL) {
+        // Orthographic projection for directional light
+        float shadowVolume = 50.0f;
+        lightProjection = glm::ortho(
+            -shadowVolume, shadowVolume,
+            -shadowVolume, shadowVolume,
+            -shadowVolume, shadowVolume * 2.0f
+        );
+
+        // Look from light direction
+        glm::vec3 lightPos = -light.direction * shadowVolume;
+        glm::vec3 target = glm::vec3(0.0f);
+        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+        // Avoid parallel up vector
+        if (glm::abs(glm::dot(light.direction, up)) > 0.99f) {
+            up = glm::vec3(1.0f, 0.0f, 0.0f);
+        }
+
+        lightView = glm::lookAt(lightPos, target, up);
+    }
+    else if (light.type == LightType::SPOT) {
+        // Perspective projection for spot light
+        float fov = light.spotAngle * 2.0f;
+        lightProjection = glm::perspective(
+            glm::radians(fov),
+            1.0f,
+            0.1f,
+            100.0f
+        );
+
+        glm::vec3 target = light.position + light.direction;
+        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+        if (glm::abs(glm::dot(light.direction, up)) > 0.99f) {
+            up = glm::vec3(1.0f, 0.0f, 0.0f);
+        }
+
+        lightView = glm::lookAt(light.position, target, up);
+    }
+    else if (light.type == LightType::POINT) {
+        // For point lights, we'd need cube maps (6 faces)
+        // For simplicity, use a single direction for now
+        float nearPlane = 0.1f;
+        float farPlane = 100.0f;
+        lightProjection = glm::perspective(
+            glm::radians(90.0f),
+            1.0f,
+            nearPlane,
+            farPlane
+        );
+
+        glm::vec3 target = light.position + glm::vec3(0.0f, -1.0f, 0.0f);
+        glm::vec3 up = glm::vec3(0.0f, 0.0f, -1.0f);
+        lightView = glm::lookAt(light.position, target, up);
+    }
+
+    return lightProjection * lightView;
+}
+
+void RenderSystem::_renderSceneToShadowMap(ShadowMap& shadowMap)
+{
+    shadowMap.fbo.begin();
+
+    // Clear depth buffer
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+
+    // Use depth shader
+    this->_depthShader.begin();
+
+    this->_depthShader.setUniformMatrix4f("lightViewMatrix", shadowMap.lightSpaceMatrix);
+    this->_depthShader.setUniformMatrix4f("lightProjMatrix", glm::mat4(1.0f));
+
+    // Render all entities
+    for (EntityID id : this->_entityManager.getAllEntities()) {
+        Transform* transform = this->_registry.getComponent<Transform>(id);
+        if (!transform) continue;
+
+        Renderable* render = this->_registry.getComponent<Renderable>(id);
+        if (!render || !render->visible) continue;
+
+        this->_depthShader.setUniformMatrix4f("modelMatrix", transform->matrix);
+
+        // Draw mesh
+        render->mesh.draw();
+    }
+
+    this->_depthShader.end();
+
+    shadowMap.fbo.end();
+}
+
+void RenderSystem::_setShadowUniforms(ofShader* shader, const std::vector<LightSource>& lights)
+{
+    if (!this->_shadowsEnabled || this->_shadowMaps.empty()) {
+        shader->setUniform1i("numShadowMaps", 0);
+        return;
+    }
+
+    int numShadowMaps = std::min(static_cast<int>(this->_shadowMaps.size()), 8);
+    shader->setUniform1i("numShadowMaps", numShadowMaps);
+    shader->setUniform1f("shadowBias", this->_shadowBias);
+    shader->setUniform1i("usePCF", this->_usePCF ? 1 : 0);
+
+    for (int i = 0; i < numShadowMaps; ++i) {
+        const ShadowMap& shadowMap = this->_shadowMaps[i];
+
+        std::string indexStr = "[" + std::to_string(i) + "]";
+
+        // Bind shadow map texture
+        shadowMap.fbo.getDepthTexture().bind(10 + i);
+        shader->setUniformTexture("shadowMaps" + indexStr, shadowMap.fbo.getDepthTexture(), 10 + i);
+
+        // Set light space matrix
+        shader->setUniformMatrix4f("lightSpaceMatrices" + indexStr, shadowMap.lightSpaceMatrix);
+
+        // Set which light this shadow map corresponds to
+        shader->setUniform1i("shadowLightIndices" + indexStr, shadowMap.lightIndex);
+    }
+}
+
+void RenderSystem::_setPrimitiveUniforms(ofShader* shader) {
+    if (!this->_raytracingEnabled) {
+        shader->setUniform1i("numPrimitives", 0);
+        return;
+    }
+
+    std::vector<RaytracingPrimitive> primitives;
+
+    for (EntityID id : this->_entityManager.getAllEntities()) {
+        Transform* transform = this->_registry.getComponent<Transform>(id);
+        Renderable* renderable = this->_registry.getComponent<Renderable>(id);
+
+        if (!transform || !renderable || !renderable->visible) continue;
+
+        RaytracingPrimitive prim;
+        prim.position = transform->position;
+        ofFloatColor col = renderable->color;
+        prim.color = glm::vec4(col.r, col.g, col.b, col.a);
+        prim.reflectivity = renderable->material ? renderable->material->reflectivity : 0.0f;
+
+        if (Sphere* sphere = this->_registry.getComponent<Sphere>(id)) {
+            prim.type = 0;
+            prim.param1 = glm::vec3(sphere->radius * transform->scale.x, 0.0f, 0.0f);
+            prim.param2 = glm::vec3(0.0f);
+            primitives.push_back(prim);
+        }
+        else if (Box* box = this->_registry.getComponent<Box>(id)) {
+            prim.type = 1;
+            prim.param1 = box->dimensions * transform->scale;
+            prim.param2 = glm::vec3(0.0f);
+            primitives.push_back(prim);
+        }
+        else if (Plane* plane = this->_registry.getComponent<Plane>(id)) {
+            prim.type = 2;
+            prim.param1 = glm::vec3(plane->size.x * transform->scale.x,
+                                    plane->size.y * transform->scale.y, 0.0f);
+            prim.param2 = glm::vec3(0.0f, 1.0f, 0.0f);
+            primitives.push_back(prim);
+        }
+
+        if (primitives.size() >= (size_t)this->_maxPrimitives) break;
+    }
+
+    int numPrimitives = std::min(static_cast<int>(primitives.size()), this->_maxPrimitives);
+    shader->setUniform1i("numPrimitives", numPrimitives);
+
+    for (int i = 0; i < numPrimitives; ++i) {
+        std::string idx = "[" + std::to_string(i) + "]";
+        shader->setUniform1i("primitiveTypes" + idx, primitives[i].type);
+        shader->setUniform3f("primitivePositions" + idx, primitives[i].position);
+        shader->setUniform3f("primitiveParam1" + idx, primitives[i].param1);
+        shader->setUniform3f("primitiveParam2" + idx, primitives[i].param2);
+        shader->setUniform4f("primitiveColors" + idx, primitives[i].color);
+        shader->setUniform1f("primitiveReflectivities" + idx, primitives[i].reflectivity);
+    }
+}
+
+void RenderSystem::_setRaytracingUniforms(ofShader* shader) {
+    shader->setUniform1i("raytracingEnabled", this->_raytracingEnabled ? 1 : 0);
+    shader->setUniform1i("raytracedShadows", this->_raytracedShadowsEnabled ? 1 : 0);
+    shader->setUniform1i("raytracedReflections", this->_raytracedReflectionsEnabled ? 1 : 0);
+    shader->setUniform1i("maxRayBounces", this->_maxRayBounces);
 }

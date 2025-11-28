@@ -9,6 +9,7 @@
 #include "UI/EntitiesPanel.hpp"
 #include "UI/CurvesPanel.hpp"
 #include "UI/ViewportPanel.hpp"
+#include "UI/RaytracingPanel.hpp"
 
 #include "Manager/ViewportManager.hpp"
 #include "Manager/PropertiesManager.hpp"
@@ -41,7 +42,8 @@ class UIManager {
             ImportPanel& importPanel,
             EntitiesPanel& entitiesPanel,
             CurvesPanel& curvesPanel,
-            ViewportPanel& viewportPanel
+            ViewportPanel& viewportPanel,
+            RaytracingPanel& raytracingPanel
         );
 
     private:
@@ -59,6 +61,7 @@ class UIManager {
         EntitiesPanel* _entitiesPanel;
         CurvesPanel* _curvesPanel;
         ViewportPanel* _viewportPanel;
+        RaytracingPanel* _raytracingPanel;
 
         ImGuiID _dockspaceId = 0;
         ImGuiID _dockMainId = 0;

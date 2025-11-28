@@ -121,7 +121,7 @@ void MaterialPanel::_loadIlluminationShader(Renderable* primaryRenderable)
                 std::string ext = entry.path().extension().string();
                 if (ext == ".vert" || ext == ".frag") {
                     std::string name = entry.path().stem().string();
-                    if (name == "lambert" || name == "phong") {
+                    if (name == "lambert" || name == "phong" || name == "phong_shadow" || name == "reflective_phong" || name == "raytraced_phong") {
                         illuminationShaders.push_back(name);
                     }
                 }
@@ -449,6 +449,22 @@ void MaterialPanel::_renderMaterialReflectionComponents(const std::set<EntityID>
     if (ImGui::SliderFloat("Emissive Reflection", &emissiveCoef, 0.0f, 1.0f)) {
         primaryRenderable->material->emissiveReflection = glm::vec3(emissiveCoef);
         this->_syncMaterialProperty(selectedEntities, &Material::emissiveReflection, primaryRenderable->material->emissiveReflection);
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Text("Environment Reflections:");
+
+    if (ImGui::SliderFloat("Reflectivity", &primaryRenderable->material->reflectivity, 0.0f, 1.0f)) {
+        this->_syncMaterialProperty(selectedEntities, &Material::reflectivity, primaryRenderable->material->reflectivity);
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton("?")) {
+        ImGui::SetTooltip("0.0 = Full Phong lighting\n1.0 = Full environment reflection\nWorks with reflective_phong shader");
+    }
+
+    if (ImGui::ColorEdit3("Reflection Tint", &primaryRenderable->material->reflectionTint.x)) {
+        this->_syncMaterialProperty(selectedEntities, &Material::reflectionTint, primaryRenderable->material->reflectionTint);
     }
 }
 

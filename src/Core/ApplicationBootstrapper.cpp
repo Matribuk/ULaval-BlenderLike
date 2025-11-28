@@ -203,6 +203,8 @@ bool ApplicationBootstrapper::_InitializeUI()
 
     this->_ui.entitiesPanel = std::make_unique<EntitiesPanel>();
 
+    this->_ui.raytracingPanel = std::make_unique<RaytracingPanel>(*this->_systems.renderSystem);
+
     return true;
 }
 
@@ -256,7 +258,8 @@ bool ApplicationBootstrapper::_SetupCallbacks()
         *this->_ui.importPanel,
         *this->_ui.entitiesPanel,
         *this->_ui.curvesPanel,
-        *this->_ui.viewportPanel
+        *this->_ui.viewportPanel,
+        *this->_ui.raytracingPanel
     );
     this->_ui.primitivesPanel->setEventLogPanel(this->_ui.eventLogPanel.get());
     this->_ui.curvesPanel->setEventLogPanel(this->_ui.eventLogPanel.get());
