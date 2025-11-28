@@ -216,7 +216,6 @@ void RenderSystem::_drawMeshSinglePass(const ofMesh& mesh, const glm::mat4& tran
     if (material->texture) shader->setUniformTexture("tex0", *material->texture, 0);
     else shader->setUniformTexture("tex0", this->_whiteTexture, 0);
 
-    // Bind cubemap for reflections (if shader uses it)
     if (this->_skyboxCubemap.isLoaded()) {
         this->_skyboxCubemap.bind(1);
         shader->setUniform1i("envMap", 1);
@@ -235,7 +234,6 @@ void RenderSystem::_drawMeshSinglePass(const ofMesh& mesh, const glm::mat4& tran
 
     shader->end();
 
-    // Unbind cubemap
     if (this->_skyboxCubemap.isLoaded()) {
         this->_skyboxCubemap.unbind();
     }
@@ -608,15 +606,10 @@ void RenderSystem::_drawLightDirectionIndicator(const LightSource& light, const 
     ofPopMatrix();
 }
 
-// ============================================================================
-// Shadow Mapping Implementation
-// ============================================================================
-
 void RenderSystem::_initShadowSystem()
 {
     if (this->_shadowSystemInitialized) return;
 
-    // Load depth shader
     this->_depthShader.load("shaders/depth.vert", "shaders/depth.frag");
 
     if (!this->_depthShader.isLoaded()) {
@@ -638,7 +631,6 @@ void RenderSystem::setShadowMapResolution(int resolution)
 
     this->_shadowMapResolution = resolution;
 
-    // Recreate shadow maps with new resolution
     for (auto& shadowMap : this->_shadowMaps) {
         shadowMap.fbo.clear();
         ofFbo::Settings settings;
@@ -661,21 +653,17 @@ void RenderSystem::_updateShadowMaps(const std::vector<LightSource>& lights)
 {
     if (!this->_shadowsEnabled || !this->_shadowSystemInitialized) return;
 
-    // Clear old shadow maps
     this->_shadowMaps.clear();
 
-    // Create shadow map for each light that can cast shadows
     for (size_t i = 0; i < lights.size(); ++i) {
         const LightSource& light = lights[i];
 
-        // Only directional, point, and spot lights can cast shadows
         if (!light.enabled) continue;
         if (light.type == LightType::AMBIENT) continue;
 
         ShadowMap shadowMap;
         shadowMap.lightIndex = i;
 
-        // Allocate FBO
         ofFbo::Settings settings;
         settings.width = this->_shadowMapResolution;
         settings.height = this->_shadowMapResolution;
@@ -690,10 +678,8 @@ void RenderSystem::_updateShadowMaps(const std::vector<LightSource>& lights)
 
         shadowMap.fbo.allocate(settings);
 
-        // Compute light space matrix
         shadowMap.lightSpaceMatrix = this->_computeLightSpaceMatrix(light);
 
-        // Render scene to shadow map
         this->_renderSceneToShadowMap(shadowMap);
 
         this->_shadowMaps.push_back(shadowMap);
@@ -705,9 +691,7 @@ glm::mat4 RenderSystem::_computeLightSpaceMatrix(const LightSource& light)
     glm::mat4 lightProjection;
     glm::mat4 lightView;
 
-    // Define shadow volume based on light type
     if (light.type == LightType::DIRECTIONAL) {
-        // Orthographic projection for directional light
         float shadowVolume = 50.0f;
         lightProjection = glm::ortho(
             -shadowVolume, shadowVolume,
@@ -715,12 +699,10 @@ glm::mat4 RenderSystem::_computeLightSpaceMatrix(const LightSource& light)
             -shadowVolume, shadowVolume * 2.0f
         );
 
-        // Look from light direction
         glm::vec3 lightPos = -light.direction * shadowVolume;
         glm::vec3 target = glm::vec3(0.0f);
         glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 
-        // Avoid parallel up vector
         if (glm::abs(glm::dot(light.direction, up)) > 0.99f) {
             up = glm::vec3(1.0f, 0.0f, 0.0f);
         }
@@ -728,7 +710,6 @@ glm::mat4 RenderSystem::_computeLightSpaceMatrix(const LightSource& light)
         lightView = glm::lookAt(lightPos, target, up);
     }
     else if (light.type == LightType::SPOT) {
-        // Perspective projection for spot light
         float fov = light.spotAngle * 2.0f;
         lightProjection = glm::perspective(
             glm::radians(fov),
@@ -747,8 +728,6 @@ glm::mat4 RenderSystem::_computeLightSpaceMatrix(const LightSource& light)
         lightView = glm::lookAt(light.position, target, up);
     }
     else if (light.type == LightType::POINT) {
-        // For point lights, we'd need cube maps (6 faces)
-        // For simplicity, use a single direction for now
         float nearPlane = 0.1f;
         float farPlane = 100.0f;
         lightProjection = glm::perspective(
@@ -770,17 +749,14 @@ void RenderSystem::_renderSceneToShadowMap(ShadowMap& shadowMap)
 {
     shadowMap.fbo.begin();
 
-    // Clear depth buffer
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-    // Use depth shader
     this->_depthShader.begin();
 
     this->_depthShader.setUniformMatrix4f("lightViewMatrix", shadowMap.lightSpaceMatrix);
     this->_depthShader.setUniformMatrix4f("lightProjMatrix", glm::mat4(1.0f));
 
-    // Render all entities
     for (EntityID id : this->_entityManager.getAllEntities()) {
         Transform* transform = this->_registry.getComponent<Transform>(id);
         if (!transform) continue;
@@ -790,7 +766,6 @@ void RenderSystem::_renderSceneToShadowMap(ShadowMap& shadowMap)
 
         this->_depthShader.setUniformMatrix4f("modelMatrix", transform->matrix);
 
-        // Draw mesh
         render->mesh.draw();
     }
 
@@ -816,14 +791,11 @@ void RenderSystem::_setShadowUniforms(ofShader* shader, const std::vector<LightS
 
         std::string indexStr = "[" + std::to_string(i) + "]";
 
-        // Bind shadow map texture
         shadowMap.fbo.getDepthTexture().bind(10 + i);
         shader->setUniformTexture("shadowMaps" + indexStr, shadowMap.fbo.getDepthTexture(), 10 + i);
 
-        // Set light space matrix
         shader->setUniformMatrix4f("lightSpaceMatrices" + indexStr, shadowMap.lightSpaceMatrix);
 
-        // Set which light this shadow map corresponds to
         shader->setUniform1i("shadowLightIndices" + indexStr, shadowMap.lightIndex);
     }
 }
