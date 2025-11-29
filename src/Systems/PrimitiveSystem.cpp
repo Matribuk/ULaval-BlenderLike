@@ -44,7 +44,7 @@ void PrimitiveSystem::generateMeshes() {
             render->mesh = this->_generateParametricCurveMesh(*curve, id);
         }
 
-        if (render->material && this->_resourceManager) {
+        if (render->material && this->_resourceManager && !render->material->illuminationShader) {
             render->material->illuminationShader = this->_resourceManager->getDefaultIlluminationShader();
         }
     }

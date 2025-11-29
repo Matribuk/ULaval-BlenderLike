@@ -115,17 +115,21 @@ void MaterialPanel::_loadIlluminationShader(Renderable* primaryRenderable)
         std::filesystem::path shaderDir = std::filesystem::path(ofToDataPath("shaders"));
         std::vector<std::string> illuminationShaders;
 
-        if (std::filesystem::exists(shaderDir) && std::filesystem::is_directory(shaderDir)) {
-            for (std::filesystem::directory_entry entry : std::filesystem::directory_iterator(shaderDir)) {
-                if (!entry.is_regular_file()) continue;
-                std::string ext = entry.path().extension().string();
-                if (ext == ".vert" || ext == ".frag") {
-                    std::string name = entry.path().stem().string();
-                    if (name == "lambert" || name == "phong" || name == "phong_shadow" || name == "reflective_phong" || name == "raytraced_phong") {
-                        illuminationShaders.push_back(name);
+        try {
+            if (std::filesystem::exists(shaderDir) && std::filesystem::is_directory(shaderDir)) {
+                for (std::filesystem::directory_entry entry : std::filesystem::directory_iterator(shaderDir)) {
+                    if (!entry.is_regular_file()) continue;
+                    std::string ext = entry.path().extension().string();
+                    if (ext == ".vert" || ext == ".frag") {
+                        std::string name = entry.path().stem().string();
+                        if (name == "lambert" || name == "phong" || name == "phong_shadow" || name == "reflective_phong" || name == "raytraced_phong") {
+                            illuminationShaders.push_back(name);
+                        }
                     }
                 }
             }
+        } catch (const std::filesystem::filesystem_error& e) {
+            ofLogError("MaterialPanel") << "Filesystem error: " << e.what();
         }
 
         std::sort(illuminationShaders.begin(), illuminationShaders.end());
@@ -159,16 +163,20 @@ void MaterialPanel::_loadEffectShader(const std::set<EntityID>& selectedEntities
         std::filesystem::path shaderDir = std::filesystem::path(ofToDataPath("shaders"));
         std::vector<std::string> effectShaders;
 
-        if (std::filesystem::exists(shaderDir) && std::filesystem::is_directory(shaderDir)) {
-            for (std::filesystem::directory_entry entry : std::filesystem::directory_iterator(shaderDir)) {
-                if (!entry.is_regular_file()) continue;
-                std::string ext = entry.path().extension().string();
-                if (ext == ".vert" || ext == ".frag") {
-                    std::string name = entry.path().stem().string();
-                    if (name != "lambert" && name != "phong" && name != "skycube")
-                        effectShaders.push_back(name);
+        try {
+            if (std::filesystem::exists(shaderDir) && std::filesystem::is_directory(shaderDir)) {
+                for (std::filesystem::directory_entry entry : std::filesystem::directory_iterator(shaderDir)) {
+                    if (!entry.is_regular_file()) continue;
+                    std::string ext = entry.path().extension().string();
+                    if (ext == ".vert" || ext == ".frag") {
+                        std::string name = entry.path().stem().string();
+                        if (name != "lambert" && name != "phong" && name != "skycube")
+                            effectShaders.push_back(name);
+                    }
                 }
             }
+        } catch (const std::filesystem::filesystem_error& e) {
+            ofLogError("MaterialPanel") << "Filesystem error: " << e.what();
         }
 
         std::sort(effectShaders.begin(), effectShaders.end());
@@ -521,14 +529,18 @@ void MaterialPanel::_renderNormalMapSelector(const std::set<EntityID>& selectedE
         std::filesystem::path normalMapDir = std::filesystem::path(ofToDataPath("normalmaps"));
         std::vector<std::string> normalMapFiles;
 
-        if (std::filesystem::exists(normalMapDir) && std::filesystem::is_directory(normalMapDir)) {
-            for (const auto& entry : std::filesystem::directory_iterator(normalMapDir)) {
-                if (entry.is_regular_file()) {
-                    std::string ext = entry.path().extension().string();
-                    if (ext == ".png" || ext == ".jpg")
-                        normalMapFiles.push_back(entry.path().filename().string());
+        try {
+            if (std::filesystem::exists(normalMapDir) && std::filesystem::is_directory(normalMapDir)) {
+                for (const auto& entry : std::filesystem::directory_iterator(normalMapDir)) {
+                    if (entry.is_regular_file()) {
+                        std::string ext = entry.path().extension().string();
+                        if (ext == ".png" || ext == ".jpg")
+                            normalMapFiles.push_back(entry.path().filename().string());
+                    }
                 }
             }
+        } catch (const std::filesystem::filesystem_error& e) {
+            ofLogError("MaterialPanel") << "Filesystem error: " << e.what();
         }
 
         if (normalMapFiles.empty())
@@ -600,13 +612,17 @@ void MaterialPanel::_renderHeightMapSelector(const std::set<EntityID>& selectedE
         std::filesystem::path heightMapDir = std::filesystem::path(ofToDataPath("heightmaps"));
         std::vector<std::string> heightMapFiles;
 
-        if (std::filesystem::exists(heightMapDir) && std::filesystem::is_directory(heightMapDir)) {
-            for (const auto& entry : std::filesystem::directory_iterator(heightMapDir)) {
-                if (entry.is_regular_file()) {
-                    std::string ext = entry.path().extension().string();
-                    if (ext == ".png" || ext == ".jpg") heightMapFiles.push_back(entry.path().filename().string());
+        try {
+            if (std::filesystem::exists(heightMapDir) && std::filesystem::is_directory(heightMapDir)) {
+                for (const auto& entry : std::filesystem::directory_iterator(heightMapDir)) {
+                    if (entry.is_regular_file()) {
+                        std::string ext = entry.path().extension().string();
+                        if (ext == ".png" || ext == ".jpg") heightMapFiles.push_back(entry.path().filename().string());
+                    }
                 }
             }
+        } catch (const std::filesystem::filesystem_error& e) {
+            ofLogError("MaterialPanel") << "Filesystem error: " << e.what();
         }
 
         if (heightMapFiles.empty()) {
