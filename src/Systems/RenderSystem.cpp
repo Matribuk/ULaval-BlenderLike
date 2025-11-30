@@ -846,20 +846,39 @@ void RenderSystem::_setPrimitiveUniforms(ofShader* shader) {
     int numPrimitives = std::min(static_cast<int>(primitives.size()), this->_maxPrimitives);
     shader->setUniform1i("numPrimitives", numPrimitives);
 
+    std::vector<int> types(this->_maxPrimitives, 0);
+    std::vector<float> positions(this->_maxPrimitives * 3, 0.0f);
+    std::vector<float> param1(this->_maxPrimitives * 3, 0.0f);
+    std::vector<float> param2(this->_maxPrimitives * 3, 0.0f);
+    std::vector<float> colors(this->_maxPrimitives * 4, 0.0f);
+    std::vector<float> reflectivities(this->_maxPrimitives, 0.0f);
+
     for (int i = 0; i < numPrimitives; ++i) {
-        std::string idx = "[" + std::to_string(i) + "]";
-        shader->setUniform1i("primitiveTypes" + idx, primitives[i].type);
-        shader->setUniform3f("primitivePositions" + idx, primitives[i].position);
-        shader->setUniform3f("primitiveParam1" + idx, primitives[i].param1);
-        shader->setUniform3f("primitiveParam2" + idx, primitives[i].param2);
-        shader->setUniform4f("primitiveColors" + idx, primitives[i].color);
-        shader->setUniform1f("primitiveReflectivities" + idx, primitives[i].reflectivity);
+        types[i] = primitives[i].type;
+        positions[i * 3 + 0] = primitives[i].position.x;
+        positions[i * 3 + 1] = primitives[i].position.y;
+        positions[i * 3 + 2] = primitives[i].position.z;
+        param1[i * 3 + 0] = primitives[i].param1.x;
+        param1[i * 3 + 1] = primitives[i].param1.y;
+        param1[i * 3 + 2] = primitives[i].param1.z;
+        param2[i * 3 + 0] = primitives[i].param2.x;
+        param2[i * 3 + 1] = primitives[i].param2.y;
+        param2[i * 3 + 2] = primitives[i].param2.z;
+        colors[i * 4 + 0] = primitives[i].color.r;
+        colors[i * 4 + 1] = primitives[i].color.g;
+        colors[i * 4 + 2] = primitives[i].color.b;
+        colors[i * 4 + 3] = primitives[i].color.a;
+        reflectivities[i] = primitives[i].reflectivity;
     }
+
+    shader->setUniform1iv("primitiveTypes", types.data(), this->_maxPrimitives);
+    shader->setUniform3fv("primitivePositions", positions.data(), this->_maxPrimitives);
+    shader->setUniform3fv("primitiveParam1", param1.data(), this->_maxPrimitives);
+    shader->setUniform3fv("primitiveParam2", param2.data(), this->_maxPrimitives);
+    shader->setUniform4fv("primitiveColors", colors.data(), this->_maxPrimitives);
+    shader->setUniform1fv("primitiveReflectivities", reflectivities.data(), this->_maxPrimitives);
 }
 
 void RenderSystem::_setRaytracingUniforms(ofShader* shader) {
     shader->setUniform1i("raytracingEnabled", this->_raytracingEnabled ? 1 : 0);
-    shader->setUniform1i("raytracedShadows", this->_raytracedShadowsEnabled ? 1 : 0);
-    shader->setUniform1i("raytracedReflections", this->_raytracedReflectionsEnabled ? 1 : 0);
-    shader->setUniform1i("maxRayBounces", this->_maxRayBounces);
 }

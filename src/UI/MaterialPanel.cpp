@@ -122,7 +122,7 @@ void MaterialPanel::_loadIlluminationShader(Renderable* primaryRenderable)
                     std::string ext = entry.path().extension().string();
                     if (ext == ".vert" || ext == ".frag") {
                         std::string name = entry.path().stem().string();
-                        if (name == "lambert" || name == "phong" || name == "phong_shadow" || name == "reflective_phong" || name == "raytraced_phong") {
+                        if (name == "lambert" || name == "phong" || name == "phong_shadow" || name == "reflective_phong") {
                             illuminationShaders.push_back(name);
                         }
                     }

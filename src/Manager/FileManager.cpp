@@ -28,10 +28,16 @@ std::pair<EntityID, std::string> FileManager::_importMesh(const std::string& fil
 
     this->_model = std::make_unique<ofxAssimpModelLoader>();
 
-    if (!this->_model->load(filename))
+    if (!this->_model->load(filename)) {
+        ofLogError("FileManager") << "Failed to load model: " << filename;
         return {INVALID_ENTITY, ""};
+    }
 
     int numMeshes = this->_model->getMeshCount();
+    if (numMeshes == 0) {
+        ofLogError("FileManager") << "Model has no meshes: " << filename;
+        return {INVALID_ENTITY, ""};
+    }
 
     glm::vec3 min = this->_model->getSceneMin();
     glm::vec3 max = this->_model->getSceneMax();
@@ -46,37 +52,114 @@ std::pair<EntityID, std::string> FileManager::_importMesh(const std::string& fil
     std::string fileName = path.stem().string();
 
     Entity entity = this->_entityManager.createEntity();
-    if (numMeshes > 0) {
-        ofMesh mesh = this->_model->getMesh(0);
 
-        for (size_t i = 0; i < mesh.getNumVertices(); i++) {
-            glm::vec3 vertex = mesh.getVertex(i);
-            vertex = (vertex - center) * scaleFactor;
-            mesh.setVertex(i, vertex);
+    ofMesh mesh = this->_model->getMesh(0);
+
+    if (mesh.getNumVertices() == 0) {
+        ofLogError("FileManager") << "Mesh has no vertices: " << filename;
+        return {INVALID_ENTITY, ""};
+    }
+
+    std::vector<glm::vec2> originalTexCoords;
+    bool hasTexCoords = (mesh.getNumTexCoords() > 0);
+    if (hasTexCoords) {
+        for (size_t i = 0; i < mesh.getNumTexCoords(); i++) {
+            originalTexCoords.push_back(mesh.getTexCoord(i));
+        }
+    }
+
+    for (size_t i = 0; i < mesh.getNumVertices(); i++) {
+        glm::vec3 vertex = mesh.getVertex(i);
+        vertex = (vertex - center) * scaleFactor;
+        mesh.setVertex(i, vertex);
+    }
+
+    mesh.clearNormals();
+
+    ofLogNotice("FileManager") << "Mesh mode: " << mesh.getMode() << " (OF_PRIMITIVE_TRIANGLES=" << OF_PRIMITIVE_TRIANGLES << ")";
+    ofLogNotice("FileManager") << "Num vertices: " << mesh.getNumVertices();
+
+    if (mesh.getNumIndices() > 0) {
+        ofLogNotice("FileManager") << "Mesh uses indices, computing normals from indexed triangles";
+        std::vector<glm::vec3> normals(mesh.getNumVertices(), glm::vec3(0, 0, 0));
+
+        for (size_t i = 0; i < mesh.getNumIndices(); i += 3) {
+            ofIndexType i0 = mesh.getIndex(i);
+            ofIndexType i1 = mesh.getIndex(i + 1);
+            ofIndexType i2 = mesh.getIndex(i + 2);
+
+            glm::vec3 v0 = mesh.getVertex(i0);
+            glm::vec3 v1 = mesh.getVertex(i1);
+            glm::vec3 v2 = mesh.getVertex(i2);
+
+            glm::vec3 edge1 = v1 - v0;
+            glm::vec3 edge2 = v2 - v0;
+            glm::vec3 normal = glm::cross(edge1, edge2);
+
+            normals[i0] += normal;
+            normals[i1] += normal;
+            normals[i2] += normal;
         }
 
-        if (mesh.getNumNormals() == 0 || mesh.getNumNormals() != mesh.getNumVertices()) {
-            mesh.clearNormals();
-            for (size_t i = 0; i < mesh.getNumVertices(); i++) {
+        for (auto& normal : normals) {
+            if (glm::length(normal) > 0.0f) {
+                mesh.addNormal(glm::normalize(normal));
+            } else {
                 mesh.addNormal(glm::vec3(0, 1, 0));
             }
         }
+    } else if (mesh.getMode() == OF_PRIMITIVE_TRIANGLES && mesh.getNumVertices() % 3 == 0) {
+        ofLogNotice("FileManager") << "Mesh uses non-indexed triangles, computing flat normals";
+        for (size_t i = 0; i < mesh.getNumVertices(); i += 3) {
+            glm::vec3 v0 = mesh.getVertex(i);
+            glm::vec3 v1 = mesh.getVertex(i + 1);
+            glm::vec3 v2 = mesh.getVertex(i + 2);
 
-        this->_componentRegistry.registerComponent(entity.getId(), Transform(
-            glm::vec3(0),
-            glm::vec3(1.0f)
-        ));
+            glm::vec3 edge1 = v1 - v0;
+            glm::vec3 edge2 = v2 - v0;
+            glm::vec3 normal = glm::normalize(glm::cross(edge1, edge2));
 
-        glm::vec3 scaledSize = size * scaleFactor;
-        this->_componentRegistry.registerComponent(entity.getId(), Box(scaledSize));
-
-        Renderable renderable(mesh, ofColor::white);
-        if (renderable.material) {
-            renderable.material->illuminationShader = resourceManager.getDefaultIlluminationShader();
+            mesh.addNormal(normal);
+            mesh.addNormal(normal);
+            mesh.addNormal(normal);
         }
-        this->_componentRegistry.registerComponent(entity.getId(), renderable);
-        this->_componentRegistry.registerComponent(entity.getId(), Selectable());
+    } else {
+        ofLogWarning("FileManager") << "Unknown mesh mode, using default normals";
+        for (size_t i = 0; i < mesh.getNumVertices(); i++) {
+            mesh.addNormal(glm::vec3(0, 1, 0));
+        }
     }
+
+    mesh.clearTexCoords();
+    if (hasTexCoords && originalTexCoords.size() == mesh.getNumVertices()) {
+        for (const auto& texCoord : originalTexCoords) {
+            mesh.addTexCoord(texCoord);
+        }
+    } else {
+        for (size_t i = 0; i < mesh.getNumVertices(); i++) {
+            glm::vec3 v = mesh.getVertex(i);
+            glm::vec2 uv(
+                (v.x + targetSize * 0.5f) / targetSize,
+                (v.z + targetSize * 0.5f) / targetSize
+            );
+            mesh.addTexCoord(uv);
+        }
+    }
+
+    this->_componentRegistry.registerComponent(entity.getId(), Transform(
+        glm::vec3(0),
+        glm::vec3(1.0f)
+    ));
+
+    glm::vec3 scaledSize = size * scaleFactor;
+    this->_componentRegistry.registerComponent(entity.getId(), Box(scaledSize));
+
+    Renderable renderable(mesh, ofColor::white);
+    if (renderable.material) {
+        renderable.material->illuminationShader = resourceManager.getDefaultIlluminationShader();
+    }
+    this->_componentRegistry.registerComponent(entity.getId(), renderable);
+    this->_componentRegistry.registerComponent(entity.getId(), Selectable());
 
     return {entity.getId(), fileName};
 }

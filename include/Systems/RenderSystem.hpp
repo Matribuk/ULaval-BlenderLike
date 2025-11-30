@@ -44,12 +44,6 @@ class RenderSystem {
 
         void setRaytracingEnabled(bool enabled) { _raytracingEnabled = enabled; }
         bool getRaytracingEnabled() const { return _raytracingEnabled; }
-        void setRaytracedShadowsEnabled(bool enabled) { _raytracedShadowsEnabled = enabled; }
-        bool getRaytracedShadowsEnabled() const { return _raytracedShadowsEnabled; }
-        void setRaytracedReflectionsEnabled(bool enabled) { _raytracedReflectionsEnabled = enabled; }
-        bool getRaytracedReflectionsEnabled() const { return _raytracedReflectionsEnabled; }
-        void setMaxRayBounces(int bounces) { _maxRayBounces = bounces; }
-        int getMaxRayBounces() const { return _maxRayBounces; }
 
     private:
         ComponentRegistry& _registry;
@@ -95,9 +89,6 @@ class RenderSystem {
         void _setShadowUniforms(ofShader* shader, const std::vector<LightSource>& lights);
 
         bool _raytracingEnabled = false;
-        bool _raytracedShadowsEnabled = false;
-        bool _raytracedReflectionsEnabled = false;
-        int _maxRayBounces = 1;
         int _maxPrimitives = 32;
 
         void _setPrimitiveUniforms(ofShader* shader);
