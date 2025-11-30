@@ -13,8 +13,11 @@ void RaytracingPanel::render() {
         if (rtEnabled) {
             ImGui::Indent();
             ImGui::TextWrapped("Each shader enhances its own features:");
-            ImGui::BulletText("phong_shadow: improved shadows");
-            ImGui::BulletText("reflective_phong: improved shadows + reflections");
+            ImGui::BulletText("lambert: adds raytraced shadows");
+            ImGui::BulletText("phong: adds raytraced shadows");
+            ImGui::BulletText("phong_shadow: shadow maps -> raytraced shadows");
+            ImGui::BulletText("reflective_phong: shadows + cubemap -> raytraced (both)");
+            ImGui::BulletText("mirror: cubemap -> raytraced reflections");
             ImGui::Unindent();
         }
     }
