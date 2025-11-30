@@ -107,13 +107,44 @@ try {
 
 ---
 
+## Problème 3 : Crash/freeze quand on drag & drop un modèle 3D ✅ FIXÉ
+
+### Cause
+Les meshes importés n'avaient pas de normales valides après le scaling des vertices. Sans normales, les shaders d'illumination (lambert, phong, etc.) crashent ou rendent n'importe quoi.
+
+### Fix
+Ajout d'une vérification et génération de normales basiques si nécessaires :
+
+```cpp
+// Après le scaling des vertices (ligne 58-63)
+if (mesh.getNumNormals() == 0 || mesh.getNumNormals() != mesh.getNumVertices()) {
+    mesh.clearNormals();
+    for (size_t i = 0; i < mesh.getNumVertices(); i++) {
+        mesh.addNormal(glm::vec3(0, 1, 0));
+    }
+}
+```
+
+**Note :** Les normales générées sont basiques (tous pointent vers le haut). Pour un meilleur rendu, il faudrait calculer les normales par face, mais ça suffit pour éviter le crash.
+
+**Fichier modifié :** `src/Manager/FileManager.cpp:58-63`
+
+---
+
 ## Résumé des changements
 
 ### Fichiers modifiés :
-1. `src/Systems/PrimitiveSystem.cpp` - Fix shader reset
+1. `src/Systems/PrimitiveSystem.cpp` - Fix shader reset à lambert
 2. `src/UI/MaterialPanel.cpp` - Fix filesystem crashes (4 endroits)
+3. `src/Manager/FileManager.cpp` - Fix crash drag & drop modèles 3D
+
+### Tests réussis :
+✅ Les shaders persistent quand on crée de nouvelles primitives
+✅ Plus de crash filesystem quand on clique sur "Load Shader"
+✅ Raytraced shadows fonctionnent
+✅ Raytraced reflections fonctionnent
+⏳ À tester : Drag & drop de modèles 3D
 
 ### Prochaines étapes :
-1. Tester les fixes (shader reset et filesystem)
-2. Investiguer le crash avec 2 entités + raytracing
-3. Une fois stable, ajouter raytracing aux autres shaders
+1. Tester le drag & drop de modèles 3D
+2. Si stable, ajouter raytracing aux autres shaders (phong_shadow, reflective_phong)

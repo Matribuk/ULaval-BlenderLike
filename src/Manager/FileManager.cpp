@@ -55,6 +55,13 @@ std::pair<EntityID, std::string> FileManager::_importMesh(const std::string& fil
             mesh.setVertex(i, vertex);
         }
 
+        if (mesh.getNumNormals() == 0 || mesh.getNumNormals() != mesh.getNumVertices()) {
+            mesh.clearNormals();
+            for (size_t i = 0; i < mesh.getNumVertices(); i++) {
+                mesh.addNormal(glm::vec3(0, 1, 0));
+            }
+        }
+
         this->_componentRegistry.registerComponent(entity.getId(), Transform(
             glm::vec3(0),
             glm::vec3(1.0f)
