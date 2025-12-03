@@ -40,6 +40,7 @@ class Toolbar {
         void setExportCallback(std::function<void()> callback);
         void setSelectCallback(std::function<void()> callback);
         void setMoveCallback(std::function<void()> callback);
+        void setRaytracingCallback(std::function<void()> callback);
 
         ToolMode getActiveToolMode() const;
 
@@ -53,6 +54,7 @@ class Toolbar {
         std::function<void()> _onMove;
         std::function<void()> _onImport;
         std::function<void()> _onExport;
+        std::function<void()> _onRaytracing;
 
         int _selectedTool;
         float _buttonSpacing;

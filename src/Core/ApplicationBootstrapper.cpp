@@ -287,6 +287,12 @@ bool ApplicationBootstrapper::_SetupCallbacks()
         this->_systems.selectionSystem->setSelectMode(false);
     });
 
+    this->_ui.toolbar->setRaytracingCallback([this]() {
+        bool currentState = this->_systems.renderSystem->isRaytracingEnabled();
+        this->_systems.renderSystem->enableRaytracing(!currentState);
+        std::cout << "[Raytracing] " << (currentState ? "Disabled" : "Enabled") << std::endl;
+    });
+
     return true;
 }
 
