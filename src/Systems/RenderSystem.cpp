@@ -592,8 +592,6 @@ void RenderSystem::_renderRaytracing()
     HittableList world;
     this->_buildRaytracingScene(world);
 
-    Bvh bvh_tree(world);
-
     this->_raytracingCamera.aspectRatio = 16.0 / 9.0;
     this->_raytracingCamera.imageWidth = 400;
     this->_raytracingCamera.samplesPerPixel = 4;
@@ -620,7 +618,12 @@ void RenderSystem::_renderRaytracing()
     if (!activeCamera->isOrtho) this->_raytracingCamera.vfov = activeCamera->fov;
     else this->_raytracingCamera.vfov = 60.0;
 
-    this->_raytracingCamera.render(bvh_tree, this->_raytracingPixels);
+    if (world.objects.empty()) {
+        this->_raytracingCamera.render(world, this->_raytracingPixels);
+    } else {
+        Bvh bvh_tree(world);
+        this->_raytracingCamera.render(bvh_tree, this->_raytracingPixels);
+    }
 
     int width = this->_raytracingCamera.imageWidth;
     int height = int(width / this->_raytracingCamera.aspectRatio);
