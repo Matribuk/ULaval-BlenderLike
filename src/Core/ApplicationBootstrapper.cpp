@@ -213,9 +213,12 @@ bool ApplicationBootstrapper::_SetupCallbacks()
     this->_eventManager.subscribe<AssetDropEvent>([this](const AssetDropEvent& e) {
         const AssetInfo* asset = this->_ui.assetsPanel->getAsset(e.assetIndex);
         this->_managers.fileManager->handleAssetDrop(
+            e,
             asset,
             *this->_managers.sceneManager,
             *this->_managers.resourceManager,
+            *this->_managers.cameraManager,
+            *this->_managers.viewportManager,
             *this->_ui.eventLogPanel
         );
     });
