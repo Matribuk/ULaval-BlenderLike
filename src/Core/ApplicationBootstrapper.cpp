@@ -213,9 +213,12 @@ bool ApplicationBootstrapper::_SetupCallbacks()
     this->_eventManager.subscribe<AssetDropEvent>([this](const AssetDropEvent& e) {
         const AssetInfo* asset = this->_ui.assetsPanel->getAsset(e.assetIndex);
         this->_managers.fileManager->handleAssetDrop(
+            e,
             asset,
             *this->_managers.sceneManager,
             *this->_managers.resourceManager,
+            *this->_managers.cameraManager,
+            *this->_managers.viewportManager,
             *this->_ui.eventLogPanel
         );
     });
@@ -285,6 +288,12 @@ bool ApplicationBootstrapper::_SetupCallbacks()
 
     this->_ui.toolbar->setMoveCallback([this]() {
         this->_systems.selectionSystem->setSelectMode(false);
+    });
+
+    this->_ui.toolbar->setRaytracingCallback([this]() {
+        bool currentState = this->_systems.renderSystem->isRaytracingEnabled();
+        this->_systems.renderSystem->enableRaytracing(!currentState);
+        std::cout << "[Raytracing] " << (currentState ? "Disabled" : "Enabled") << std::endl;
     });
 
     return true;

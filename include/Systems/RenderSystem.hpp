@@ -2,6 +2,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 #include <limits>
+#include <vector>
+#include <chrono>
 
 #include "Components/Camera.hpp"
 #include "Components/Renderable.hpp"
@@ -17,6 +19,16 @@
 #include "Core/Cubemap.hpp"
 #include "Systems/SelectionSystem.hpp"
 
+#include "Raytracing/CameraWithLights.hpp"
+#include "Raytracing/HittableList.hpp"
+#include "Raytracing/Spheres.hpp"
+#include "Raytracing/Materials.hpp"
+#include "Raytracing/Bvh.hpp"
+#include "Raytracing/Lights.hpp"
+#include "Raytracing/Triangles.hpp"
+#include "Raytracing/Mesh.hpp"
+#include "Raytracing/SkyboxSampler.hpp"
+
 class SelectionSystem;
 
 class RenderSystem {
@@ -27,6 +39,9 @@ class RenderSystem {
         void render();
         void loadCubemap(const std::string& folderPath);
         void setup(CameraManager& cameraManager, SelectionSystem& selectionSystem);
+
+        void enableRaytracing(bool enable) { _raytracingEnabled = enable; }
+        bool isRaytracingEnabled() const { return _raytracingEnabled; }
 
     private:
         ComponentRegistry& _registry;
@@ -43,6 +58,7 @@ class RenderSystem {
         void _collectLights(std::vector<LightSource>& lights);
         void _setLightUniforms(ofShader* shader, const std::vector<LightSource>& lights);
         void _drawLightDirectionIndicator(const LightSource& light, const glm::mat4& transform);
+        int _convertMeshToRaytracing(const ofMesh& ofMesh, const glm::mat4& transform, std::shared_ptr<Materials> mat, HittableList& world);
 
         ofShader _skyCubeShader;
         ofVboMesh _skyQuad;
@@ -56,4 +72,15 @@ class RenderSystem {
         void _initSkybox();
         void _renderSkyboxCubemap();
         void _initWhiteTexture();
+
+        bool _raytracingEnabled = false;
+        CameraWithLights _raytracingCamera;
+        sceneLights _sceneLights;
+        SkyboxSampler _skyboxSampler;
+        std::vector<unsigned char> _raytracingPixels;
+        ofTexture _raytracingTexture;
+
+        void _renderRaytracing();
+        void _buildRaytracingScene(HittableList& world);
+        void _collectSceneLights();
 };

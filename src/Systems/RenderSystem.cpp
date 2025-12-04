@@ -1,4 +1,4 @@
-#include "Systems/RenderSystem.hpp"
+#include "RenderSystem.hpp"
 
 RenderSystem::RenderSystem(ComponentRegistry& registry, EntityManager& entityMgr)
     : _registry(registry), _entityManager(entityMgr)
@@ -17,6 +17,11 @@ void RenderSystem::render()
     Transform* camTransform = this->_registry.getComponent<Transform>(activeCameraId);
     if (!camTransform) {
         std::cout << "Active camera has no Transform component" << std::endl;
+        return;
+    }
+
+    if (this->_raytracingEnabled) {
+        this->_renderRaytracing();
         return;
     }
 
@@ -369,6 +374,8 @@ void RenderSystem::loadCubemap(const std::string& folderPath)
     bool success = this->_skyboxCubemap.loadFromFolder(folderPath);
     if (!success)
         ofLogError("RenderSystem") << "Failed to load cubemap from: " << folderPath;
+
+    this->_skyboxSampler.loadFromFolder(folderPath);
 }
 
 void RenderSystem::_initWhiteTexture()
@@ -568,4 +575,214 @@ void RenderSystem::_drawLightDirectionIndicator(const LightSource& light, const 
     }
 
     ofPopMatrix();
+}
+
+void RenderSystem::_renderRaytracing()
+{
+    Camera* activeCamera = this->_cameraManager->getActiveCamera();
+    EntityID activeCameraId = this->_cameraManager->getActiveCameraId();
+    Transform* camTransform = this->_registry.getComponent<Transform>(activeCameraId);
+
+    if (!activeCamera || !camTransform) return;
+
+    this->_collectSceneLights();
+    this->_raytracingCamera.lights = &this->_sceneLights;
+    this->_raytracingCamera.skybox = &this->_skyboxSampler;
+
+    HittableList world;
+    this->_buildRaytracingScene(world);
+
+    this->_raytracingCamera.aspectRatio = 16.0 / 9.0;
+    this->_raytracingCamera.imageWidth = 400;
+    this->_raytracingCamera.samplesPerPixel = 4;
+    this->_raytracingCamera.maxDepth = 8;
+
+    this->_raytracingCamera.lookFrom = point3(camTransform->position.x, camTransform->position.y, camTransform->position.z);
+
+    glm::vec3 forward = -glm::normalize(glm::vec3(
+        activeCamera->viewMatrix[0][2],
+        activeCamera->viewMatrix[1][2],
+        activeCamera->viewMatrix[2][2]
+    ));
+
+    glm::vec3 lookTarget = camTransform->position + forward * 10.0f;
+    this->_raytracingCamera.lookAt = point3(lookTarget.x, lookTarget.y, lookTarget.z);
+
+    glm::vec3 up = glm::normalize(glm::vec3(
+        activeCamera->viewMatrix[0][1],
+        activeCamera->viewMatrix[1][1],
+        activeCamera->viewMatrix[2][1]
+    ));
+    this->_raytracingCamera.vup = Vec3(up.x, up.y, up.z);
+
+    if (!activeCamera->isOrtho) this->_raytracingCamera.vfov = activeCamera->fov;
+    else this->_raytracingCamera.vfov = 60.0;
+
+    if (world.objects.empty()) {
+        this->_raytracingCamera.render(world, this->_raytracingPixels);
+    } else {
+        Bvh bvh_tree(world);
+        this->_raytracingCamera.render(bvh_tree, this->_raytracingPixels);
+    }
+
+    int width = this->_raytracingCamera.imageWidth;
+    int height = int(width / this->_raytracingCamera.aspectRatio);
+
+    if (!_raytracingTexture.isAllocated())
+        this->_raytracingTexture.allocate(width, height, GL_RGB);
+
+    this->_raytracingTexture.loadData(this->_raytracingPixels.data(), width, height, GL_RGB);
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, ofGetWidth(), 0, ofGetHeight(), -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    this->_raytracingTexture.draw(0, 0, ofGetWidth(), ofGetHeight());
+}
+
+void RenderSystem::_buildRaytracingScene(HittableList& world)
+{
+    for (EntityID id : this->_entityManager.getAllEntities()) {
+        Transform* transform = this->_registry.getComponent<Transform>(id);
+        Renderable* render = this->_registry.getComponent<Renderable>(id);
+
+        if (!transform || !render || !render->visible) continue;
+
+        std::shared_ptr<Materials> mat;
+
+        if (render->material) {
+            glm::vec3 diffuse = render->material->diffuseReflection;
+            Color diffuseColor(diffuse.r, diffuse.g, diffuse.b);
+
+            diffuseColor = Color(
+                diffuseColor.x() * (render->color.r / 255.0),
+                diffuseColor.y() * (render->color.g / 255.0),
+                diffuseColor.z() * (render->color.b / 255.0)
+            );
+
+            glm::vec3 emissive = render->material->emissiveReflection;
+            if (emissive.r > 0.01 || emissive.g > 0.01 || emissive.b > 0.01) {
+                diffuseColor = Color(
+                    std::min(1.0, diffuseColor.x() + emissive.r),
+                    std::min(1.0, diffuseColor.y() + emissive.g),
+                    std::min(1.0, diffuseColor.z() + emissive.b)
+                );
+            }
+
+            bool hasHighReflectivity = render->material->reflectivity > 0.1;
+
+            if (hasHighReflectivity) {
+                glm::vec3 tint = render->material->reflectionTint;
+                Color reflColor(tint.r * diffuseColor.x(), tint.g * diffuseColor.y(), tint.b * diffuseColor.z());
+                double fuzz = 1.0 - render->material->reflectivity;
+                mat = std::make_shared<Metal>(reflColor, fuzz);
+            } else
+                mat = std::make_shared<Lambertian>(diffuseColor);
+        } else {
+            Color albedo(render->color.r / 255.0, render->color.g / 255.0, render->color.b / 255.0);
+            mat = std::make_shared<Lambertian>(albedo);
+        }
+
+        if (render->mesh.getNumVertices() > 0)
+            this->_convertMeshToRaytracing(render->mesh, transform->matrix, mat, world);
+    }
+
+}
+
+int RenderSystem::_convertMeshToRaytracing(
+    const ofMesh& ofMesh,
+    const glm::mat4& transform,
+    std::shared_ptr<Materials> mat,
+    HittableList& world)
+{
+    const auto& vertices = ofMesh.getVertices();
+    const auto& indices = ofMesh.getIndices();
+
+    if (vertices.size() == 0) return 0;
+
+    auto RtMesh = std::make_shared<Mesh>(mat);
+    int triangle_count = 0;
+
+    if (indices.size() > 0) {
+        for (size_t i = 0; i < indices.size(); i += 3) {
+            if (i + 2 >= indices.size()) break;
+
+            glm::vec3 v0_local = vertices[indices[i]];
+            glm::vec3 v1_local = vertices[indices[i + 1]];
+            glm::vec3 v2_local = vertices[indices[i + 2]];
+
+            glm::vec4 v0_world = transform * glm::vec4(v0_local, 1.0);
+            glm::vec4 v1_world = transform * glm::vec4(v1_local, 1.0);
+            glm::vec4 v2_world = transform * glm::vec4(v2_local, 1.0);
+
+            point3 p0(v0_world.x, v0_world.y, v0_world.z);
+            point3 p1(v1_world.x, v1_world.y, v1_world.z);
+            point3 p2(v2_world.x, v2_world.y, v2_world.z);
+
+            RtMesh->addTriangle(p0, p1, p2);
+            triangle_count++;
+        }
+    } else if (vertices.size() >= 3) {
+        for (size_t i = 0; i < vertices.size(); i += 3) {
+            if (i + 2 >= vertices.size()) break;
+
+            glm::vec3 v0_local = vertices[i];
+            glm::vec3 v1_local = vertices[i + 1];
+            glm::vec3 v2_local = vertices[i + 2];
+
+            glm::vec4 v0_world = transform * glm::vec4(v0_local, 1.0);
+            glm::vec4 v1_world = transform * glm::vec4(v1_local, 1.0);
+            glm::vec4 v2_world = transform * glm::vec4(v2_local, 1.0);
+
+            point3 p0(v0_world.x, v0_world.y, v0_world.z);
+            point3 p1(v1_world.x, v1_world.y, v1_world.z);
+            point3 p2(v2_world.x, v2_world.y, v2_world.z);
+
+            RtMesh->addTriangle(p0, p1, p2);
+            triangle_count++;
+        }
+    }
+
+    if (triangle_count > 0) {
+        RtMesh->buildBVH();
+        world.add(RtMesh);
+    }
+
+    return triangle_count;
+}
+
+void RenderSystem::_collectSceneLights()
+{
+    this->_sceneLights.clear();
+
+    int light_count = 0;
+
+    for (EntityID id : this->_entityManager.getAllEntities()) {
+        LightSource* light = this->_registry.getComponent<LightSource>(id);
+        Transform* transform = this->_registry.getComponent<Transform>(id);
+
+        if (light && light->enabled) {
+            if (transform) {
+                RtLight RtLight(*light, transform->matrix);
+                this->_sceneLights.add(RtLight);
+            } else {
+                RtLight RtLight(*light);
+                this->_sceneLights.add(RtLight);
+            }
+
+            light_count++;
+
+            std::string type_str;
+            switch(light->type) {
+                case LightType::AMBIENT: type_str = "AMBIENT"; break;
+                case LightType::DIRECTIONAL: type_str = "DIRECTIONAL"; break;
+                case LightType::POINT: type_str = "POINT"; break;
+                case LightType::SPOT: type_str = "SPOT"; break;
+            }
+        }
+    }
 }

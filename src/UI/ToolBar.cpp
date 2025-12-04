@@ -34,6 +34,12 @@ Toolbar::Toolbar(CursorManager& cursorManager) : _cursorManager(cursorManager), 
             if (this->_onExport) this->_onExport();
         }
     }});
+
+    this->_tools.emplace_back(ToolButton{"Raytracing", {
+        [this](std::any){
+            if (this->_onRaytracing) this->_onRaytracing();
+        }
+    }});
 }
 
 void Toolbar::render()
@@ -100,6 +106,11 @@ void Toolbar::setSelectCallback(std::function<void()> callback)
 void Toolbar::setMoveCallback(std::function<void()> callback)
 {
     this->_onMove = callback;
+}
+
+void Toolbar::setRaytracingCallback(std::function<void()> callback)
+{
+    this->_onRaytracing = callback;
 }
 
 ToolMode Toolbar::getActiveToolMode() const
