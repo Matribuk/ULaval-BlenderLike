@@ -19,6 +19,10 @@ class Materials {
         ) const {
             return false;
         }
+
+        virtual Color emitted() const {
+            return Color(0, 0, 0);
+        }
 };
 
 class Lambertian : public Materials {
@@ -68,4 +72,14 @@ class Dielectric : public Materials {
 
         static double _randomDouble();
         static double _reflectance(double cosine, double refractionIndex);
+};
+
+class DiffuseLight : public Materials {
+    public:
+        DiffuseLight(const Color& emit);
+
+        Color emitted() const override;
+
+    private:
+        Color _emit;
 };

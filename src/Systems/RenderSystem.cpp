@@ -661,46 +661,49 @@ void RenderSystem::_buildRaytracingScene(HittableList& world)
         std::shared_ptr<Materials> mat;
 
         if (render->material) {
-            glm::vec3 diffuse = render->material->diffuseReflection;
-            Color diffuseColor(diffuse.r, diffuse.g, diffuse.b);
-
-            diffuseColor = Color(
-                diffuseColor.x() * (render->color.r / 255.0),
-                diffuseColor.y() * (render->color.g / 255.0),
-                diffuseColor.z() * (render->color.b / 255.0)
-            );
-
             glm::vec3 emissive = render->material->emissiveReflection;
-            if (emissive.r > 0.01 || emissive.g > 0.01 || emissive.b > 0.01) {
-                diffuseColor = Color(
-                    std::min(1.0, diffuseColor.x() + emissive.r),
-                    std::min(1.0, diffuseColor.y() + emissive.g),
-                    std::min(1.0, diffuseColor.z() + emissive.b)
+            bool isEmissive = emissive.r > 0.01 || emissive.g > 0.01 || emissive.b > 0.01;
+
+            if (isEmissive) {
+                Color emitColor(
+                    emissive.r * (render->color.r / 255.0),
+                    emissive.g * (render->color.g / 255.0),
+                    emissive.b * (render->color.b / 255.0)
                 );
-            }
-
-            bool hasRefraction = render->material->refractionIndex > 1.01 && render->material->refractionIndex < 3.0;
-            bool usingPBRWorkflow = render->material->metallic > 0.01;
-
-            if (hasRefraction && render->material->reflectivity > 0.9) {
-                mat = std::make_shared<Dielectric>(render->material->refractionIndex);
-            } else if (usingPBRWorkflow) {
-                if (render->material->metallic > 0.5) {
-                    glm::vec3 tint = render->material->reflectionTint;
-                    Color reflColor(tint.r * diffuseColor.x(), tint.g * diffuseColor.y(), tint.b * diffuseColor.z());
-                    double fuzz = render->material->roughness;
-                    mat = std::make_shared<Metal>(reflColor, fuzz);
-                } else {
-                    mat = std::make_shared<Lambertian>(diffuseColor);
-                }
+                mat = std::make_shared<DiffuseLight>(emitColor);
             } else {
-                if (render->material->reflectivity > 0.1) {
-                    glm::vec3 tint = render->material->reflectionTint;
-                    Color reflColor(tint.r * diffuseColor.x(), tint.g * diffuseColor.y(), tint.b * diffuseColor.z());
-                    double fuzz = 1.0 - render->material->reflectivity;
-                    mat = std::make_shared<Metal>(reflColor, fuzz);
+                glm::vec3 diffuse = render->material->diffuseReflection;
+                Color diffuseColor(diffuse.r, diffuse.g, diffuse.b);
+
+                diffuseColor = Color(
+                    diffuseColor.x() * (render->color.r / 255.0),
+                    diffuseColor.y() * (render->color.g / 255.0),
+                    diffuseColor.z() * (render->color.b / 255.0)
+                );
+
+                bool hasRefraction = render->material->refractionIndex > 1.01 && render->material->refractionIndex < 3.0;
+                bool usingPBRWorkflow = render->material->metallic > 0.01;
+
+                if (hasRefraction && render->material->reflectivity > 0.9) {
+                    mat = std::make_shared<Dielectric>(render->material->refractionIndex);
+                } else if (usingPBRWorkflow) {
+                    if (render->material->metallic > 0.5) {
+                        glm::vec3 tint = render->material->reflectionTint;
+                        Color reflColor(tint.r * diffuseColor.x(), tint.g * diffuseColor.y(), tint.b * diffuseColor.z());
+                        double fuzz = render->material->roughness;
+                        mat = std::make_shared<Metal>(reflColor, fuzz);
+                    } else {
+                        mat = std::make_shared<Lambertian>(diffuseColor);
+                    }
                 } else {
-                    mat = std::make_shared<Lambertian>(diffuseColor);
+                    if (render->material->reflectivity > 0.1) {
+                        glm::vec3 tint = render->material->reflectionTint;
+                        Color reflColor(tint.r * diffuseColor.x(), tint.g * diffuseColor.y(), tint.b * diffuseColor.z());
+                        double fuzz = 1.0 - render->material->reflectivity;
+                        mat = std::make_shared<Metal>(reflColor, fuzz);
+                    } else {
+                        mat = std::make_shared<Lambertian>(diffuseColor);
+                    }
                 }
             }
         } else {
