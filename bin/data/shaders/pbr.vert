@@ -1,21 +1,19 @@
-#version 410
+#version 120
 
-uniform mat4 modelViewProjectionMatrix;
-uniform mat4 modelViewMatrix;
-uniform mat4 normalMatrix;
+uniform mat4 modelMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projMatrix;
+uniform mat3 normalMatrix;
 
-in vec4 position;
-in vec3 normal;
-in vec2 texcoord;
+varying vec3 vNormal;
+varying vec3 vPosition;
+varying vec2 vTexCoord;
 
-out vec3 vPosition;
-out vec3 vNormal;
-out vec2 vTexCoord;
-
-void main() {
-    vPosition = vec3(modelViewMatrix * position);
-    vNormal = normalize(mat3(normalMatrix) * normal);
-    vTexCoord = texcoord;
-
-    gl_Position = modelViewProjectionMatrix * position;
+void main()
+{
+    vTexCoord = gl_MultiTexCoord0.xy;
+    vNormal = normalMatrix * gl_Normal;
+    vec4 worldPosition = modelMatrix * gl_Vertex;
+    vPosition = worldPosition.xyz;
+    gl_Position = projMatrix * viewMatrix * worldPosition;
 }

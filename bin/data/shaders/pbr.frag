@@ -1,7 +1,7 @@
-#version 410
+#version 120
 
-const int MAX_LIGHTS = 16;
-const float PI = 3.14159265359;
+#define MAX_LIGHTS 16
+#define PI 3.14159265359
 
 uniform int numLights;
 uniform int lightTypes[MAX_LIGHTS];
@@ -21,11 +21,9 @@ uniform float ao;
 uniform sampler2D tex0;
 uniform bool hasTexture;
 
-in vec3 vPosition;
-in vec3 vNormal;
-in vec2 vTexCoord;
-
-out vec4 fragColor;
+varying vec3 vPosition;
+varying vec3 vNormal;
+varying vec2 vTexCoord;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness) {
     float a = roughness * roughness;
@@ -120,14 +118,15 @@ void main() {
 
     vec3 albedo = baseColor;
     if (hasTexture) {
-        albedo *= texture(tex0, vTexCoord).rgb;
+        albedo *= texture2D(tex0, vTexCoord).rgb;
     }
 
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, albedo, metallic);
 
     vec3 Lo = vec3(0.0);
-    for (int i = 0; i < numLights && i < MAX_LIGHTS; ++i) {
+    for (int i = 0; i < MAX_LIGHTS; ++i) {
+        if (i >= numLights) break;
         Lo += calculateLight(i, N, V, F0, albedo);
     }
 
@@ -137,5 +136,5 @@ void main() {
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));
 
-    fragColor = vec4(color, 1.0);
+    gl_FragColor = vec4(color, 1.0);
 }
