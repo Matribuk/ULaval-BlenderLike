@@ -679,18 +679,29 @@ void RenderSystem::_buildRaytracingScene(HittableList& world)
                 );
             }
 
-            bool hasHighReflectivity = render->material->reflectivity > 0.1;
             bool hasRefraction = render->material->refractionIndex > 1.01 && render->material->refractionIndex < 3.0;
+            bool usingPBRWorkflow = render->material->metallic > 0.01;
 
             if (hasRefraction && render->material->reflectivity > 0.9) {
                 mat = std::make_shared<Dielectric>(render->material->refractionIndex);
-            } else if (hasHighReflectivity) {
-                glm::vec3 tint = render->material->reflectionTint;
-                Color reflColor(tint.r * diffuseColor.x(), tint.g * diffuseColor.y(), tint.b * diffuseColor.z());
-                double fuzz = 1.0 - render->material->reflectivity;
-                mat = std::make_shared<Metal>(reflColor, fuzz);
+            } else if (usingPBRWorkflow) {
+                if (render->material->metallic > 0.5) {
+                    glm::vec3 tint = render->material->reflectionTint;
+                    Color reflColor(tint.r * diffuseColor.x(), tint.g * diffuseColor.y(), tint.b * diffuseColor.z());
+                    double fuzz = render->material->roughness;
+                    mat = std::make_shared<Metal>(reflColor, fuzz);
+                } else {
+                    mat = std::make_shared<Lambertian>(diffuseColor);
+                }
             } else {
-                mat = std::make_shared<Lambertian>(diffuseColor);
+                if (render->material->reflectivity > 0.1) {
+                    glm::vec3 tint = render->material->reflectionTint;
+                    Color reflColor(tint.r * diffuseColor.x(), tint.g * diffuseColor.y(), tint.b * diffuseColor.z());
+                    double fuzz = 1.0 - render->material->reflectivity;
+                    mat = std::make_shared<Metal>(reflColor, fuzz);
+                } else {
+                    mat = std::make_shared<Lambertian>(diffuseColor);
+                }
             }
         } else {
             Color albedo(render->color.r / 255.0, render->color.g / 255.0, render->color.b / 255.0);
