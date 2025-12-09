@@ -89,19 +89,19 @@ Color CameraWithLights::_rayColor(const Ray& r, int depth, const Hittable& world
     if (world.hit(r, Interval(0.001, INFINITY), rec)) {
         Ray scattered;
         Color attenuation;
+        Color emitted = rec.mat->emitted();
 
-        if (rec.mat->scatter(r, rec, attenuation, scattered)) {
-            double avg_atten = (attenuation.x() + attenuation.y() + attenuation.z()) / 3.0;
-
-            if (avg_atten > 0.95)
-                return attenuation *_rayColor(scattered, depth - 1, world);
+        if (!rec.mat->scatter(r, rec, attenuation, scattered)) {
+            return emitted;
         }
+
+        Color indirectLight = attenuation * this->_rayColor(scattered, depth - 1, world);
 
         if (lights && !lights->lights.empty()) {
             Vec3 view_dir = unitVector(-r.direction());
             Color albedo = attenuation;
 
-            Color lit_color =
+            Color directLight =
                 lights->computeTotalLighting(
                     rec.p,
                     rec.normal,
@@ -111,12 +111,10 @@ Color CameraWithLights::_rayColor(const Ray& r, int depth, const Hittable& world
                     world
                 );
 
-            return lit_color;
+            return emitted + directLight + indirectLight * 0.3;
         }
         else {
-            if (rec.mat->scatter(r, rec, attenuation, scattered))
-                return attenuation * this->_rayColor(scattered, depth - 1, world);
-            return Color(0, 0, 0);
+            return emitted + indirectLight;
         }
     }
 

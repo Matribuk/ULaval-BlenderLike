@@ -81,3 +81,13 @@ double Dielectric::_reflectance(double cosine, double refractionIndex)
     r0 = r0 * r0;
     return r0 + (1.0 - r0) * std::pow((1.0 - cosine), 5.0);
 }
+
+DiffuseLight::DiffuseLight(const Color& emit)
+{
+    this->_emit = emit;
+}
+
+Color DiffuseLight::emitted() const
+{
+    return this->_emit;
+}
