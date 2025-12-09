@@ -184,9 +184,15 @@ void RenderSystem::_drawMeshSinglePass(const ofMesh& mesh, const glm::mat4& tran
         shader->setUniform3f("diffuseReflection", material->diffuseReflection);
         shader->setUniform3f("specularReflection", material->specularReflection);
         shader->setUniform3f("emissiveReflection", material->emissiveReflection);
+
+        shader->setUniform1f("metallic", material->metallic);
+        shader->setUniform1f("roughness", material->roughness);
+        shader->setUniform1f("ao", material->ao);
     }
 
     shader->setUniform4f("color", ofFloatColor(color));
+    glm::vec3 baseColor = glm::vec3(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f);
+    shader->setUniform3f("baseColor", baseColor);
     shader->setUniform1f("uTime", ofGetElapsedTimef());
 
     bool hasTexture = (material->texture != nullptr);
@@ -674,17 +680,36 @@ void RenderSystem::_buildRaytracingScene(HittableList& world)
             }
 
             bool hasHighReflectivity = render->material->reflectivity > 0.1;
+            bool hasRefraction = render->material->refractionIndex > 1.01 && render->material->refractionIndex < 3.0;
 
-            if (hasHighReflectivity) {
+            if (hasRefraction && render->material->reflectivity > 0.9) {
+                mat = std::make_shared<Dielectric>(render->material->refractionIndex);
+            } else if (hasHighReflectivity) {
                 glm::vec3 tint = render->material->reflectionTint;
                 Color reflColor(tint.r * diffuseColor.x(), tint.g * diffuseColor.y(), tint.b * diffuseColor.z());
                 double fuzz = 1.0 - render->material->reflectivity;
                 mat = std::make_shared<Metal>(reflColor, fuzz);
-            } else
+            } else {
                 mat = std::make_shared<Lambertian>(diffuseColor);
+            }
         } else {
             Color albedo(render->color.r / 255.0, render->color.g / 255.0, render->color.b / 255.0);
             mat = std::make_shared<Lambertian>(albedo);
+        }
+
+        Sphere* sphereComp = this->_registry.getComponent<Sphere>(id);
+        if (sphereComp) {
+            glm::vec3 center = glm::vec3(transform->matrix * glm::vec4(0, 0, 0, 1));
+            glm::vec3 scale = transform->scale;
+            double radius = sphereComp->radius * std::max({scale.x, scale.y, scale.z});
+
+            auto rtSphere = std::make_shared<Spheres>(
+                point3(center.x, center.y, center.z),
+                radius,
+                mat
+            );
+            world.add(rtSphere);
+            continue;
         }
 
         if (render->mesh.getNumVertices() > 0)

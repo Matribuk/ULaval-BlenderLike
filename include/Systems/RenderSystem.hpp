@@ -11,6 +11,9 @@
 #include "Components/BoundingBoxVisualization.hpp"
 #include "Components/CustomBounds.hpp"
 #include "Components/LightSource.hpp"
+#include "Components/Primitive/Sphere.hpp"
+#include "Components/Primitive/Box.hpp"
+#include "Components/Primitive/Plane.hpp"
 
 #include "Manager/CameraManager.hpp"
 

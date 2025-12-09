@@ -121,7 +121,7 @@ void MaterialPanel::_loadIlluminationShader(Renderable* primaryRenderable)
                 std::string ext = entry.path().extension().string();
                 if (ext == ".vert" || ext == ".frag") {
                     std::string name = entry.path().stem().string();
-                    if (name == "lambert" || name == "phong") {
+                    if (name == "lambert" || name == "phong" || name == "pbr") {
                         illuminationShaders.push_back(name);
                     }
                 }
@@ -422,6 +422,176 @@ void MaterialPanel::_renderMaterialPresets(const std::set<EntityID>& selectedEnt
 
         buttonCount++;
     }
+
+    ImGui::Separator();
+    ImGui::Text("Raytracing Presets:");
+
+    if (ImGui::Button("Glass##RT", ImVec2(80, 0))) {
+        for (EntityID id : selectedEntities) {
+            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+            if (renderable && renderable->material) {
+                renderable->material->reflectivity = 0.95f;
+                renderable->material->refractionIndex = 1.5f;
+            }
+        }
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Dielectric material with glass refraction");
+
+    ImGui::SameLine();
+    if (ImGui::Button("Water##RT", ImVec2(80, 0))) {
+        for (EntityID id : selectedEntities) {
+            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+            if (renderable && renderable->material) {
+                renderable->material->reflectivity = 0.95f;
+                renderable->material->refractionIndex = 1.33f;
+            }
+        }
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Dielectric material with water refraction");
+
+    ImGui::SameLine();
+    if (ImGui::Button("Diamond##RT", ImVec2(80, 0))) {
+        for (EntityID id : selectedEntities) {
+            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+            if (renderable && renderable->material) {
+                renderable->material->reflectivity = 0.95f;
+                renderable->material->refractionIndex = 2.4f;
+            }
+        }
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Dielectric material with diamond refraction");
+
+    if (ImGui::Button("Mirror##RT", ImVec2(80, 0))) {
+        for (EntityID id : selectedEntities) {
+            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+            if (renderable && renderable->material) {
+                renderable->material->reflectivity = 1.0f;
+                renderable->material->refractionIndex = 1.5f;
+            }
+        }
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Perfect Metal reflection (fuzz = 0)");
+
+    ImGui::SameLine();
+    if (ImGui::Button("Brushed Metal##RT", ImVec2(80, 0))) {
+        for (EntityID id : selectedEntities) {
+            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+            if (renderable && renderable->material) {
+                renderable->material->reflectivity = 0.7f;
+                renderable->material->refractionIndex = 1.5f;
+            }
+        }
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Metal with some roughness (fuzz = 0.3)");
+
+    ImGui::SameLine();
+    if (ImGui::Button("Matte##RT", ImVec2(80, 0))) {
+        for (EntityID id : selectedEntities) {
+            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+            if (renderable && renderable->material) {
+                renderable->material->reflectivity = 0.0f;
+                renderable->material->refractionIndex = 1.0f;
+            }
+        }
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Lambertian diffuse material (no reflection)");
+
+    ImGui::Separator();
+    ImGui::Text("PBR Material Presets:");
+
+    if (ImGui::Button("Gold##PBR", ImVec2(80, 0))) {
+        for (EntityID id : selectedEntities) {
+            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+            if (renderable && renderable->material) {
+                renderable->color = ofColor(255, 215, 0);
+                renderable->material->metallic = 1.0f;
+                renderable->material->roughness = 0.2f;
+                renderable->material->ao = 1.0f;
+            }
+        }
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Metallic: 1.0, Roughness: 0.2");
+
+    ImGui::SameLine();
+    if (ImGui::Button("Plastic##PBR", ImVec2(80, 0))) {
+        for (EntityID id : selectedEntities) {
+            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+            if (renderable && renderable->material) {
+                renderable->color = ofColor(255, 60, 60);
+                renderable->material->metallic = 0.0f;
+                renderable->material->roughness = 0.5f;
+                renderable->material->ao = 1.0f;
+            }
+        }
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Metallic: 0.0, Roughness: 0.5");
+
+    ImGui::SameLine();
+    if (ImGui::Button("Iron##PBR", ImVec2(80, 0))) {
+        for (EntityID id : selectedEntities) {
+            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+            if (renderable && renderable->material) {
+                renderable->color = ofColor(196, 199, 199);
+                renderable->material->metallic = 1.0f;
+                renderable->material->roughness = 0.6f;
+                renderable->material->ao = 1.0f;
+            }
+        }
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Metallic: 1.0, Roughness: 0.6");
+
+    if (ImGui::Button("Copper##PBR", ImVec2(80, 0))) {
+        for (EntityID id : selectedEntities) {
+            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+            if (renderable && renderable->material) {
+                renderable->color = ofColor(184, 115, 51);
+                renderable->material->metallic = 1.0f;
+                renderable->material->roughness = 0.3f;
+                renderable->material->ao = 1.0f;
+            }
+        }
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Metallic: 1.0, Roughness: 0.3");
+
+    ImGui::SameLine();
+    if (ImGui::Button("Chrome##PBR", ImVec2(80, 0))) {
+        for (EntityID id : selectedEntities) {
+            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+            if (renderable && renderable->material) {
+                renderable->color = ofColor(220, 220, 220);
+                renderable->material->metallic = 1.0f;
+                renderable->material->roughness = 0.1f;
+                renderable->material->ao = 1.0f;
+            }
+        }
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Metallic: 1.0, Roughness: 0.1");
+
+    ImGui::SameLine();
+    if (ImGui::Button("Rubber##PBR", ImVec2(80, 0))) {
+        for (EntityID id : selectedEntities) {
+            Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+            if (renderable && renderable->material) {
+                renderable->color = ofColor(40, 40, 40);
+                renderable->material->metallic = 0.0f;
+                renderable->material->roughness = 0.8f;
+                renderable->material->ao = 1.0f;
+            }
+        }
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Metallic: 0.0, Roughness: 0.8");
 }
 
 void MaterialPanel::_renderMaterialReflectionComponents(const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable)
@@ -450,6 +620,42 @@ void MaterialPanel::_renderMaterialReflectionComponents(const std::set<EntityID>
         primaryRenderable->material->emissiveReflection = glm::vec3(emissiveCoef);
         this->_syncMaterialProperty(selectedEntities, &Material::emissiveReflection, primaryRenderable->material->emissiveReflection);
     }
+
+    ImGui::Separator();
+    ImGui::Text("Raytracing Material Properties:");
+
+    if (ImGui::SliderFloat("Reflectivity", &primaryRenderable->material->reflectivity, 0.0f, 1.0f, "%.2f")) {
+        this->_syncMaterialProperty(selectedEntities, &Material::reflectivity, primaryRenderable->material->reflectivity);
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("0.0 = Diffuse (Lambertian)\n> 0.1 = Metal (reflective)\n> 0.9 + refraction = Dielectric (glass)");
+
+    if (ImGui::SliderFloat("Refraction Index", &primaryRenderable->material->refractionIndex, 1.0f, 2.5f, "%.2f")) {
+        this->_syncMaterialProperty(selectedEntities, &Material::refractionIndex, primaryRenderable->material->refractionIndex);
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("1.0 = Air\n1.33 = Water\n1.5 = Glass\n2.4 = Diamond\nRequires reflectivity > 0.9 for Dielectric material");
+
+    ImGui::Separator();
+    ImGui::Text("PBR Parameters:");
+
+    if (ImGui::SliderFloat("Metallic", &primaryRenderable->material->metallic, 0.0f, 1.0f, "%.2f")) {
+        this->_syncMaterialProperty(selectedEntities, &Material::metallic, primaryRenderable->material->metallic);
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("0.0 = Dielectric (plastic, wood, stone)\n1.0 = Metallic (gold, iron, copper)");
+
+    if (ImGui::SliderFloat("Roughness", &primaryRenderable->material->roughness, 0.0f, 1.0f, "%.2f")) {
+        this->_syncMaterialProperty(selectedEntities, &Material::roughness, primaryRenderable->material->roughness);
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("0.0 = Smooth/Glossy surface\n1.0 = Rough/Matte surface");
+
+    if (ImGui::SliderFloat("Ambient Occlusion", &primaryRenderable->material->ao, 0.0f, 1.0f, "%.2f")) {
+        this->_syncMaterialProperty(selectedEntities, &Material::ao, primaryRenderable->material->ao);
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("1.0 = Fully lit\n0.0 = Fully occluded");
 }
 
 void MaterialPanel::_renderReliefMappingSection(EntityID primaryEntity, const std::set<EntityID>& selectedEntities, Renderable* primaryRenderable)
