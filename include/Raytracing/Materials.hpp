@@ -3,9 +3,12 @@
 #include "Ray.hpp"
 #include "Hittable.hpp"
 #include "Interval.hpp"
+#include <ofMain.h>
 
 #include <cmath>
 #include <cstdlib>
+
+class ofTexture;
 
 class Materials {
     public:
@@ -27,7 +30,7 @@ class Materials {
 
 class Lambertian : public Materials {
     public:
-        Lambertian(const Color& albedo);
+        Lambertian(const Color& albedo, ofTexture* texture = nullptr);
 
         bool scatter(
             const Ray& rIn,
@@ -38,11 +41,12 @@ class Lambertian : public Materials {
 
     private:
         Color _albedo;
+        ofTexture* _texture;
 };
 
 class Metal : public Materials {
     public:
-        Metal(const Color& albedo, double fuzz);
+        Metal(const Color& albedo, double fuzz, ofTexture* texture = nullptr);
 
         bool scatter(
             const Ray& rIn,
@@ -54,6 +58,7 @@ class Metal : public Materials {
     private:
         Color _albedo;
         double _fuzz;
+        ofTexture* _texture;
 };
 
 class Dielectric : public Materials {

@@ -34,6 +34,11 @@ bool Spheres::hit(const Ray& r, Interval rayT, HitRecord& rec) const
     rec.setFaceNormal(r, outwardNormal);
     rec.mat = this->_mat;
 
+    double theta = std::atan2(-outwardNormal.z(), outwardNormal.x()) + M_PI;
+    double phi = std::acos(-outwardNormal.y());
+    rec.u = theta / (2.0 * M_PI);
+    rec.v = phi / M_PI;
+
     return true;
 }
 

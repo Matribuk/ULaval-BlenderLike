@@ -691,24 +691,24 @@ void RenderSystem::_buildRaytracingScene(HittableList& world)
                         glm::vec3 tint = render->material->reflectionTint;
                         Color reflColor(tint.r * diffuseColor.x(), tint.g * diffuseColor.y(), tint.b * diffuseColor.z());
                         double fuzz = render->material->roughness;
-                        mat = std::make_shared<Metal>(reflColor, fuzz);
+                        mat = std::make_shared<Metal>(reflColor, fuzz, render->material->texture);
                     } else {
-                        mat = std::make_shared<Lambertian>(diffuseColor);
+                        mat = std::make_shared<Lambertian>(diffuseColor, render->material->texture);
                     }
                 } else {
                     if (render->material->reflectivity > 0.1) {
                         glm::vec3 tint = render->material->reflectionTint;
                         Color reflColor(tint.r * diffuseColor.x(), tint.g * diffuseColor.y(), tint.b * diffuseColor.z());
                         double fuzz = 1.0 - render->material->reflectivity;
-                        mat = std::make_shared<Metal>(reflColor, fuzz);
+                        mat = std::make_shared<Metal>(reflColor, fuzz, render->material->texture);
                     } else {
-                        mat = std::make_shared<Lambertian>(diffuseColor);
+                        mat = std::make_shared<Lambertian>(diffuseColor, render->material->texture);
                     }
                 }
             }
         } else {
             Color albedo(render->color.r / 255.0, render->color.g / 255.0, render->color.b / 255.0);
-            mat = std::make_shared<Lambertian>(albedo);
+            mat = std::make_shared<Lambertian>(albedo, nullptr);
         }
 
         Sphere* sphereComp = this->_registry.getComponent<Sphere>(id);
