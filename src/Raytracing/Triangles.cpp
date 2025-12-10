@@ -56,6 +56,8 @@ bool Triangles::hit(const Ray& r, Interval rayT, HitRecord& rec) const
     rec.p = r.at(t);
     rec.setFaceNormal(r, this->_normal);
     rec.mat = this->_mat;
+    rec.u = u;
+    rec.v = v;
 
     return true;
 }
