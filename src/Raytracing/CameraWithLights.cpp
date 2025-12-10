@@ -1,6 +1,4 @@
 #include "CameraWithLights.hpp"
-#include <thread>
-#include <vector>
 
 void CameraWithLights::render(const Hittable& world, std::vector<unsigned char>& pixels)
 {
