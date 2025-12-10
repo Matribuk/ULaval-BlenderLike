@@ -42,6 +42,7 @@ class Lambertian : public Materials {
     private:
         Color _albedo;
         ofTexture* _texture;
+        ofPixels _cachedPixels;
 };
 
 class Metal : public Materials {
@@ -59,6 +60,7 @@ class Metal : public Materials {
         Color _albedo;
         double _fuzz;
         ofTexture* _texture;
+        ofPixels _cachedPixels;
 };
 
 class Dielectric : public Materials {

@@ -6,33 +6,50 @@ void CameraWithLights::render(const Hittable& world, std::vector<unsigned char>&
 
     pixels.resize(imageWidth * this->_imageHeight * 3);
 
-    for (int j = 0; j < this->_imageHeight; j++) {
-        for (int i = 0; i < imageWidth; i++) {
-            Color pixel_color(0, 0, 0);
+    unsigned int num_threads = std::thread::hardware_concurrency();
+    if (num_threads == 0) num_threads = 4;
 
-            for (int sample = 0; sample < samplesPerPixel; sample++) {
-                Ray r = this->_getRay(i, j);
-                pixel_color += this->_rayColor(r, maxDepth, world);
+    std::vector<std::thread> threads;
+    int rows_per_thread = this->_imageHeight / num_threads;
+
+    for (unsigned int t = 0; t < num_threads; ++t) {
+        int start_row = t * rows_per_thread;
+        int end_row = (t == num_threads - 1) ? this->_imageHeight : (t + 1) * rows_per_thread;
+
+        threads.emplace_back([this, &world, &pixels, start_row, end_row]() {
+            for (int j = start_row; j < end_row; j++) {
+                for (int i = 0; i < imageWidth; i++) {
+                    Color pixel_color(0, 0, 0);
+
+                    for (int sample = 0; sample < samplesPerPixel; sample++) {
+                        Ray r = this->_getRay(i, j);
+                        pixel_color += this->_rayColor(r, maxDepth, world);
+                    }
+
+                    auto scale = 1.0 / samplesPerPixel;
+                    auto r = pixel_color.x() * scale;
+                    auto g = pixel_color.y() * scale;
+                    auto b = pixel_color.z() * scale;
+
+                    r = this->_linearToGamma(r);
+                    g = this->_linearToGamma(g);
+                    b = this->_linearToGamma(b);
+
+                    int rbyte = int(256 * std::clamp(r, 0.0, 0.999));
+                    int gbyte = int(256 * std::clamp(g, 0.0, 0.999));
+                    int bbyte = int(256 * std::clamp(b, 0.0, 0.999));
+
+                    int pixel_index = ((this->_imageHeight - 1 - j) * imageWidth + i) * 3;
+                    pixels[pixel_index + 0] = rbyte;
+                    pixels[pixel_index + 1] = gbyte;
+                    pixels[pixel_index + 2] = bbyte;
+                }
             }
+        });
+    }
 
-            auto scale = 1.0 / samplesPerPixel;
-            auto r = pixel_color.x() * scale;
-            auto g = pixel_color.y() * scale;
-            auto b = pixel_color.z() * scale;
-
-            r = this->_linearToGamma(r);
-            g = this->_linearToGamma(g);
-            b = this->_linearToGamma(b);
-
-            int rbyte = int(256 * std::clamp(r, 0.0, 0.999));
-            int gbyte = int(256 * std::clamp(g, 0.0, 0.999));
-            int bbyte = int(256 * std::clamp(b, 0.0, 0.999));
-
-            int pixel_index = ((this->_imageHeight - 1 - j) * imageWidth + i) * 3;
-            pixels[pixel_index + 0] = rbyte;
-            pixels[pixel_index + 1] = gbyte;
-            pixels[pixel_index + 2] = bbyte;
-        }
+    for (auto& thread : threads) {
+        thread.join();
     }
 }
 

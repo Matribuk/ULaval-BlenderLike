@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <thread>
+#include <vector>
 
 class CameraWithLights {
     public:
