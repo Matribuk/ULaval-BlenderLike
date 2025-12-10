@@ -3,6 +3,7 @@
 #include "Ray.hpp"
 #include "Hittable.hpp"
 #include "Interval.hpp"
+#include <ofMain.h>
 
 #include <cmath>
 #include <cstdlib>

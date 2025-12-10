@@ -1,5 +1,4 @@
 #include "Materials.hpp"
-#include <ofMain.h>
 
 Lambertian::Lambertian(const Color& albedo, ofTexture* texture)
 {
