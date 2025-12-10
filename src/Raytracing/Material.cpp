@@ -4,6 +4,10 @@ Lambertian::Lambertian(const Color& albedo, ofTexture* texture)
 {
     this->_albedo = albedo;
     this->_texture = texture;
+
+    if (texture && texture->isAllocated()) {
+        texture->readToPixels(this->_cachedPixels);
+    }
 }
 
 bool Lambertian::scatter(
@@ -18,16 +22,13 @@ bool Lambertian::scatter(
 
     scattered = Ray(rec.p, scatterDirection);
 
-    if (this->_texture && this->_texture->isAllocated()) {
+    if (this->_cachedPixels.isAllocated()) {
+        int x = static_cast<int>(rec.u * (this->_cachedPixels.getWidth() - 1));
+        int y = static_cast<int>(rec.v * (this->_cachedPixels.getHeight() - 1));
+        x = std::max(0, std::min(x, static_cast<int>(this->_cachedPixels.getWidth() - 1)));
+        y = std::max(0, std::min(y, static_cast<int>(this->_cachedPixels.getHeight() - 1)));
 
-        int x = static_cast<int>(rec.u * (this->_texture->getWidth() - 1));
-        int y = static_cast<int>(rec.v * (this->_texture->getHeight() - 1));
-        x = std::max(0, std::min(x, static_cast<int>(this->_texture->getWidth() - 1)));
-        y = std::max(0, std::min(y, static_cast<int>(this->_texture->getHeight() - 1)));
-
-        ofPixels pixels;
-        this->_texture->readToPixels(pixels);
-        ofColor texColor = pixels.getColor(x, y);
+        ofColor texColor = this->_cachedPixels.getColor(x, y);
 
         attenuation = Color(
             texColor.r / 255.0 * this->_albedo.x(),
@@ -47,6 +48,10 @@ Metal::Metal(const Color& albedo, double fuzz, ofTexture* texture)
     this->_albedo = albedo;
     this->_fuzz = (fuzz < 1.0) ? fuzz : 1.0;
     this->_texture = texture;
+
+    if (texture && texture->isAllocated()) {
+        texture->readToPixels(this->_cachedPixels);
+    }
 }
 
 bool Metal::scatter(
@@ -59,15 +64,13 @@ bool Metal::scatter(
     reflected = unitVector(reflected) + (this->_fuzz * randomUnitVector());
     scattered = Ray(rec.p, reflected);
 
-    if (this->_texture && this->_texture->isAllocated()) {
-        int x = static_cast<int>(rec.u * (this->_texture->getWidth() - 1));
-        int y = static_cast<int>(rec.v * (this->_texture->getHeight() - 1));
-        x = std::max(0, std::min(x, static_cast<int>(this->_texture->getWidth() - 1)));
-        y = std::max(0, std::min(y, static_cast<int>(this->_texture->getHeight() - 1)));
+    if (this->_cachedPixels.isAllocated()) {
+        int x = static_cast<int>(rec.u * (this->_cachedPixels.getWidth() - 1));
+        int y = static_cast<int>(rec.v * (this->_cachedPixels.getHeight() - 1));
+        x = std::max(0, std::min(x, static_cast<int>(this->_cachedPixels.getWidth() - 1)));
+        y = std::max(0, std::min(y, static_cast<int>(this->_cachedPixels.getHeight() - 1)));
 
-        ofPixels pixels;
-        this->_texture->readToPixels(pixels);
-        ofColor texColor = pixels.getColor(x, y);
+        ofColor texColor = this->_cachedPixels.getColor(x, y);
 
         attenuation = Color(
             texColor.r / 255.0 * this->_albedo.x(),
