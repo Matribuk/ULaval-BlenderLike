@@ -114,6 +114,12 @@ Color CameraWithLights::_rayColor(const Ray& r, int depth, const Hittable& world
 
         Color indirectLight = attenuation * this->_rayColor(scattered, depth - 1, world);
 
+        bool isGlass = (attenuation.x() > 0.99 && attenuation.y() > 0.99 && attenuation.z() > 0.99);
+
+        if (isGlass) {
+            return emitted + indirectLight;
+        }
+
         if (lights && !lights->lights.empty()) {
             Vec3 view_dir = unitVector(-r.direction());
             Color albedo = attenuation;

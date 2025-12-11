@@ -684,7 +684,7 @@ void RenderSystem::_buildRaytracingScene(HittableList& world)
                 bool hasRefraction = render->material->refractionIndex > 1.01 && render->material->refractionIndex < 3.0;
                 bool usingPBRWorkflow = render->material->metallic > 0.01;
 
-                if (hasRefraction && render->material->reflectivity > 0.9) {
+                if (hasRefraction) {
                     mat = std::make_shared<Dielectric>(render->material->refractionIndex);
                 } else if (usingPBRWorkflow) {
                     if (render->material->metallic > 0.5) {

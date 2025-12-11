@@ -31,7 +31,7 @@ struct Material {
 
     float reflectivity = 0.0f;
     glm::vec3 reflectionTint = glm::vec3(1.0f, 1.0f, 1.0f);
-    float refractionIndex = 1.5f;
+    float refractionIndex = 1.0f;
     float normalStrength = 1.0f;
 
     float metallic = 0.0f;
