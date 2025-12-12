@@ -136,29 +136,29 @@
 - [x] Application sur formes 2D complexes
 
 ### 8.2 Courbe paramétrique
-- [ ] L'application permet d'afficher au moins 1 type de courbe paramétrique
-- [ ] Avec au moins 5 points de contrôle
-- [ ] Par exemple : spline de Bézier ou de Catmull-Rom
+- [x] L'application permet d'afficher au moins 1 type de courbe paramétrique
+- [x] Avec au moins 5 points de contrôle
+- [x] Par exemple : spline de Bézier ou de Catmull-Rom
 
 ### 8.4 Effet de relief
-- [ ] L'application permet de rendre au moins 3 modèles où une ou des textures sont utilisées pour simuler un effet de relief sur la surface
-- [ ] Par exemple : displacement mapping ou normal mapping
+- [x] L'application permet de rendre au moins 3 modèles où une ou des textures sont utilisées pour simuler un effet de relief sur la surface
+- [x] Par exemple : displacement mapping ou normal mapping
 
 ---
 
 ## 🌟 9. Lancer de rayon
 
 ### 9.1 Intersection
-- [ ] L'application est capable de calculer le point d'intersection entre un rayon et au moins 3 types de primitives géométriques
-- [ ] Implémentation pour sphère, box, plan (minimum)
+- [x] L'application est capable de calculer le point d'intersection entre un rayon et au moins 3 types de primitives géométriques
+- [x] Implémentation pour sphère, box, plan (minimum)
 
 ### 9.2 Réflexion
-- [ ] Une technique de rendu inspirée des principes du lancer de rayon est utilisée pour rendre au moins 2 effets de réflexion
-- [ ] Par exemple : une surface miroir
+- [x] Une technique de rendu inspirée des principes du lancer de rayon est utilisée pour rendre au moins 2 effets de réflexion
+- [x] Par exemple : une surface miroir
 
 ### 9.4 Ombrage
-- [ ] Une technique de rendu inspirée des principes du lancer de rayon est utilisée pour calculer l'ombrage d'au moins 1 scène
-- [ ] Calcul des ombres portées
+- [x] Une technique de rendu inspirée des principes du lancer de rayon est utilisée pour calculer l'ombrage d'au moins 1 scène
+- [x] Calcul des ombres portées
 
 ---
 
