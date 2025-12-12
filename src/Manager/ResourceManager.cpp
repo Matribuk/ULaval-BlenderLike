@@ -1,13 +1,5 @@
 #include "Manager/ResourceManager.hpp"
 
-ResourceManager::ResourceManager()
-{
-}
-
-ResourceManager::~ResourceManager()
-{
-}
-
 ofMesh& ResourceManager::loadMesh(std::string path) {
 
     if (this->_meshes.find(path) == this->_meshes.end()) {
@@ -100,6 +92,19 @@ ofTexture& ResourceManager::loadTexture(std::string path) {
     return tex;
 }
 
+ofTexture& ResourceManager::storeTexture(const std::string& name, const ofTexture& texture) {
+    ofDisableArbTex();
+
+    auto it = this->_textures.find(name);
+    if (it != this->_textures.end()) {
+        it->second = texture;
+        return it->second;
+    }
+
+    auto [insertedIt, success] = this->_textures.emplace(name, texture);
+    return insertedIt->second;
+}
+
 std::string ResourceManager::getTexturePath(ofTexture& target) {
     for (const auto& [path, tex] : this->_textures) {
         if (&tex == &target) {
@@ -137,11 +142,17 @@ ofShader& ResourceManager::loadShader(std::string vertexPath, std::string fragme
 
         shader.bindDefaults();
         shader.linkProgram();
-        if (!shader.isLoaded()) {
-            ofLogError() << "Shader failed to load!";
-        }
+        if (!shader.isLoaded())
+            ofLogError("ResourceManager") << "Shader failed to load: " << key;
+
         this->_shaders[key] = shader;
     }
 
     return this->_shaders[key];
+}
+
+ofShader* ResourceManager::getDefaultIlluminationShader() {
+    std::string vertPath = ofToDataPath("shaders/lambert.vert");
+    std::string fragPath = ofToDataPath("shaders/lambert.frag");
+    return &this->loadShader(vertPath, fragPath);
 }

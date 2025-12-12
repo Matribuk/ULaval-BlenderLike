@@ -5,10 +5,17 @@
 #include "Components/Selectable.hpp"
 #include "Components/Primitive/Box.hpp"
 
+#include "UI/AssetsPanel.hpp"
+#include "UI/EventLogPanel.hpp"
+
+#include "Manager/SceneManager.hpp"
+#include "Manager/ResourceManager.hpp"
+
 #include "Core/ComponentRegistry.hpp"
 #include "Core/EntityManager.hpp"
 
 #include "ofxAssimpModelLoader.h"
+#include "Events/EventTypes/AssetDropEvent.hpp"
 
 #include <string>
 #include <filesystem>
@@ -17,6 +24,8 @@ class AssetsPanel;
 class EventLogPanel;
 class SceneManager;
 class ResourceManager;
+class CameraManager;
+class ViewportManager;
 struct AssetInfo;
 
 class FileManager {
@@ -29,13 +38,27 @@ class FileManager {
         static bool isImageFile(const std::string& filename);
         static bool isModelFile(const std::string& filename);
         bool importAndAddAsset(const std::string& filePath, AssetsPanel& assetsPanel, EventLogPanel& eventLog);
-        void handleAssetDrop(const AssetInfo* asset, SceneManager& sceneManager, ResourceManager& resourceManager, EventLogPanel& eventLog);
+        void handleAssetDrop(
+            const AssetDropEvent& event,
+            const AssetInfo* asset,
+            SceneManager& sceneManager,
+            ResourceManager& resourceManager,
+            CameraManager& cameraManager,
+            ViewportManager& viewportManager,
+            EventLogPanel& eventLog
+        );
 
     private:
-        EntityID _createImagePlaneEntity(ofTexture& texture, const std::string& name, const glm::vec3& position = glm::vec3(0, 0, 0));
-        std::pair<EntityID, std::string> _importMesh(const std::string& filename);
+        EntityID _createImagePlaneEntity(ofTexture& texture, const std::string& name, ResourceManager& resourceManager, const glm::vec3& position = glm::vec3(0, 0, 0));
+        std::pair<EntityID, std::string> _importMesh(const std::string& filename, ResourceManager& resourceManager);
         std::pair<std::string, std::string> _copyFileToDataFolder(const std::string& sourcePath);
         std::shared_ptr<ofTexture> _importImageTexture(const std::string& filename);
+        glm::vec3 _calculate3DPositionFromScreenPos(
+            const glm::vec2& screenPos,
+            ViewportID viewportId,
+            CameraManager& cameraManager,
+            ViewportManager& viewportManager
+        );
         ComponentRegistry& _componentRegistry;
         EntityManager& _entityManager;
         std::unique_ptr<ofxAssimpModelLoader> _model;

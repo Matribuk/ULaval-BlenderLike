@@ -8,8 +8,11 @@
 #include "Components/Transform.hpp"
 #include "Components/Primitive/Box.hpp"
 #include "Components/Primitive/Sphere.hpp"
+#include "Components/Primitive/DelaunayMesh.hpp"
+#include "Components/Primitive/ParametricCurve.hpp"
 #include "Components/Renderable.hpp"
 #include "Components/Selectable.hpp"
+#include "Components/BoundingBoxVisualization.hpp"
 
 #include "Manager/SceneManager.hpp"
 
@@ -25,7 +28,10 @@ enum class PrimitiveType {
     Circle,
     Line,
     Rectangle,
-    Point
+    Point,
+    DelaunayTriangulation,
+    BezierCurve,
+    CatmullRomCurve
 };
 
 class PrimitivesPanel {
@@ -38,6 +44,7 @@ class PrimitivesPanel {
         );
 
         void render();
+        void renderContent();
         void setEventLogPanel(EventLogPanel* eventLog);
 
     private:

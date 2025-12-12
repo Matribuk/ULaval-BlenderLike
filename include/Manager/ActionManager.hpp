@@ -19,6 +19,9 @@
 
 #include <vector>
 #include <unordered_map>
+#include <ofxImGui.h>
+
+class SceneManager;
 
 class ActionManager {
     public:
@@ -28,7 +31,8 @@ class ActionManager {
             EventManager& eventManager,
             CameraManager& cameraManager,
             ViewportManager& viewportManager,
-            SelectionSystem& selectionSystem
+            SelectionSystem& selectionSystem,
+            SceneManager& sceneManager
         );
 
         ~ActionManager() = default;
@@ -44,6 +48,7 @@ class ActionManager {
         CameraManager& _cameraManager;
         ViewportManager& _viewportManager;
         SelectionSystem& _selectionSystem;
+        SceneManager& _sceneManager;
 
         bool _isIsolated = false;
         std::unordered_map<EntityID, bool> _savedVisibilityStates;

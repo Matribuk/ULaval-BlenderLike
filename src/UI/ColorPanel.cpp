@@ -1,7 +1,4 @@
 #include "UI/ColorPanel.hpp"
-#include "Events/EventTypes/ColorPreviewEvent.hpp"
-#include "Events/EventTypes/ColorPickedEvent.hpp"
-#include "Events/EventTypes/EyedropperCancelledEvent.hpp"
 
 ColorPanel::ColorPanel(ComponentRegistry& componentRegistry, SelectionSystem& selectionSystem, EventManager& eventManager)
     : _color(ofColor::white), _componentRegistry(componentRegistry), _selectionSystem(selectionSystem),

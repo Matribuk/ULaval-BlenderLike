@@ -1,8 +1,8 @@
 #include "Manager/FileManager.hpp"
-#include "UI/AssetsPanel.hpp"
-#include "UI/EventLogPanel.hpp"
-#include "Manager/SceneManager.hpp"
-#include "Manager/ResourceManager.hpp"
+#include "Manager/CameraManager.hpp"
+#include "Manager/ViewportManager.hpp"
+#include "UI/Viewport.hpp"
+#include "Systems/RaycastSystem.hpp"
 
 FileManager::FileManager(ComponentRegistry& componentRegistry, EntityManager& entityManager)
     : _componentRegistry(componentRegistry), _entityManager(entityManager) {}
@@ -25,7 +25,7 @@ void FileManager::exportMesh(EntityID entity, const std::string& filename)
 }
 
 
-std::pair<EntityID, std::string> FileManager::_importMesh(const std::string& filename)
+std::pair<EntityID, std::string> FileManager::_importMesh(const std::string& filename, ResourceManager& resourceManager)
 {
     if (FileManager::isImageFile(filename))
         return {INVALID_ENTITY, ""};
@@ -66,7 +66,12 @@ std::pair<EntityID, std::string> FileManager::_importMesh(const std::string& fil
 
         glm::vec3 scaledSize = size * scaleFactor;
         this->_componentRegistry.registerComponent(entity.getId(), Box(scaledSize));
-        this->_componentRegistry.registerComponent(entity.getId(), Renderable(mesh, ofColor::white));
+
+        Renderable renderable(mesh, ofColor::white);
+        if (renderable.material) {
+            renderable.material->illuminationShader = resourceManager.getDefaultIlluminationShader();
+        }
+        this->_componentRegistry.registerComponent(entity.getId(), renderable);
         this->_componentRegistry.registerComponent(entity.getId(), Selectable());
     }
 
@@ -86,7 +91,7 @@ std::shared_ptr<ofTexture> FileManager::_importImageTexture(const std::string& f
     return texture;
 }
 
-EntityID FileManager::_createImagePlaneEntity(ofTexture& texture, const std::string& name, const glm::vec3& position)
+EntityID FileManager::_createImagePlaneEntity(ofTexture& texture, const std::string& name, ResourceManager& resourceManager, const glm::vec3& position)
 {
     if (!texture.isAllocated())
         return INVALID_ENTITY;
@@ -104,6 +109,9 @@ EntityID FileManager::_createImagePlaneEntity(ofTexture& texture, const std::str
     ));
 
     Renderable renderable(planeMesh, ofColor::white, true, nullptr, &texture);
+    if (renderable.material) {
+        renderable.material->illuminationShader = resourceManager.getDefaultIlluminationShader();
+    }
     this->_componentRegistry.registerComponent(entity.getId(), renderable);
     this->_componentRegistry.registerComponent(entity.getId(), Selectable());
 
@@ -198,16 +206,32 @@ bool FileManager::importAndAddAsset(const std::string& filePath, AssetsPanel& as
     return false;
 }
 
-void FileManager::handleAssetDrop(const AssetInfo* asset, SceneManager& sceneManager, ResourceManager& resourceManager, EventLogPanel& eventLog)
+void FileManager::handleAssetDrop(
+    const AssetDropEvent& event,
+    const AssetInfo* asset,
+    SceneManager& sceneManager,
+    ResourceManager& resourceManager,
+    CameraManager& cameraManager,
+    ViewportManager& viewportManager,
+    EventLogPanel& eventLog
+)
 {
     if (!asset) return;
+
+    glm::vec3 dropPosition3D = this->_calculate3DPositionFromScreenPos(
+        event.dropPosition,
+        event.viewportId,
+        cameraManager,
+        viewportManager
+    );
 
     if (asset->isImage) {
         ofTexture& entityTexture = resourceManager.loadTexture(asset->filepath);
         EntityID entityId = this->_createImagePlaneEntity(
             entityTexture,
             asset->name,
-            glm::vec3(0, 0, 0)
+            resourceManager,
+            dropPosition3D
         );
 
         if (entityId != INVALID_ENTITY) {
@@ -215,8 +239,13 @@ void FileManager::handleAssetDrop(const AssetInfo* asset, SceneManager& sceneMan
             eventLog.addLog("Plane created: " + asset->name, ofColor::lime);
         }
     } else if (!asset->isImage && !asset->filepath.empty()) {
-        std::pair<EntityID, std::string> result = this->_importMesh(asset->filepath);
+        std::pair<EntityID, std::string> result = this->_importMesh(asset->filepath, resourceManager);
         if (result.first != INVALID_ENTITY) {
+            Transform* transform = this->_componentRegistry.getComponent<Transform>(result.first);
+            if (transform) {
+                transform->position = dropPosition3D;
+                transform->isDirty = true;
+            }
             sceneManager.registerEntity(result.first, asset->name);
             eventLog.addLog("3D model created: " + asset->name, ofColor::lime);
         }
@@ -241,9 +270,84 @@ ofMesh FileManager::_createImagePlane(float width, float height)
     mesh.addTexCoord(glm::vec2(0, 0));
     mesh.addTexCoord(glm::vec2(1, 0));
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++)
         mesh.addNormal(glm::vec3(0, 0, 1));
-    }
 
     return mesh;
+}
+
+glm::vec3 FileManager::_calculate3DPositionFromScreenPos(
+    const glm::vec2& screenPos,
+    ViewportID viewportId,
+    CameraManager& cameraManager,
+    ViewportManager& viewportManager
+)
+{
+    Viewport* vp = nullptr;
+    for (auto& viewport : viewportManager.getViewports()) {
+        if (viewport->getId() == viewportId) {
+            vp = viewport.get();
+            break;
+        }
+    }
+    if (!vp) vp = viewportManager.getActiveViewport();
+    if (!vp) return glm::vec3(0, 0, 0);
+
+    ofRectangle rect = vp->getRect();
+    float localX = screenPos.x;
+    float localY = screenPos.y;
+    int vpWidth = static_cast<int>(rect.getWidth());
+    int vpHeight = static_cast<int>(rect.getHeight());
+
+    if (vpWidth <= 0 || vpHeight <= 0) return glm::vec3(0, 0, 0);
+
+    EntityID camEntityId = vp->getCamera();
+    if (camEntityId == INVALID_ENTITY) camEntityId = cameraManager.getActiveCameraId();
+    if (camEntityId == INVALID_ENTITY) return glm::vec3(0, 0, 0);
+
+    Camera* cam = this->_componentRegistry.getComponent<Camera>(camEntityId);
+    Transform* camTransform = this->_componentRegistry.getComponent<Transform>(camEntityId);
+    if (!cam || !camTransform) return glm::vec3(0, 0, 0);
+
+    glm::mat4 proj;
+    float viewportAspect = static_cast<float>(vpWidth) / static_cast<float>(vpHeight);
+    if (cam->isOrtho) {
+        float halfWidth = cam->orthoScale * viewportAspect;
+        float halfHeight = cam->orthoScale;
+        proj = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, cam->nearClip, cam->farClip);
+    } else
+        proj = glm::perspective(glm::radians(cam->fov), viewportAspect, cam->nearClip, cam->farClip);
+
+    glm::vec3 camPos = camTransform->position;
+    glm::vec3 forward = glm::normalize(cam->forward);
+    glm::vec3 upVec = glm::normalize(-cam->up);
+    glm::mat4 view = glm::lookAt(camPos, camPos + forward, upVec);
+
+    glm::mat4 invVP = glm::inverse(proj * view);
+
+    float ndcX = 1.0f - (localX / static_cast<float>(vpWidth)) * 2.0f;
+    float ndcY = (localY / static_cast<float>(vpHeight)) * 2.0f - 1.0f;
+
+    glm::vec4 clipNear(ndcX, ndcY, -1.0f, 1.0f);
+    glm::vec4 clipFar(ndcX, ndcY, 1.0f, 1.0f);
+
+    glm::vec4 worldNear4 = invVP * clipNear;
+    glm::vec4 worldFar4  = invVP * clipFar;
+
+    glm::vec3 rayOrigin = glm::vec3(worldNear4) / worldNear4.w;
+    glm::vec3 rayDir    = glm::normalize(glm::vec3(worldFar4) / worldFar4.w - rayOrigin);
+
+    glm::vec3 planePoint(0, 0, 0);
+    glm::vec3 planeNormal(0, 0, 1);
+
+    std::optional<RaycastHit> hit = RaycastSystem::intersectRayPlane(
+        rayOrigin,
+        rayDir,
+        planePoint,
+        planeNormal
+    );
+
+    if (hit && hit->isValid()) return hit->point;
+
+    return rayOrigin + rayDir * 10.0f;
 }

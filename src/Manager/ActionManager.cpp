@@ -1,4 +1,5 @@
 #include "Manager/ActionManager.hpp"
+#include "Manager/SceneManager.hpp"
 
 ActionManager::ActionManager(
     ComponentRegistry& componentRegistry,
@@ -6,7 +7,8 @@ ActionManager::ActionManager(
     EventManager& eventManager,
     CameraManager& cameraManager,
     ViewportManager& viewportManager,
-    SelectionSystem& selectionSystem
+    SelectionSystem& selectionSystem,
+    SceneManager& sceneManager
 )
     : _componentRegistry(componentRegistry)
     , _entityManager(entityManager)
@@ -14,6 +16,7 @@ ActionManager::ActionManager(
     , _cameraManager(cameraManager)
     , _viewportManager(viewportManager)
     , _selectionSystem(selectionSystem)
+    , _sceneManager(sceneManager)
 {
 }
 
@@ -70,7 +73,10 @@ void ActionManager::_registerKeyboardActions()
     });
 
     input.registerKeyAction('f', [this]() {
-        EntityID cameraId = this->_cameraManager.getActiveCameraId();
+        Viewport* activeViewport = this->_viewportManager.getActiveViewport();
+        if (!activeViewport) return;
+
+        EntityID cameraId = activeViewport->getCamera();
         EntityID selected = this->_selectionSystem.getSelectedEntity();
 
         Camera* cam = this->_componentRegistry.getComponent<Camera>(cameraId);
@@ -80,6 +86,30 @@ void ActionManager::_registerKeyboardActions()
 
         if (!wasInFocusMode && selected != INVALID_ENTITY) toggleIsolateSelection();
         else if (wasInFocusMode && this->_isIsolated) toggleIsolateSelection();
+    });
+
+    input.registerKeyAction(OF_KEY_DEL, [this]() {
+        const std::set<EntityID>& selectedEntities = this->_selectionSystem.getSelectedEntities();
+
+        if (selectedEntities.empty()) return;
+
+        std::vector<EntityID> entitiesToDelete(selectedEntities.begin(), selectedEntities.end());
+
+        for (EntityID id : entitiesToDelete) {
+            Camera* camera = this->_componentRegistry.getComponent<Camera>(id);
+            bool isCamera = (camera != nullptr);
+
+            this->_componentRegistry.removeAllComponents(id);
+            this->_entityManager.destroyEntity(id);
+            this->_sceneManager.unregisterEntity(id);
+
+            if (isCamera && this->_cameraManager.getActiveCameraId() == INVALID_ENTITY) {
+                EntityID newCameraId = this->_cameraManager.addCamera(glm::vec3(0, 5, 10));
+                this->_sceneManager.registerEntity(newCameraId, "Camera " + std::to_string(newCameraId));
+            }
+        }
+
+        this->_selectionSystem.clearSelection();
     });
 }
 
@@ -124,6 +154,9 @@ void ActionManager::_handleCameraMovement(EntityID cameraId, Toolbar* toolbar)
 
 void ActionManager::_handleKeyboardCameraControls()
 {
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.WantCaptureKeyboard) return;
+
     auto& input = InputManager::get();
 
     if (input.isKeyPressed('d')) this->_cameraManager.pan(glm::vec3(1.0f, 0.0f, 0.0f));

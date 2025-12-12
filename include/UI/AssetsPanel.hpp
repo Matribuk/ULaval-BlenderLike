@@ -2,6 +2,7 @@
 
 #include "Manager/SceneManager.hpp"
 #include "Manager/CursorManager.hpp"
+#include "Manager/FileManager.hpp"
 
 #include "Core/EntityManager.hpp"
 #include "Core/ComponentRegistry.hpp"
@@ -24,6 +25,7 @@ class AssetsPanel {
         ~AssetsPanel() = default;
 
         void render();
+        void renderContent();
         void addAsset(const std::string& name, EntityID entityId, bool isImage);
         void addImageOrModelAsset(const std::string& name, const std::string& filepath, bool isImage);
         void clear();

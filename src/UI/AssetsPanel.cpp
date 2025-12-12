@@ -1,55 +1,60 @@
 #include "UI/AssetsPanel.hpp"
-#include "Manager/FileManager.hpp"
 
-AssetsPanel::AssetsPanel(SceneManager& sceneManager, ComponentRegistry& componentRegistry, CursorManager& cursorManager)
-    : _sceneManager(sceneManager), _componentRegistry(componentRegistry), _cursorManager(cursorManager) {}
+AssetsPanel::AssetsPanel(
+    SceneManager& sceneManager,
+    ComponentRegistry& componentRegistry,
+    CursorManager& cursorManager
+) :
+    _sceneManager(sceneManager),
+    _componentRegistry(componentRegistry),
+    _cursorManager(cursorManager)
+{}
 
 void AssetsPanel::render()
 {
     if (ImGui::Begin("Assets", nullptr, ImGuiWindowFlags_NoCollapse))
-    {
-        ImGui::Text("Imported Assets: %zu", this->_assets.size());
-        ImGui::Separator();
+        this->renderContent();
+    ImGui::End();
+}
 
-        if (this->_assets.empty()) {
-            ImGui::TextDisabled("No assets imported yet");
-            ImGui::Text("Use the Import button to add images or 3D models");
-        } else {
-            float cardWidth = 100.0f;
-            float spacing = 10.0f;
-            float windowWidth = ImGui::GetContentRegionAvail().x;
-            int columns = std::max(1, (int)(windowWidth / (cardWidth + spacing)));
+void AssetsPanel::renderContent()
+{
+    ImGui::Text("Imported Assets: %zu", this->_assets.size());
+    ImGui::Separator();
 
-            for (size_t i = 0; i < this->_assets.size(); ++i) {
-                ImGui::PushID(i);
+    if (this->_assets.empty()) {
+        ImGui::TextDisabled("No assets imported yet");
+        ImGui::Text("Use the Import button to add images or 3D models");
+    } else {
+        float cardWidth = 100.0f;
+        float spacing = 10.0f;
+        float windowWidth = ImGui::GetContentRegionAvail().x;
+        int columns = std::max(1, (int)(windowWidth / (cardWidth + spacing)));
 
-                const AssetInfo& asset = this->_assets[i];
+        for (size_t i = 0; i < this->_assets.size(); ++i) {
+            ImGui::PushID(i);
 
-                ImGui::BeginGroup();
+            const AssetInfo& asset = this->_assets[i];
 
-                this->_renderAssetThumbnail(asset);
+            ImGui::BeginGroup();
 
-                ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + cardWidth);
-                ImGui::Text("%s", asset.name.c_str());
-                ImGui::PopTextWrapPos();
+            this->_renderAssetThumbnail(asset);
 
-                if (asset.isImage) {
-                    ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "Image");
-                } else {
-                    ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.4f, 1.0f), "Model");
-                }
+            ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + cardWidth);
+            ImGui::Text("%s", asset.name.c_str());
+            ImGui::PopTextWrapPos();
 
-                ImGui::EndGroup();
+            if (asset.isImage) ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "Image");
+            else ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.4f, 1.0f), "Model");
 
-                if ((i + 1) % columns != 0 && i < this->_assets.size() - 1) {
-                    ImGui::SameLine(0.0f, spacing);
-                }
+            ImGui::EndGroup();
 
-                ImGui::PopID();
-            }
+            if ((i + 1) % columns != 0 && i < this->_assets.size() - 1)
+                ImGui::SameLine(0.0f, spacing);
+
+            ImGui::PopID();
         }
     }
-    ImGui::End();
 }
 
 void AssetsPanel::addAsset(const std::string& name, EntityID entityId, bool isImage)
@@ -65,14 +70,11 @@ void AssetsPanel::addAsset(const std::string& name, EntityID entityId, bool isIm
 
 void AssetsPanel::addImageOrModelAsset(const std::string& name, const std::string& filepath, bool isImage)
 {
-    if (name.empty())
-        return;
+    if (name.empty()) return;
 
     if (isImage && !filepath.empty()) {
         ofImage testImage;
-        if (!testImage.load(filepath)) {
-            return;
-        }
+        if (!testImage.load(filepath)) return;
     }
 
     AssetInfo info;
@@ -99,8 +101,7 @@ void AssetsPanel::loadAssetsFromDataFolder()
     std::string dataPath = ofToDataPath("", true);
     ofDirectory dir(dataPath);
 
-    if (!dir.exists())
-        return;
+    if (!dir.exists()) return;
 
     dir.listDir();
 
@@ -124,8 +125,7 @@ void AssetsPanel::_renderAssetThumbnail(const AssetInfo& asset)
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
     ImU32 color = asset.isImage ?
-        IM_COL32(100, 150, 255, 255) :
-        IM_COL32(255, 200, 100, 255);
+        IM_COL32(100, 150, 255, 255) : IM_COL32(255, 200, 100, 255);
 
     drawList->AddRectFilled(
         cursorPos,
@@ -150,18 +150,12 @@ void AssetsPanel::_renderAssetThumbnail(const AssetInfo& asset)
         this->_cursorManager.requestCursor(CursorLayer::Drag, GLFW_CROSSHAIR_CURSOR);
         size_t assetIndex = &asset - &this->_assets[0];
 
-        if (asset.isImage) {
-            ImGui::SetDragDropPayload("ASSET_IMAGE", &assetIndex, sizeof(size_t));
-        } else {
-            ImGui::SetDragDropPayload("ASSET_MODEL", &assetIndex, sizeof(size_t));
-        }
+        if (asset.isImage) ImGui::SetDragDropPayload("ASSET_IMAGE", &assetIndex, sizeof(size_t));
+        else ImGui::SetDragDropPayload("ASSET_MODEL", &assetIndex, sizeof(size_t));
 
         ImGui::Text("%s", asset.name.c_str());
-        if (asset.isImage) {
-            ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "Image");
-        } else {
-            ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.4f, 1.0f), "3D Model");
-        }
+        if (asset.isImage) ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "Image");
+        else ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.4f, 1.0f), "3D Model");
 
         ImGui::EndDragDropSource();
     }

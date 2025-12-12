@@ -1,12 +1,16 @@
 #pragma once
 
+#include "Events/EventTypes/ColorPreviewEvent.hpp"
+#include "Events/EventTypes/ColorPickedEvent.hpp"
+#include "Events/EventTypes/EyedropperCancelledEvent.hpp"
+#include "Events/EventManager.hpp"
+
 #include "Components/Renderable.hpp"
 
 #include "Core/Entity.hpp"
 #include "Core/ComponentRegistry.hpp"
 
 #include "Systems/SelectionSystem.hpp"
-#include "Events/EventManager.hpp"
 
 #include "ofxImGui.h"
 

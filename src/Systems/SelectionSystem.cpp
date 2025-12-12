@@ -1,5 +1,4 @@
 #include "Systems/SelectionSystem.hpp"
-#include "Manager/ViewportManager.hpp"
 
 SelectionSystem::SelectionSystem(
     ComponentRegistry& registry,
@@ -155,23 +154,35 @@ EntityID SelectionSystem::performRaycast(const glm::vec2& mouseGlobalPos, Entity
 
         glm::mat4 transformMatrix = getOrComputeTransformMatrix(t);
         glm::vec3 localMin, localMax;
+        bool hasBounds = false;
 
-        if (Box* box = this->_componentRegistry.getComponent<Box>(id)) {
-            glm::vec3 half = box->dimensions * 0.5f;
-            localMin = -half;
-            localMax = half;
-        } else if (Sphere* sphere = this->_componentRegistry.getComponent<Sphere>(id)) {
-            glm::vec3 half(sphere->radius);
-            localMin = -half;
-            localMax = half;
-        } else if (Plane* plane = this->_componentRegistry.getComponent<Plane>(id)) {
-            glm::vec3 half(plane->size.x*0.5f, 0.5f, plane->size.y*0.5f);
-            localMin = -half;
-            localMax = half;
-        } else {
-            glm::vec3 half = glm::max(t->scale * 0.5f, glm::vec3(0.1f));
-            localMin = -half;
-            localMax = half;
+        Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
+        if (renderable && renderable->mesh.getNumVertices() > 0) {
+            const auto& vertices = renderable->mesh.getVertices();
+            glm::vec3 minVert(std::numeric_limits<float>::max());
+            glm::vec3 maxVert(std::numeric_limits<float>::lowest());
+
+            for (const auto& v : vertices) {
+                minVert.x = std::min(minVert.x, v.x);
+                minVert.y = std::min(minVert.y, v.y);
+                minVert.z = std::min(minVert.z, v.z);
+                maxVert.x = std::max(maxVert.x, v.x);
+                maxVert.y = std::max(maxVert.y, v.y);
+                maxVert.z = std::max(maxVert.z, v.z);
+            }
+
+            localMin = minVert;
+            localMax = maxVert;
+            hasBounds = true;
+        }
+        else if (CustomBounds* customBounds = this->_componentRegistry.getComponent<CustomBounds>(id)) {
+            localMin = customBounds->min;
+            localMax = customBounds->max;
+            hasBounds = true;
+        }
+
+        if (!hasBounds) {
+            continue;
         }
 
         glm::vec3 worldMin, worldMax;

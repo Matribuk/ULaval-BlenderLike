@@ -1,5 +1,4 @@
 #include "UI/Viewport.hpp"
-#include "Events/EventTypes/AssetDropEvent.hpp"
 
 Viewport::Viewport(CameraManager& cameraManager, RenderSystem& renderSystem, EventManager& eventManager, CursorManager& cursorManager, ViewportID id)
     : _cameraManager(cameraManager), _renderSystem(renderSystem), _eventManager(eventManager), _cursorManager(cursorManager), _id(id)
