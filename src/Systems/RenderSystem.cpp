@@ -268,12 +268,18 @@ void RenderSystem::_drawMeshMultiPass(const ofMesh& mesh, const glm::mat4& trans
         shader->setUniform3f("specularReflection", material->specularReflection);
         shader->setUniform3f("emissiveReflection", material->emissiveReflection);
 
+        shader->setUniform1f("metallic", material->metallic);
+        shader->setUniform1f("roughness", material->roughness);
+        shader->setUniform1f("ao", material->ao);
+
         if (isIllumination) {
             shader->setUniform1f("reflectivity", material->reflectivity);
             shader->setUniform3f("reflectionTint", material->reflectionTint);
         }
 
         shader->setUniform4f("color", ofFloatColor(color));
+        glm::vec3 baseColor = glm::vec3(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f);
+        shader->setUniform3f("baseColor", baseColor);
         shader->setUniform1f("uTime", ofGetElapsedTimef());
 
         bool hasTexture = (material->texture != nullptr);
@@ -507,7 +513,7 @@ void RenderSystem::_collectLights(std::vector<LightSource>& lights)
 
 void RenderSystem::_setLightUniforms(ofShader* shader, const std::vector<LightSource>& lights)
 {
-    int numLights = std::min(static_cast<int>(lights.size()), 8);
+    int numLights = std::min(static_cast<int>(lights.size()), 16);
     shader->setUniform1i("numLights", numLights);
 
     for (int i = 0; i < numLights; ++i) {
