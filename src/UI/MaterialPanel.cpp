@@ -469,7 +469,7 @@ void MaterialPanel::_renderMaterialPresets(const std::set<EntityID>& selectedEnt
             Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
             if (renderable && renderable->material) {
                 renderable->material->reflectivity = 1.0f;
-                renderable->material->refractionIndex = 1.5f;
+                renderable->material->refractionIndex = 1.0f;
             }
         }
     }
