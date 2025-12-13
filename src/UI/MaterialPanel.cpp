@@ -416,7 +416,7 @@ void MaterialPanel::_renderMaterialPresets(const std::set<EntityID>& selectedEnt
         if (ImGui::Button(name.c_str(), ImVec2(80, 0))) {
             for (EntityID id : selectedEntities) {
                 Renderable* renderable = this->_componentRegistry.getComponent<Renderable>(id);
-                if (renderable && renderable->material) MaterialPresets::applyPreset(renderable->material, name);
+                if (renderable && renderable->material) MaterialPresets::applyPreset(renderable, name, &this->_resourceManager);
             }
         }
 
