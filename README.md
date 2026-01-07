@@ -20,7 +20,7 @@ Watch the complete demonstration on YouTube:
 ### 🎥 Quick Preview
 Or watch a short preview directly here:
 
-https://github.com/Matribuk/ULaval-BlenderLike/assets/demo.mp4
+https://github.com/Matribuk/ULaval-BlenderLike/raw/main/assets/demo.mp4
 
 ---
 
