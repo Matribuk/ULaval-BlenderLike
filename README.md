@@ -10,6 +10,12 @@ This repository is for educational/portfolio purposes. The code is viewable but 
 
 This application demonstrates fundamental and advanced concepts in computer graphics, including 2D/3D primitives, scene management, lighting models, texturing, ray tracing, and interactive user interfaces.
 
+## 🎬 Preview Video
+
+Check out a demonstration of the application in action:
+
+[![ULaval BlenderLike Demo](https://img.youtube.com/vi/zBN3nXR9hmg/0.jpg)](https://www.youtube.com/watch?v=zBN3nXR9hmg)
+
 ---
 
 ## ✨ Key Features
