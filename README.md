@@ -12,9 +12,15 @@ This application demonstrates fundamental and advanced concepts in computer grap
 
 ## 🎬 Preview Video
 
-Check out a demonstration of the application in action:
+### 📺 Full Demo
+Watch the complete demonstration on YouTube:
 
-[![ULaval BlenderLike Demo](https://img.youtube.com/vi/zBN3nXR9hmg/0.jpg)](https://www.youtube.com/watch?v=zBN3nXR9hmg)
+[![ULaval BlenderLike Demo](https://img.youtube.com/vi/zBN3nXR9hmg/maxresdefault.jpg)](https://www.youtube.com/watch?v=zBN3nXR9hmg)
+
+### 🎥 Quick Preview
+Or watch a short preview directly here:
+
+https://github.com/Matribuk/ULaval-BlenderLike/assets/demo.mp4
 
 ---
 
